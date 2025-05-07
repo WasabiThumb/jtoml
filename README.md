@@ -77,6 +77,20 @@ toml.serialize(JsonObject.class, table);
 // {"a":{"number":3405691582,"b":{"string":"hello from jtoml 😎"}}}
 ```
 
+### Shading notice
+If you are shading this library, serializers will not work as intended unless
+you configure shadowJar to merge the service files. See instructions below.
+
+#### Gradle
+```kotlin
+tasks.shadowJar {
+    mergeServiceFiles()
+}
+```
+
+#### Maven
+Use the [ServicesResourceTransformer](https://maven.apache.org/plugins/maven-shade-plugin/examples/resource-transformers.html#ServicesResourceTransformer).
+
 ## License
 ```text
 Copyright 2025 Wasabi Codes
