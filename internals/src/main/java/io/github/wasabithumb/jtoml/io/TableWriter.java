@@ -91,7 +91,7 @@ public final class TableWriter implements Closeable {
             TomlValue tv = table.get(tk);
             assert tv != null;
             if (tv.isTable()) {
-                b2.add(tk);
+                b3.add(tk);
             } else if (tv.isArray()) {
                 if (this.isArrayOfTables(tv.asArray())) {
                     b2.add(tk);
