@@ -3,20 +3,10 @@ package io.github.wasabithumb.jtoml.value.primitive;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Locale;
+import java.time.*;
 
 @ApiStatus.Internal
 final class OffsetDateTimeTomlPrimitive extends AbstractTomlPrimitive<OffsetDateTime> {
-
-    private static final DateTimeFormatter FORMAT =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd'T'h:m:ss.SSSZZZZZ", Locale.ROOT);
-
-    //
 
     private final OffsetDateTime value;
 
@@ -38,7 +28,28 @@ final class OffsetDateTimeTomlPrimitive extends AbstractTomlPrimitive<OffsetDate
 
     @Override
     public @NotNull String asString() {
-        return FORMAT.format(this.value);
+        StringBuilder sb = new StringBuilder();
+
+        writeDate(sb, this.value.toLocalDate());
+        sb.append('T');
+        writeTime(sb, this.value.toLocalTime());
+
+        int sec = this.value.getOffset().getTotalSeconds();
+        if (sec == 0) {
+            sb.append('Z');
+            return sb.toString();
+        } else if (sec < 0) {
+            sec = -sec;
+            sb.append('-');
+        } else {
+            sb.append('+');
+        }
+
+        int hour = sec / 3600;
+        int minute = (sec % 3600) / 60;
+
+        writeHourMinute(sb, hour, minute);
+        return sb.toString();
     }
 
     @Override

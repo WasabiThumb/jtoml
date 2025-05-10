@@ -74,7 +74,7 @@ tasks.register<FetchTestsTask>("fetchTests") {
 }
 
 tasks.processTestResources {
-    dependsOn(tasks.named("fetchTests"))
+    // dependsOn(tasks.named("fetchTests"))
 }
 
 //

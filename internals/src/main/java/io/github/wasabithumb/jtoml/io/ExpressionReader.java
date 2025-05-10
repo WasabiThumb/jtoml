@@ -1,11 +1,14 @@
 package io.github.wasabithumb.jtoml.io;
 
 import io.github.wasabithumb.jtoml.except.TomlException;
+import io.github.wasabithumb.jtoml.except.parse.TomlDateTimeException;
 import io.github.wasabithumb.jtoml.expression.Expression;
 import io.github.wasabithumb.jtoml.io.source.BufferedCharSource;
 import io.github.wasabithumb.jtoml.key.TomlKey;
 import io.github.wasabithumb.jtoml.option.JTomlOption;
 import io.github.wasabithumb.jtoml.option.JTomlOptions;
+import io.github.wasabithumb.jtoml.util.BooleanBuffer;
+import io.github.wasabithumb.jtoml.value.FlaggedTomlValue;
 import io.github.wasabithumb.jtoml.value.TomlValue;
 import io.github.wasabithumb.jtoml.value.array.TomlArray;
 import io.github.wasabithumb.jtoml.value.primitive.TomlPrimitive;
@@ -15,10 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Closeable;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneOffset;
+import java.time.*;
 
 public class ExpressionReader implements Closeable {
 
@@ -94,6 +94,7 @@ public class ExpressionReader implements Closeable {
             if (next == -1) this.in.raise("Encountered EOF while reading key");
             if (quot == '\0') {
                 if (next == terminatedBy) {
+                    this.stripBareWhitespace(buf);
                     try {
                         return TomlKey.parse(buf);
                     } catch (IllegalArgumentException e) {
@@ -114,18 +115,90 @@ public class ExpressionReader implements Closeable {
                 continue;
             }
             if (c == '\\') {
-                if (quot != '"') this.in.raise("Disallowed escape sequence");
-                escaped = true;
+                if (quot == '"') {
+                    escaped = true;
+                } else if (quot == '\0') {
+                    this.in.raise("Disallowed escape sequence");
+                }
             } else if (quot == '\0') {
-                if (c == '"' || c == '\'') {
+                if (c == '\0') {
+                    this.in.raise("Disallowed NULL character in bare key");
+                } else if (c == '"' || c == '\'') {
                     quot = c;
                 } else if (c == ' ' || c == '\t') {
-                    continue;
+                    // Convert whitespace in bare sections to NULL, this
+                    // is useful for distinguishing between escaped whitespace
+                    // within stripBareWhitespace
+                    c = '\0';
                 }
             } else if (c == quot) {
                 quot = '\0';
             }
             buf.append(c);
+        }
+    }
+
+    private void stripBareWhitespace(@NotNull StringBuilder sb) throws TomlException {
+        int trimStart = 0;
+
+        // Trim leading whitespace
+        while (true) {
+            if (trimStart >= sb.length()) this.in.raise("Empty key");
+            if (sb.charAt(trimStart) == '\0') {
+                trimStart++;
+            } else {
+                break;
+            }
+        }
+        if (trimStart != 0) {
+            int rem = sb.length() - trimStart;
+            for (int i = 0; i < rem; i++) {
+                sb.setCharAt(i, sb.charAt(trimStart + i));
+            }
+            sb.setLength(rem);
+        }
+
+        // Trim trailing whitespace
+        trimStart = sb.length();
+        while (true) {
+            if (sb.charAt(trimStart - 1) != '\0') {
+                sb.setLength(trimStart);
+                break;
+            }
+            trimStart--;
+        }
+
+        // Ensure that all other whitespace is neighbored
+        // by a separator (.) and then trim it
+        int head = 1;
+        char c;
+
+        while (head < sb.length()) {
+            c = sb.charAt(head);
+            if (c != '\0') {
+                head++;
+                continue;
+            }
+
+            boolean neighbored = sb.charAt(head - 1) == '.';
+            int end = head + 1;
+            while (end < sb.length()) {
+                c = sb.charAt(end);
+                if (c != '\0') {
+                    if (c == '.') neighbored = true;
+                    break;
+                }
+                end++;
+            }
+
+            if (!neighbored)
+                this.in.raise("Disallowed whitespace in bare key");
+
+            int rem = sb.length() - end;
+            for (int z=0; z < rem; z++) {
+                sb.setCharAt(head + z, sb.charAt(end + z));
+            }
+            sb.setLength(head + rem);
         }
     }
 
@@ -169,9 +242,9 @@ public class ExpressionReader implements Closeable {
                     if ('a' <= next && next <= 'f') continue; // Hexadecimal
                 }
                 if (mode == 0 || mode == 2) {
-                    if (next == 'X' || next == 'x' ||     // Hexadecimal
-                            next == 'O' || next == 'o' || // Octal
-                            next == 'B' || next == 'b'    // Binary
+                    if (next == 'x' ||     // Hexadecimal
+                            next == 'o' || // Octal
+                            next == 'b'    // Binary
                     ) {
                         mode = 2;
                         break;
@@ -240,7 +313,11 @@ public class ExpressionReader implements Closeable {
         } else if (mode == 1 || mode == 3) { // Float
             return this.parseFloat(sb);
         } else {                             // DateTime
-            return this.parseDateTime(sb);
+            try {
+                return this.parseDateTime(sb);
+            } catch (DateTimeException e) {
+                throw new TomlDateTimeException(e);
+            }
         }
     }
 
@@ -256,7 +333,7 @@ public class ExpressionReader implements Closeable {
 
         char d;
         int v;
-        if (specifier == 'x' || specifier == 'X') {
+        if (specifier == 'x') {
             // Hexadecimal
             for (int i=2; i < len; i++) {
                 d = str.charAt(i);
@@ -277,7 +354,7 @@ public class ExpressionReader implements Closeable {
                 if (Long.numberOfLeadingZeros(n) < 4) this.in.raise("Integer is too large");
                 n = (n << 4L) | ((long) v);
             }
-        } else if (specifier == 'o' || specifier == 'O') {
+        } else if (specifier == 'o') {
             // Octal
             for (int i=2; i < len; i++) {
                 d = str.charAt(i);
@@ -294,7 +371,7 @@ public class ExpressionReader implements Closeable {
                 if (Long.numberOfLeadingZeros(n) < 3) this.in.raise("Integer is too large");
                 n = (n << 3L) | ((long) v);
             }
-        } else if (specifier == 'b' || specifier == 'B') {
+        } else if (specifier == 'b') {
             // Binary
             for (int i=2; i < len; i++) {
                 d = str.charAt(i);
@@ -328,7 +405,11 @@ public class ExpressionReader implements Closeable {
 
             for (int i=start; i < len; i++) {
                 d = str.charAt(i);
-                if ('0' <= d && d <= '9') {
+                if (d == '0') {
+                    if (i == start && i != (len - 1))
+                        this.in.raise("Disallowed leading 0 in decimal integer");
+                    v = 0;
+                } else if ('0' < d && d <= '9') {
                     v = (d - '0');
                 } else if (d == '_') {
                     if (i == start || i == (len - 1) || str.charAt(i - 1) == '_')
@@ -383,8 +464,16 @@ public class ExpressionReader implements Closeable {
         // Read integer part
         long ip;
         c = str.charAt(head++);
-        if (c < '0' || c > '9') this.in.raise("Invalid integer part");
-        ip = (c - '0');
+        boolean leadsWithZero;
+        if (c == '0') {
+            leadsWithZero = true;
+            ip = 0;
+        } else {
+            if (c < '1' || c > '9')
+                this.in.raise("Invalid integer part");
+            leadsWithZero = false;
+            ip = (c - '0');
+        }
         while (head < len) {
             c = str.charAt(head);
             if (c == '_') {
@@ -394,6 +483,7 @@ public class ExpressionReader implements Closeable {
                 continue;
             }
             if (c < '0' || c > '9') break;
+            if (leadsWithZero) this.in.raise("Illegal leading zero in float");
             head++;
             try {
                 ip = Math.multiplyExact(ip, 10);
@@ -411,12 +501,12 @@ public class ExpressionReader implements Closeable {
 
         // Read fractional part
         if (c == '.') {
+            StringBuilder buf = new StringBuilder("0.");
             none = false;
             if (head >= len) this.in.raise("Expected digits after decimal point");
-            double s = 0.1d;
             c = str.charAt(head++);
             if (c < '0' || c > '9') this.in.raise("Invalid fractional part");
-            frac += (s * (c - '0'));
+            buf.append(c);
             while (head < len) {
                 c = str.charAt(head++);
                 if (c == '_') {
@@ -425,9 +515,9 @@ public class ExpressionReader implements Closeable {
                     continue;
                 }
                 if (c < '0' || c > '9') break;
-                s /= 10;
-                frac += (s * (c - '0'));
+                buf.append(c);
             }
+            frac = Double.parseDouble(buf.toString());
         }
 
         // Read exponent
@@ -480,7 +570,7 @@ public class ExpressionReader implements Closeable {
         return TomlPrimitive.of(d);
     }
 
-    private @NotNull TomlPrimitive parseDateTime(@NotNull CharSequence str) throws TomlException {
+    private @NotNull TomlPrimitive parseDateTime(@NotNull CharSequence str) throws TomlException, DateTimeException {
         final int len = str.length();
         if (len < 8) {
             this.in.raise("Datetime sequence is too short");
@@ -667,6 +757,13 @@ public class ExpressionReader implements Closeable {
             } else if (next == '\\') {
                 trimming = false;
                 int pk = this.in.peek();
+                BooleanBuffer nws = new BooleanBuffer();
+                boolean wst;
+                while ((wst = pk == '\t') || pk == ' ') {
+                    nws.push(wst);
+                    this.in.next();
+                    pk = this.in.peek();
+                }
                 if (pk == '\r') {
                     trimming = true;
                     this.in.next();
@@ -675,18 +772,37 @@ public class ExpressionReader implements Closeable {
                 } else if (pk == '\n') {
                     trimming = true;
                     this.in.next();
+                } else {
+                    while (nws.isNotEmpty()) {
+                        sb.append(nws.pop() ? '\t' : ' ');
+                    }
                 }
                 if (!trimming) this.readEscapeSequence(sb);
             } else if (next == '"') {
-                next = this.in.next();
-                if (next != '\"') this.in.raise("Single quotation marks in a multi-line basic string is not allowed");
-                next = this.in.next();
-                if (next != '\"') this.in.raise("Double quotation marks in a multi-line basic string is not allowed");
-                return TomlPrimitive.of(sb.toString());
+                int pk = this.in.peek();
+                if (pk != '\"') {
+                    sb.append((char) next);
+                } else {
+                    this.in.next();
+                    pk = this.in.peek();
+                    if (pk != '\"') {
+                        sb.append("\"\"");
+                    } else {
+                        this.in.next();
+                        int extra = 0;
+                        while (this.in.peek() == '\"') {
+                            this.in.next();
+                            if ((++extra) == 3)
+                                this.in.raise("Too many closing quotes for multiline basic string");
+                            sb.append('\"');
+                        }
+                        return TomlPrimitive.of(sb.toString());
+                    }
+                }
             } else if (next == ' ' || next == '\t') {
-                if (!trimming) sb.append(next);
+                if (!trimming) sb.append((char) next);
             } else if (next < ' ' || next == 0x7F) {
-                this.in.raise("Disallowed control character in literal string");
+                this.in.raise("Disallowed control character in basic string");
             } else {
                 trimming = false;
                 sb.append((char) next);
@@ -720,6 +836,8 @@ public class ExpressionReader implements Closeable {
                     if (n == -1) this.in.raise("Invalid character in unicode escape sequence");
                     v = (v << 4) | n;
                 }
+                if (0xD800 <= v && v <= 0xDFFF)
+                    this.in.raise("Non-scalar unicode codepoint");
                 if (uc == 8) {
                     dest.append(Character.toChars(v));
                 } else {
@@ -781,6 +899,13 @@ public class ExpressionReader implements Closeable {
                     int cl = sb.length();
                     if (cl >= 3 && sb.charAt(cl - 2) == '\'' && sb.charAt(cl - 3) == '\'') {
                         sb.setLength(cl - 3);
+                        int extra = 0;
+                        while (this.in.peek() == '\'') {
+                            this.in.next();
+                            if ((++extra) == 3)
+                                this.in.raise("Too many closing quotes for multiline literal string");
+                            sb.append('\'');
+                        }
                         return TomlPrimitive.of(sb.toString());
                     }
                 }
@@ -815,14 +940,27 @@ public class ExpressionReader implements Closeable {
                 if (c != ',') this.in.raise("Expected inline table separator or closing char");
                 if (!this.in.skipWhitespace()) this.in.raise("Unclosed inline table");
                 c = this.in.nextChar();
-                if (c == '}') return ret;
+                if (c == '}') this.in.raise("Disallowed trailing comma in inline table");
             }
             StringBuilder sb = new StringBuilder();
             sb.append(c);
             TomlKey key = this.readKey(sb, '=', (c == '"' || c == '\'') ? c : '\0');
+            for (int z=1; z < key.size(); z++) {
+                TomlKey parentKey = key.slice(0, z);
+                TomlValue existing = ret.get(parentKey);
+                if (existing == null) continue;
+                if (FlaggedTomlValue.isConstant(existing))
+                    this.in.raise(key + " conflicts with previously defined key " + parentKey + " in inline table");
+            }
             if (!this.in.skipWhitespace()) this.in.raise("Expected value, got EOF");
             TomlValue value = this.readValue();
-            ret.put(key, value);
+            FlaggedTomlValue flaggedValue = FlaggedTomlValue.wrap(value);
+            flaggedValue.setConstant(true);
+            try {
+                ret.put(key, flaggedValue);
+            } catch (IllegalArgumentException e) {
+                this.in.raise("Detected clobbering", e);
+            }
             expectComma = true;
         }
     }
@@ -834,14 +972,22 @@ public class ExpressionReader implements Closeable {
         if (ctrl == ',') this.in.raise("Comma precedes array values");
         if (ctrl == ']') return ret;
 
+        boolean readComma;
         while (true) {
             ret.add(this.readValue(ctrl));
             ctrl = this.readArrayControl();
             if (ctrl == ',') {
+                readComma = true;
                 ctrl = this.readArrayControl();
                 if (ctrl == ',') this.in.raise("Double comma in array");
+            } else {
+                readComma = false;
             }
-            if (ctrl == ']') return ret;
+            if (ctrl == ']') {
+                return ret;
+            } else if (!readComma) {
+                this.in.raise("Missing array separator");
+            }
         }
     }
 
@@ -862,7 +1008,7 @@ public class ExpressionReader implements Closeable {
                 inComment = true;
             } else if (next != ' ' && next != '\t') {
                 if (!inComment) return (char) next;
-                if (next < ' ') this.in.raise("Disallowed control character in comment");
+                if (next < ' ' || next == 0x7F) this.in.raise("Disallowed control character in comment");
             }
         }
     }

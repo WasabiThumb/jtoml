@@ -77,7 +77,7 @@ public final class BufferedCharSource implements CharSource {
                 return;
             }
             if (comment) {
-                if (next < ' ' && next != '\t') {
+                if (next == 0x7F || (next < ' ' && next != '\t')) {
                     this.raise("Control character (" + next + ") is not allowed in comment");
                 }
                 continue;
@@ -115,6 +115,8 @@ public final class BufferedCharSource implements CharSource {
         if (n == '\n') {
             this.ln++;
             this.cn = 0;
+        } else {
+            this.cn++;
         }
         return n;
     }
@@ -131,6 +133,8 @@ public final class BufferedCharSource implements CharSource {
         if (n == '\n') {
             this.ln++;
             this.cn = 0;
+        } else {
+            this.cn++;
         }
         return n;
     }

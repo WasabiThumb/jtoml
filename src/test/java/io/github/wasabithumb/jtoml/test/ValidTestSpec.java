@@ -114,6 +114,19 @@ final class ValidTestSpec extends AbstractTestSpec {
             assertTrue(primitive.isInteger(), "Expected " + descriptor + " to be an integer");
         } else if ("float".equals(vType)) {
             assertTrue(primitive.isFloat(), "Expected " + descriptor + " to be a float");
+            double vd;
+            if ("inf".equals(vValue)) {
+                vd = Double.POSITIVE_INFINITY;
+            } else if ("-inf".equals(vValue)) {
+                vd = Double.NEGATIVE_INFINITY;
+            } else if ("nan".equals(vValue)) {
+                assertTrue(Double.isNaN(primitive.asDouble()), "Expected " + descriptor + " to be NaN");
+                return;
+            } else {
+                vd = Double.parseDouble(vValue);
+            }
+            assertEquals(vd, primitive.asDouble());
+            return;
         } else if ("bool".equals(vType)) {
             assertTrue(primitive.isBoolean(), "Expected " + descriptor + " to be a boolean");
         } else if ("datetime".equals(vType)) {

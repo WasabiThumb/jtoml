@@ -4,16 +4,9 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.*;
-import java.time.format.DateTimeFormatter;
-import java.util.Locale;
 
 @ApiStatus.Internal
 final class LocalTimeTomlPrimitive extends AbstractTomlPrimitive<LocalTime> {
-
-    private static final DateTimeFormatter FORMAT =
-            DateTimeFormatter.ofPattern("h:m:ss.SSS", Locale.ROOT);
-
-    //
 
     private final LocalTime value;
     private final ZoneOffset offset;
@@ -37,7 +30,9 @@ final class LocalTimeTomlPrimitive extends AbstractTomlPrimitive<LocalTime> {
 
     @Override
     public @NotNull String asString() {
-        return FORMAT.format(this.value);
+        StringBuilder sb = new StringBuilder();
+        writeTime(sb, this.value);
+        return sb.toString();
     }
 
     @Override

@@ -1,6 +1,7 @@
 package io.github.wasabithumb.jtoml;
 
 import io.github.wasabithumb.jtoml.except.TomlException;
+import io.github.wasabithumb.jtoml.except.parse.TomlParseException;
 import io.github.wasabithumb.jtoml.test.TestSpec;
 import io.github.wasabithumb.jtoml.test.TestSpecs;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
@@ -33,15 +34,15 @@ class JTomlTest {
     private void suiteRun(TestSpec spec) {
         if (spec.shouldFail()) {
             assertThrows(
-                    TomlException.class,
+                    TomlParseException.class,
                     () -> this.suiteRead(spec),
                     "Expected test to throw TomlException"
             );
             return;
         }
 
-        TomlTable table = assertDoesNotThrow(() -> this.suiteRead(spec), "Failed to read");
-        assertDoesNotThrow(() -> spec.validate(table), "Failed to validate");
+        TomlTable table = assertDoesNotThrow(() -> this.suiteRead(spec));
+        assertDoesNotThrow(() -> spec.validate(table));
     }
 
     private TomlTable suiteRead(TestSpec spec) throws TomlException, IOException {

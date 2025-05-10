@@ -145,14 +145,26 @@ public final class TableReader extends ExpressionReader {
             } else {
                 TomlValue existing = table.get(name);
                 if (existing != null) {
-                    if (existing.isTable()) {
-                        throw new TomlClobberException("Attempt to redefine table \"" + key + "\"");
-                    } else {
+                    if (!existing.isTable()) {
                         throw new TomlClobberException("Defining table \"" + key +
                                 "\" would override existing non-table");
+                    } else if (this.extGuard && FlaggedTomlValue.isConstant(existing)) {
+                        throw new TomlExtensionException("Defining table \"" + key +
+                                "\" extends existing constant table");
+                    } else if (FlaggedTomlValue.isNonReusable(existing)) {
+                        throw new TomlExtensionException("Reuse of explicitly defined table \"" + key + "\"");
                     }
+                    newTable = existing.asTable();
+                    table.remove(name);
+
+                    FlaggedTomlValue flagged = FlaggedTomlValue.wrap(existing);
+                    flagged.setNonReusable(true);
+                    table.put(name, flagged);
+                } else {
+                    FlaggedTomlValue flagged = FlaggedTomlValue.wrap(newTable);
+                    flagged.setNonReusable(true);
+                    table.put(name, flagged);
                 }
-                table.put(name, newTable);
             }
 
             this.useSub = true;

@@ -25,7 +25,13 @@ public final class FlaggedTomlValue implements TomlValue {
         return false;
     }
 
+    public static boolean isNonReusable(@NotNull TomlValue value) {
+        if (value instanceof FlaggedTomlValue) return ((FlaggedTomlValue) value).isNonReusable();
+        return false;
+    }
+
     private static final int F_CONSTANT = 1;
+    private static final int F_NON_REUSABLE = 2;
 
     //
 
@@ -61,6 +67,14 @@ public final class FlaggedTomlValue implements TomlValue {
 
     public void setConstant(boolean constant) {
         this.setFlag(F_CONSTANT, constant);
+    }
+
+    public boolean isNonReusable() {
+        return this.getFlag(F_NON_REUSABLE);
+    }
+
+    public void setNonReusable(boolean nonReusable) {
+        this.setFlag(F_NON_REUSABLE, nonReusable);
     }
 
     // START Super
