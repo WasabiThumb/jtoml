@@ -7,7 +7,7 @@ allprojects {
     apply(plugin = "net.thebugmc.gradle.sonatype-central-portal-publisher")
 
     group = "io.github.wasabithumb"
-    version = "0.1.1"
+    version = "0.2.0"
 
     dependencies {
         compileOnly("org.jetbrains:annotations:26.0.1")
@@ -74,7 +74,7 @@ tasks.register<FetchTestsTask>("fetchTests") {
 }
 
 tasks.processTestResources {
-    // dependsOn(tasks.named("fetchTests"))
+    dependsOn(tasks.named("fetchTests"))
 }
 
 //
