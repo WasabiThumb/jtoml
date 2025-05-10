@@ -41,7 +41,7 @@ public final class TableWriter implements Closeable {
         for (int i=0; i < this.indentLevel; i++) this.out.put(c);
     }
 
-    private void writeTableHeader(@NotNull TomlKey key) throws TomlException {
+    private void writeTableHeader(@NotNull TomlKey key, boolean array) throws TomlException {
         final SpacingPolicy spacing         = this.options.get(JTomlOption.SPACING);
         final PaddingPolicy padding         = this.options.get(JTomlOption.PADDING);
         final IndentationPolicy indentation = this.options.get(JTomlOption.INDENTATION);
@@ -54,13 +54,25 @@ public final class TableWriter implements Closeable {
         for (int i=0; i < spacing.preTable(); i++) this.out.put(newline);
         this.writeIndent();
         this.out.put('[');
+        if (array) {
+            for (int i=0; i < padding.tablePadding(); i++) this.out.put(' ');
+            this.out.put('[');
+        }
         for (int i=0; i < padding.tablePadding(); i++) this.out.put(' ');
         this.out.put(key.toString());
+        if (array) {
+            for (int i=0; i < padding.tablePadding(); i++) this.out.put(' ');
+            this.out.put(']');
+        }
         for (int i=0; i < padding.tablePadding(); i++) this.out.put(' ');
         this.out.put(']');
         for (int i=0; i < (spacing.postTable() + 1); i++) this.out.put(newline);
 
         this.indentLevel += indentation.postIndent();
+    }
+
+    private void writeTableHeader(@NotNull TomlKey key) throws TomlException {
+        this.writeTableHeader(key, false);
     }
 
     private void writeTableBody(@NotNull TomlKey prefix, @NotNull TomlTable table) throws TomlException {
@@ -69,17 +81,23 @@ public final class TableWriter implements Closeable {
 
         // Bin 0: Primitives
         // Bin 1: Arrays
-        // Bin 2: Tables
+        // Bin 2: Arrays of Tables
+        // Bin 3: Tables
         KeyBin b0 = new KeyBin(count);
         KeyBin b1 = new KeyBin(count);
         KeyBin b2 = new KeyBin(count);
+        KeyBin b3 = new KeyBin(count);
         for (TomlKey tk : set) {
             TomlValue tv = table.get(tk);
             assert tv != null;
             if (tv.isTable()) {
                 b2.add(tk);
             } else if (tv.isArray()) {
-                b1.add(tk);
+                if (this.isArrayOfTables(tv.asArray())) {
+                    b2.add(tk);
+                } else {
+                    b1.add(tk);
+                }
             } else {
                 b0.add(tk);
             }
@@ -104,6 +122,19 @@ public final class TableWriter implements Closeable {
 
         for (int i=0; i < b2.size(); i++) {
             nextKey = b2.get(i);
+            nextValue = table.get(nextKey);
+            assert nextValue != null;
+            TomlArray arr = nextValue.asArray();
+            TomlTable child;
+            for (int z=0; z < arr.size(); z++) {
+                child = arr.get(z).asTable();
+                this.writeTableHeader(nextKey, true);
+                this.writeTableBody(nextKey, child);
+            }
+        }
+
+        for (int i=0; i < b3.size(); i++) {
+            nextKey = b3.get(i);
             nextValue = table.get(nextKey);
             assert nextValue != null;
             nextKey = TomlKey.join(prefix, nextKey);
@@ -232,6 +263,22 @@ public final class TableWriter implements Closeable {
         } else {
             this.writeInlineTableValue(value.asTable());
         }
+    }
+
+    private boolean isArrayOfTables(@NotNull TomlArray array) throws TomlException {
+        final int size = array.size();
+        if (size == 0) {
+            // Subjective decision: x = [] looks better than [[x]]
+            return false;
+        }
+
+        for (int i=0; i < size; i++) {
+            if (!array.get(i).isTable()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     @Override

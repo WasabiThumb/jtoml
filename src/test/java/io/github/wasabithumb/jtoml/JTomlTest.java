@@ -1,6 +1,12 @@
 package io.github.wasabithumb.jtoml;
 
+import io.github.wasabithumb.jtoml.option.JTomlOption;
+import io.github.wasabithumb.jtoml.option.JTomlOptions;
+import io.github.wasabithumb.jtoml.option.prop.PaddingPolicy;
+import io.github.wasabithumb.jtoml.value.array.TomlArray;
+import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 class JTomlTest {
 
@@ -43,6 +49,41 @@ class JTomlTest {
     void example() {
         JToml toml = JToml.jToml();
         toml.readFromString(EXAMPLE);
+    }
+
+    @Test
+    void writeArrayOfTables() {
+        final int childCount = 4;
+
+        TomlArray arr = TomlArray.create();
+        for (int i=0; i < childCount; i++) {
+            TomlTable child = TomlTable.create();
+            child.put("foo", "bar");
+            child.put("n", i);
+            arr.add(child);
+        }
+
+        TomlTable table = TomlTable.create();
+        table.put("nodes", arr);
+
+        JTomlOptions options = JTomlOptions.builder()
+                .set(JTomlOption.PADDING, PaddingPolicy.NONE)
+                .build();
+        JToml toml = JToml.jToml(options);
+        String str = toml.writeToString(table);
+
+        // Count instances of [[nodes]]
+        int count = 0;
+        int head = 0;
+
+        while (head < str.length()) {
+            head = str.indexOf("[[nodes]]", head);
+            if (head == -1) break;
+            count++;
+            head += 9;
+        }
+
+        assertEquals(childCount, count);
     }
 
     // TODO: more tests
