@@ -31,6 +31,9 @@ abstract class FetchTestsTask : DefaultTask() {
 
     @TaskAction
     fun execute() {
+        if (this.accessToken.isPresent)
+            GitHubAPI.accessToken = this.accessToken.get()
+
         val commit = GitHubAPI.getLatestCommit("toml-lang", "toml-test")
         if (this.checkCommit(commit)) {
             this.logger.log(LogLevel.LIFECYCLE, "Up to date, skipping")

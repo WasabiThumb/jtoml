@@ -1,36 +1,37 @@
 package io.github.wasabithumb.jtoml.io.target;
 
+import io.github.wasabithumb.jtoml.except.TomlException;
 import io.github.wasabithumb.jtoml.except.TomlIOException;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 
-public final class StreamCharTarget extends OutputStreamWriter implements CharTarget {
+public final class WriterCharTarget extends FilterWriter implements CharTarget {
 
-    public StreamCharTarget(@NotNull OutputStream out) {
-        super(out, StandardCharsets.UTF_8);
+    public static @NotNull WriterCharTarget of(@NotNull OutputStream out) {
+        return new WriterCharTarget(new OutputStreamWriter(out, StandardCharsets.UTF_8));
     }
 
     //
 
-    public void writeBOM() {
-        this.put(0xFEFF);
+    public WriterCharTarget(@NotNull Writer out) {
+        super(out);
     }
 
+    //
+
     @Override
-    public void put(int c) throws TomlIOException {
+    public void put(int c) throws TomlException {
         try {
-            this.write(c);
+            this.out.write(c);
         } catch (IOException e) {
             TomlIOException.rethrow(e);
         }
     }
 
     @Override
-    public void put(char c) throws TomlIOException {
+    public void put(char c) throws TomlException {
         this.put((int) c);
     }
 
