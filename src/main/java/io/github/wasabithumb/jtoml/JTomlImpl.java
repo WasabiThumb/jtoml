@@ -62,22 +62,20 @@ final class JTomlImpl implements JToml {
 
     @Override
     public @NotNull TomlDocument read(@NotNull InputStream in) throws TomlException {
-        try (StreamCharSource cs = new StreamCharSource(in, this.options.get(JTomlOption.READ_BOM))) {
-            TomlTable table = this.read(new BufferedCharSource(cs));
-            TomlDocumentImpl doc = new TomlDocumentImpl(table);
-            doc.setOrderMarked(cs.didReadBOM());
-            return doc;
-        }
+        StreamCharSource cs = new StreamCharSource(in, this.options.get(JTomlOption.READ_BOM));
+        TomlTable table = this.read(new BufferedCharSource(cs));
+        TomlDocumentImpl doc = new TomlDocumentImpl(table);
+        doc.setOrderMarked(cs.didReadBOM());
+        return doc;
     }
 
     @Override
     public @NotNull TomlDocument read(@NotNull Reader reader) throws TomlException {
-        try (ReaderCharSource cs = new ReaderCharSource(reader, this.options.get(JTomlOption.READ_BOM))) {
-            TomlTable table = this.read(new BufferedCharSource(cs));
-            TomlDocumentImpl doc = new TomlDocumentImpl(table);
-            doc.setOrderMarked(cs.didReadBOM());
-            return doc;
-        }
+        ReaderCharSource cs = new ReaderCharSource(reader, this.options.get(JTomlOption.READ_BOM));
+        TomlTable table = this.read(new BufferedCharSource(cs));
+        TomlDocumentImpl doc = new TomlDocumentImpl(table);
+        doc.setOrderMarked(cs.didReadBOM());
+        return doc;
     }
 
     //
@@ -97,20 +95,18 @@ final class JTomlImpl implements JToml {
 
     @Override
     public void write(@NotNull OutputStream out, @NotNull TomlTable table) throws TomlIOException {
-        try (WriterCharTarget ct = WriterCharTarget.of(out)) {
-            if (this.shouldWriteBOM(table)) ct.put(0xFEFF);
-            this.write((CharTarget) ct, table);
-            ct.flush();
-        }
+        WriterCharTarget ct = WriterCharTarget.of(out);
+        if (this.shouldWriteBOM(table)) ct.put(0xFEFF);
+        this.write((CharTarget) ct, table);
+        ct.flush();
     }
 
     @Override
     public void write(@NotNull Writer writer, @NotNull TomlTable table) throws TomlIOException {
-        try (WriterCharTarget ct = new WriterCharTarget(writer)) {
-            if (this.shouldWriteBOM(table)) ct.put(0xFEFF);
-            this.write((CharTarget) ct, table);
-            ct.flush();
-        }
+        WriterCharTarget ct = new WriterCharTarget(writer);
+        if (this.shouldWriteBOM(table)) ct.put(0xFEFF);
+        this.write((CharTarget) ct, table);
+        ct.flush();
     }
 
     //
