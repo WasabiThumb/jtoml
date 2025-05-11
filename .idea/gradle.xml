@@ -22,6 +22,7 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/api" />
             <option value="$PROJECT_DIR$/buildSrc" />
+            <option value="$PROJECT_DIR$/configurate" />
             <option value="$PROJECT_DIR$/internals" />
             <option value="$PROJECT_DIR$/serializer-gson" />
             <option value="$PROJECT_DIR$/serializer-reflect" />

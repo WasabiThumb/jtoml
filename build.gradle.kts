@@ -52,6 +52,7 @@ dependencies {
 
     testImplementation(project(":serializer-gson"))
     testImplementation(project(":serializer-reflect"))
+    testImplementation(project(":configurate"))
     testImplementation("com.google.code.gson:gson:2.13.1")
 
     // JUnit Test Platform
@@ -67,6 +68,7 @@ tasks.test {
 // To fix this, add a GitHub access token to your gradle.properties
 // Example: echo "github.read.token=$YOUR_TOKEN" >> ~/.gradle/gradle.properties
 tasks.register<FetchTestsTask>("fetchTests") {
+    enabled = false
     outputs.upToDateWhen { false }
     outDir.set(layout.projectDirectory.dir("src/test/resources/tests"))
     val token = project.findProperty("github.read.token")?.toString()
