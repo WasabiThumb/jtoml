@@ -163,6 +163,7 @@ public final class TableReader extends ExpressionReader {
                 } else {
                     FlaggedTomlValue flagged = FlaggedTomlValue.wrap(newTable);
                     flagged.setNonReusable(true);
+                    flagged.setNonKeyExtendable(true);
                     table.put(name, flagged);
                 }
             }
@@ -183,7 +184,9 @@ public final class TableReader extends ExpressionReader {
                 TomlValue next = target.get(part);
                 if (next == null) {
                     TomlTable sub = TomlTable.create();
-                    target.put(part, sub);
+                    FlaggedTomlValue flagged = FlaggedTomlValue.wrap(sub);
+                    flagged.setNonReusable(true);
+                    target.put(part, flagged);
                     target = sub;
                     continue;
                 }
@@ -191,6 +194,10 @@ public final class TableReader extends ExpressionReader {
                     if (this.extGuard && FlaggedTomlValue.isConstant(next)) {
                         throw new TomlExtensionException("Defining value \"" + this.fullKey(key) +
                                 "\" would extend constant table \"" + this.fullKey(key.slice(0, i + 1)) + "\"");
+                    }
+                    if (this.extGuard && FlaggedTomlValue.isNonKeyExtendable(next)) {
+                        throw new TomlExtensionException("Cannot extend table \"" + this.fullKey(key.slice(0, i + 1)) +
+                                "\" (defining key " + this.fullKey(key) + ")");
                     }
                     target = next.asTable();
                     continue;

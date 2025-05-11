@@ -63,14 +63,9 @@ tasks.test {
     useJUnitPlatform()
 }
 
-// You may get rate limited when fetching the test suite.
-// To fix this, add a GitHub access token to your gradle.properties
-// Example: echo "github.read.token=$YOUR_TOKEN" >> ~/.gradle/gradle.properties
 tasks.register<FetchTestsTask>("fetchTests") {
     outputs.upToDateWhen { false }
-    outDir.set(layout.projectDirectory.dir("src/test/resources/tests"))
-    val token = project.findProperty("github.read.token")?.toString()
-    if (token != null) accessToken.set(token)
+    outDir.set(layout.projectDirectory.dir("src/test/resources"))
 }
 
 tasks.processTestResources {
