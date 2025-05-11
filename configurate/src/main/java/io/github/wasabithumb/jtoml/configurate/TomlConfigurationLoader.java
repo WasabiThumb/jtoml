@@ -4,6 +4,7 @@ import io.github.wasabithumb.jtoml.JToml;
 import io.github.wasabithumb.jtoml.document.TomlDocument;
 import io.github.wasabithumb.jtoml.except.TomlException;
 import io.github.wasabithumb.jtoml.except.TomlIOException;
+import io.github.wasabithumb.jtoml.except.parse.TomlLocalParseException;
 import io.github.wasabithumb.jtoml.key.TomlKey;
 import io.github.wasabithumb.jtoml.option.JTomlOption;
 import io.github.wasabithumb.jtoml.option.JTomlOptions;
@@ -73,6 +74,14 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<B
         try {
             final TomlDocument tomlDocument = this.jtoml.read(reader);
             populateNode(node, tomlDocument);
+        } catch (final TomlLocalParseException ex) {
+            throw new ParsingException(
+                    ex.getLineNumber(),
+                    ex.getColumnNumber(),
+                    "",
+                    "Exception reading TOML document: " + ex.getRawMessage(),
+                    ex.getCause()
+            );
         } catch (final TomlException ex) {
             throw new ParsingException(
                     ParsingException.UNKNOWN_POS,
@@ -143,7 +152,7 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<B
         try {
             this.jtoml.write(writer, document);
         } catch (final TomlIOException ex) {
-            throw new ConfigurateException("Exception writing TOML document", ex);
+            throw new ConfigurateException("Exception writing TOML document", ex.getCause());
         }
     }
 
