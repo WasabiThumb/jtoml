@@ -23,7 +23,6 @@ import org.spongepowered.configurate.loader.ParsingException;
 import org.spongepowered.configurate.util.UnmodifiableCollections;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.Writer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -64,16 +63,8 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<B
 
     @Override
     protected void loadInternal(final BasicConfigurationNode node, final BufferedReader reader) throws ParsingException {
-        final StringBuilder s = new StringBuilder();
-        String line;
-        try {
-            while ((line = reader.readLine()) != null) {
-                s.append(line).append('\n');
-            }
-        } catch (final Exception e) {
-            throw new RuntimeException(e); // TODO
-        }
-        final TomlDocument tomlDocument = this.jtoml.readFromString(s.toString());
+        final TomlDocument tomlDocument = this.jtoml.read(reader);
+        // TODO: catch TomlParseException / TomlIOException (?)
         populateNode(node, tomlDocument);
     }
 
@@ -133,12 +124,8 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<B
     protected void saveInternal(final ConfigurationNode node, final Writer writer) throws ConfigurateException {
         final TomlTable document = TomlTable.create();
         populateTable(document, node);
-        final String tomlString = this.jtoml.writeToString(document);
-        try {
-            writer.write(tomlString);
-        } catch (final IOException e) {
-            throw new ConfigurateException(node, e);
-        }
+        this.jtoml.write(writer, document);
+        // TODO: Catch TomlIOException (?)
     }
 
     private static void populateTable(final TomlTable table, final ConfigurationNode node) throws ConfigurateException {
