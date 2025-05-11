@@ -33,7 +33,7 @@ public final class TableWriter implements Closeable {
 
     public void writeTable(@NotNull TomlTable table) throws TomlException {
         this.indentLevel = this.options.get(JTomlOption.INDENTATION).globalIndent();
-        this.writeTableBody(TomlKey.literal(), table);
+        this.writeTableBody(TomlKey.literal(), table, false);
     }
 
     private void writeIndent() {
@@ -71,11 +71,11 @@ public final class TableWriter implements Closeable {
         this.indentLevel += indentation.postIndent();
     }
 
-    private void writeTableHeader(@NotNull TomlKey key) throws TomlException {
-        this.writeTableHeader(key, false);
-    }
-
-    private void writeTableBody(@NotNull TomlKey prefix, @NotNull TomlTable table) throws TomlException {
+    private void writeTableBody(
+            @NotNull TomlKey prefix,
+            @NotNull TomlTable table,
+            boolean andHeader
+    ) throws TomlException {
         Set<TomlKey> set = table.keys(false);
         int count = set.size();
 
@@ -101,6 +101,10 @@ public final class TableWriter implements Closeable {
             } else {
                 b0.add(tk);
             }
+        }
+
+        if (andHeader && (this.options.get(JTomlOption.WRITE_EMPTY_TABLES) || b0.size() != 0 || b1.size() != 0)) {
+            this.writeTableHeader(prefix, false);
         }
 
         TomlKey nextKey;
@@ -130,7 +134,7 @@ public final class TableWriter implements Closeable {
             for (int z=0; z < arr.size(); z++) {
                 child = arr.get(z).asTable();
                 this.writeTableHeader(nextKey, true);
-                this.writeTableBody(nextKey, child);
+                this.writeTableBody(nextKey, child, false);
             }
         }
 
@@ -139,8 +143,7 @@ public final class TableWriter implements Closeable {
             nextValue = table.get(nextKey);
             assert nextValue != null;
             nextKey = TomlKey.join(prefix, nextKey);
-            this.writeTableHeader(nextKey);
-            this.writeTableBody(nextKey, nextValue.asTable());
+            this.writeTableBody(nextKey, nextValue.asTable(), true);
         }
     }
 
@@ -216,6 +219,12 @@ public final class TableWriter implements Closeable {
     private void writeArrayValue(@NotNull TomlArray value) throws TomlException {
         final PaddingPolicy padding = this.options.get(JTomlOption.PADDING);
         this.out.put('[');
+
+        if (value.size() == 0) {
+            this.out.put(']');
+            return;
+        }
+
         for (int i=0; i < padding.arrayPadding(); i++) this.out.put(' ');
 
         TomlValue next;
@@ -235,11 +244,18 @@ public final class TableWriter implements Closeable {
     private void writeInlineTableValue(@NotNull TomlTable table) throws TomlException {
         final PaddingPolicy padding = this.options.get(JTomlOption.PADDING);
         this.out.put('{');
+
+        Set<TomlKey> keys = table.keys(false);
+        if (keys.isEmpty()) {
+            this.out.put('}');
+            return;
+        }
+
         for (int i=0; i < padding.inlineTablePadding(); i++) this.out.put(' ');
 
         boolean first = true;
         TomlValue next;
-        for (TomlKey key : table.keys(false)) {
+        for (TomlKey key : keys) {
             if (!first) {
                 this.out.put(',');
                 for (int z=0; z < padding.elementPadding(); z++) this.out.put(' ');
