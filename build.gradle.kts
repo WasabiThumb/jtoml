@@ -65,7 +65,7 @@ tasks.test {
 
 tasks.register<FetchTestsTask>("fetchTests") {
     outputs.upToDateWhen { false }
-    outDir.set(layout.projectDirectory.dir("src/test/resources/tests"))
+    outDir.set(layout.projectDirectory.dir("src/test/resources"))
 }
 
 tasks.processTestResources {

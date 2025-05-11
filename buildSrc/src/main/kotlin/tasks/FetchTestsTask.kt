@@ -3,6 +3,7 @@ package tasks
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import java.lang.IllegalStateException
 import java.lang.UnsupportedOperationException
@@ -58,14 +59,14 @@ abstract class FetchTestsTask : DefaultTask() {
         }
 
         val srcDir = repo.resolve("tests")
-        val targetDir = this.outDir.get().asFile.toPath()
+        val targetDir = this.outDir.get().asFile.toPath().resolve("tests")
 
         if (!Files.exists(srcDir)) {
             throw Error("\"tests\" directory not found in repository")
         }
 
         // Either symlink or copy src to target
-        this.nuke(targetDir)
+        if (Files.exists(targetDir)) this.nuke(targetDir)
         try {
             Files.createSymbolicLink(targetDir, srcDir)
         } catch (e: UnsupportedOperationException) {
@@ -75,9 +76,8 @@ abstract class FetchTestsTask : DefaultTask() {
     }
 
     private fun copyDir(src: Path, target: Path) {
-        if (!target.exists()) {
+        if (!Files.exists(target))
             Files.createDirectories(target)
-        }
 
         Files.list(src).use { stream ->
             val iter = stream.iterator()
