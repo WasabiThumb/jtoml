@@ -7,7 +7,6 @@ import io.github.wasabithumb.jtoml.io.source.BufferedCharSource;
 import io.github.wasabithumb.jtoml.key.TomlKey;
 import io.github.wasabithumb.jtoml.option.JTomlOption;
 import io.github.wasabithumb.jtoml.option.JTomlOptions;
-import io.github.wasabithumb.jtoml.util.BooleanBuffer;
 import io.github.wasabithumb.jtoml.value.FlaggedTomlValue;
 import io.github.wasabithumb.jtoml.value.TomlValue;
 import io.github.wasabithumb.jtoml.value.array.TomlArray;
@@ -92,6 +91,7 @@ public class ExpressionReader implements Closeable {
         while (true) {
             next = this.in.next();
             if (next == -1) this.in.raise("Encountered EOF while reading key");
+            if (next == '\r' || next == '\n') this.in.raise("Invalid newline within key");
             if (quot == '\0') {
                 if (next == terminatedBy) {
                     this.stripBareWhitespace(buf);
@@ -757,10 +757,8 @@ public class ExpressionReader implements Closeable {
             } else if (next == '\\') {
                 trimming = false;
                 int pk = this.in.peek();
-                BooleanBuffer nws = new BooleanBuffer();
-                boolean wst;
-                while ((wst = pk == '\t') || pk == ' ') {
-                    nws.push(wst);
+                while (pk == '\t' || pk == ' ') {
+                    trimming = true;
                     this.in.next();
                     pk = this.in.peek();
                 }
@@ -772,10 +770,8 @@ public class ExpressionReader implements Closeable {
                 } else if (pk == '\n') {
                     trimming = true;
                     this.in.next();
-                } else {
-                    while (nws.isNotEmpty()) {
-                        sb.append(nws.pop() ? '\t' : ' ');
-                    }
+                } else if (trimming) {
+                    this.in.raise("Dangling escape character in multiline basic string");
                 }
                 if (!trimming) this.readEscapeSequence(sb);
             } else if (next == '"') {
@@ -839,7 +835,11 @@ public class ExpressionReader implements Closeable {
                 if (0xD800 <= v && v <= 0xDFFF)
                     this.in.raise("Non-scalar unicode codepoint");
                 if (uc == 8) {
-                    dest.append(Character.toChars(v));
+                    try {
+                        dest.append(Character.toChars(v));
+                    } catch (IllegalArgumentException e) {
+                        this.in.raise("Invalid unicode codepoint", e);
+                    }
                 } else {
                     dest.append((char) v);
                 }
@@ -945,22 +945,18 @@ public class ExpressionReader implements Closeable {
             StringBuilder sb = new StringBuilder();
             sb.append(c);
             TomlKey key = this.readKey(sb, '=', (c == '"' || c == '\'') ? c : '\0');
-            for (int z=1; z < key.size(); z++) {
-                TomlKey parentKey = key.slice(0, z);
-                TomlValue existing = ret.get(parentKey);
+            for (int z=1; z < key.size() + 1; z++) {
+                TomlKey partialKey = key.slice(0, z);
+                TomlValue existing = ret.get(partialKey);
                 if (existing == null) continue;
                 if (FlaggedTomlValue.isConstant(existing))
-                    this.in.raise(key + " conflicts with previously defined key " + parentKey + " in inline table");
+                    this.in.raise(key + " conflicts with previously defined key " + partialKey + " in inline table");
             }
             if (!this.in.skipWhitespace()) this.in.raise("Expected value, got EOF");
             TomlValue value = this.readValue();
             FlaggedTomlValue flaggedValue = FlaggedTomlValue.wrap(value);
             flaggedValue.setConstant(true);
-            try {
-                ret.put(key, flaggedValue);
-            } catch (IllegalArgumentException e) {
-                this.in.raise("Detected clobbering", e);
-            }
+            ret.put(key, flaggedValue);
             expectComma = true;
         }
     }

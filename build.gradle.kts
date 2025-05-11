@@ -7,7 +7,7 @@ allprojects {
     apply(plugin = "net.thebugmc.gradle.sonatype-central-portal-publisher")
 
     group = "io.github.wasabithumb"
-    version = "0.2.2"
+    version = "0.3.0"
 
     dependencies {
         compileOnly("org.jetbrains:annotations:26.0.1")
@@ -64,15 +64,10 @@ tasks.test {
     useJUnitPlatform()
 }
 
-// You may get rate limited when fetching the test suite.
-// To fix this, add a GitHub access token to your gradle.properties
-// Example: echo "github.read.token=$YOUR_TOKEN" >> ~/.gradle/gradle.properties
 tasks.register<FetchTestsTask>("fetchTests") {
     enabled = false
     outputs.upToDateWhen { false }
-    outDir.set(layout.projectDirectory.dir("src/test/resources/tests"))
-    val token = project.findProperty("github.read.token")?.toString()
-    if (token != null) accessToken.set(token)
+    outDir.set(layout.projectDirectory.dir("src/test/resources"))
 }
 
 tasks.processTestResources {

@@ -7,11 +7,12 @@ import io.github.wasabithumb.jtoml.except.TomlIOException;
 import io.github.wasabithumb.jtoml.io.TableReader;
 import io.github.wasabithumb.jtoml.io.TableWriter;
 import io.github.wasabithumb.jtoml.io.source.BufferedCharSource;
+import io.github.wasabithumb.jtoml.io.source.ReaderCharSource;
 import io.github.wasabithumb.jtoml.io.source.StreamCharSource;
 import io.github.wasabithumb.jtoml.io.source.StringCharSource;
 import io.github.wasabithumb.jtoml.io.target.CharTarget;
-import io.github.wasabithumb.jtoml.io.target.StreamCharTarget;
 import io.github.wasabithumb.jtoml.io.target.StringCharTarget;
+import io.github.wasabithumb.jtoml.io.target.WriterCharTarget;
 import io.github.wasabithumb.jtoml.option.JTomlOption;
 import io.github.wasabithumb.jtoml.option.JTomlOptions;
 import io.github.wasabithumb.jtoml.option.prop.OrderMarkPolicy;
@@ -21,8 +22,7 @@ import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.ServiceLoader;
 
 @ApiStatus.Internal
@@ -71,6 +71,16 @@ final class JTomlImpl implements JToml {
         }
     }
 
+    @Override
+    public @NotNull TomlDocument read(@NotNull Reader reader) throws TomlException {
+        try (ReaderCharSource cs = new ReaderCharSource(reader, this.options.get(JTomlOption.READ_BOM))) {
+            TomlTable table = this.read(new BufferedCharSource(cs));
+            TomlDocumentImpl doc = new TomlDocumentImpl(table);
+            doc.setOrderMarked(cs.didReadBOM());
+            return doc;
+        }
+    }
+
     //
 
     private void write(@NotNull CharTarget ct, @NotNull TomlTable table) throws TomlException {
@@ -89,18 +99,18 @@ final class JTomlImpl implements JToml {
 
     @Override
     public void write(@NotNull OutputStream out, @NotNull TomlTable table) throws TomlIOException {
-        try (StreamCharTarget ct = new StreamCharTarget(out)) {
-            OrderMarkPolicy policy = this.options.get(JTomlOption.WRITE_BOM);
-            if (policy != OrderMarkPolicy.NEVER) {
-                if (
-                        policy == OrderMarkPolicy.ALWAYS ||
-                                (policy == OrderMarkPolicy.IF_PRESENT &&
-                                 table instanceof TomlDocument && ((TomlDocumentImpl) table).isOrderMarked())
-                ) {
-                    ct.writeBOM();
-                }
-            }
-            this.write(ct, table);
+        try (WriterCharTarget ct = WriterCharTarget.of(out)) {
+            if (this.shouldWriteBOM(table)) ct.put(0xFEFF);
+            this.write((CharTarget) ct, table);
+            ct.flush();
+        }
+    }
+
+    @Override
+    public void write(@NotNull Writer writer, @NotNull TomlTable table) throws TomlIOException {
+        try (WriterCharTarget ct = new WriterCharTarget(writer)) {
+            if (this.shouldWriteBOM(table)) ct.put(0xFEFF);
+            this.write((CharTarget) ct, table);
             ct.flush();
         }
     }
@@ -137,6 +147,16 @@ final class JTomlImpl implements JToml {
                 "No deserializer found on classpath for type " + type.getName() +
                         " (checked " + count + " in total)"
         );
+    }
+
+    //
+
+    private boolean shouldWriteBOM(@NotNull TomlTable table) {
+        OrderMarkPolicy policy = this.options.get(JTomlOption.WRITE_BOM);
+        if (policy == OrderMarkPolicy.NEVER) return false;
+        return policy == OrderMarkPolicy.ALWAYS ||
+                (policy == OrderMarkPolicy.IF_PRESENT && table instanceof TomlDocument &&
+                        ((TomlDocumentImpl) table).isOrderMarked());
     }
 
 }

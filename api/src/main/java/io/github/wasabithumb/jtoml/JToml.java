@@ -47,6 +47,10 @@ public interface JToml {
     /** Reads a TOML table from a stream */
     @NotNull TomlDocument read(@NotNull InputStream in) throws TomlException;
 
+    /** Reads a TOML table from a reader */
+    @ApiStatus.AvailableSince("0.3.0")
+    @NotNull TomlDocument read(@NotNull Reader reader) throws TomlException;
+
     /** Reads a TOML table from a file */
     default @NotNull TomlDocument read(@NotNull Path file) throws TomlException {
         try (InputStream is = Files.newInputStream(file, StandardOpenOption.READ)) {
@@ -69,6 +73,10 @@ public interface JToml {
 
     /** Writes a TOML table to a stream */
     void write(@NotNull OutputStream out, @NotNull TomlTable table) throws TomlIOException;
+
+    /** Writes a TOML table to a writer */
+    @ApiStatus.AvailableSince("0.3.0")
+    void write(@NotNull Writer writer, @NotNull TomlTable table) throws TomlIOException;
 
     /** Writes a TOML table to a file */
     default void write(@NotNull Path file, @NotNull TomlTable table) throws TomlIOException {

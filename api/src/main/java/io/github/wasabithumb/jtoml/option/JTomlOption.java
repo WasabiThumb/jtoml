@@ -72,6 +72,13 @@ public interface JTomlOption<T> {
      */
     Bool EXTENSION_GUARD = of("EXTENSION_GUARD", true);
 
+    /**
+     * If true, table headers will be written even if they do not
+     * contain any key-values.
+     */
+    @ApiStatus.AvailableSince("0.2.3")
+    Bool WRITE_EMPTY_TABLES = of("WRITE_EMPTY_TABLES", false);
+
     //
 
     /**
