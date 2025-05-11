@@ -2,7 +2,11 @@ package io.github.wasabithumb.jtoml.configurate;
 
 import io.github.wasabithumb.jtoml.JToml;
 import io.github.wasabithumb.jtoml.document.TomlDocument;
+import io.github.wasabithumb.jtoml.except.TomlException;
+import io.github.wasabithumb.jtoml.except.TomlIOException;
 import io.github.wasabithumb.jtoml.key.TomlKey;
+import io.github.wasabithumb.jtoml.option.JTomlOption;
+import io.github.wasabithumb.jtoml.option.JTomlOptions;
 import io.github.wasabithumb.jtoml.value.TomlValue;
 import io.github.wasabithumb.jtoml.value.array.TomlArray;
 import io.github.wasabithumb.jtoml.value.primitive.TomlPrimitive;
@@ -11,7 +15,7 @@ import net.kyori.option.OptionSchema;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Contract;
 import org.spongepowered.configurate.BasicConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
@@ -39,19 +43,22 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<B
     private static final Set<Class<?>> NATIVE_TYPES = UnmodifiableCollections.toSet(
             String.class, Boolean.class, Integer.class, Float.class, OffsetDateTime.class, LocalDateTime.class,
             LocalDate.class, LocalTime.class);
-    //private static final TypeSerializerCollection GSON_SERIALIZERS = TypeSerializerCollection.defaults().childBuilder()
-    //        .register(JsonElement.class, JsonElementSerializer.INSTANCE)
+    // See GsonConfigurationLoader for reference, would allow users to get/set TomlValues to ConfigurationNode
+    // Could also be used to implement save/loadInternal, since we don't have an API equivalent to JsonWriter
+    //private static final TypeSerializerCollection TOML_SERIALIZERS = TypeSerializerCollection.defaults().childBuilder()
+    //        .register(TomlValue.class, TomlValueSerializer.INSTANCE)
     //        .build();
 
     // visible for tests
     static final ConfigurationOptions DEFAULT_OPTIONS = ConfigurationOptions.defaults()
-            .nativeTypes(NATIVE_TYPES)
-            ;//.serializers(GSON_SERIALIZERS);
+            .nativeTypes(NATIVE_TYPES);
+            //.serializers(TOML_SERIALIZERS);
+
     private final JToml jtoml;
 
     TomlConfigurationLoader(final Builder builder) {
         super(builder, new CommentHandler[] {CommentHandlers.HASH});
-        this.jtoml = JToml.jToml();
+        this.jtoml = JToml.jToml(builder.jTomlOptionsBuilder().build());
     }
 
     @Override
@@ -63,12 +70,21 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<B
 
     @Override
     protected void loadInternal(final BasicConfigurationNode node, final BufferedReader reader) throws ParsingException {
-        final TomlDocument tomlDocument = this.jtoml.read(reader);
-        // TODO: catch TomlParseException / TomlIOException (?)
-        populateNode(node, tomlDocument);
+        try {
+            final TomlDocument tomlDocument = this.jtoml.read(reader);
+            populateNode(node, tomlDocument);
+        } catch (final TomlException ex) {
+            throw new ParsingException(
+                    ParsingException.UNKNOWN_POS,
+                    ParsingException.UNKNOWN_POS,
+                    "",
+                    "Exception reading TOML document",
+                    ex
+            );
+        }
     }
 
-    private static void populateNode(final ConfigurationNode node, final TomlTable tomlTable) throws ParsingException {
+    private static void populateNode(final ConfigurationNode node, final TomlTable tomlTable) {
         for (final TomlKey key : tomlTable.keys(false)) {
             final @Nullable TomlValue value = tomlTable.get(key);
             if (value == null) {
@@ -79,7 +95,7 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<B
         }
     }
 
-    private static void populateNode(final ConfigurationNode node, final TomlValue value) throws ParsingException {
+    private static void populateNode(final ConfigurationNode node, final TomlValue value) {
         if (value.isTable()) {
             node.raw(new HashMap<>());
             populateNode(node, value.asTable());
@@ -124,8 +140,11 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<B
     protected void saveInternal(final ConfigurationNode node, final Writer writer) throws ConfigurateException {
         final TomlTable document = TomlTable.create();
         populateTable(document, node);
-        this.jtoml.write(writer, document);
-        // TODO: Catch TomlIOException (?)
+        try {
+            this.jtoml.write(writer, document);
+        } catch (final TomlIOException ex) {
+            throw new ConfigurateException("Exception writing TOML document", ex);
+        }
     }
 
     private static void populateTable(final TomlTable table, final ConfigurationNode node) throws ConfigurateException {
@@ -141,7 +160,7 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<B
         }
     }
 
-    private static @NotNull TomlValue makeValue(final ConfigurationNode child) throws ConfigurateException {
+    private static TomlValue makeValue(final ConfigurationNode child) throws ConfigurateException {
         if (child.isMap()) {
             final TomlTable childTable = TomlTable.create();
             populateTable(childTable, child);
@@ -194,13 +213,32 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<B
 
         public static final OptionSchema SCHEMA = UNSAFE_SCHEMA.frozenView();
 
+        private final JTomlOptions.Builder optionsBuilder;
+
         Builder() {
             this.defaultOptions(DEFAULT_OPTIONS);
+            this.optionsBuilder = JTomlOptions.builder();
         }
 
         @Override
         protected OptionSchema optionSchema() {
             return SCHEMA;
+        }
+
+        public JTomlOptions.Builder jTomlOptionsBuilder() {
+            return this.optionsBuilder;
+        }
+
+        @Contract(value = "_, _ -> this", mutates = "this")
+        public <T> Builder set(final JTomlOption<T> key, final @Nullable T value) throws IllegalArgumentException {
+            this.optionsBuilder.set(key, value);
+            return this;
+        }
+
+        @Contract(value = "_ -> this", mutates = "this")
+        public Builder unset(final JTomlOption<?> key) {
+            this.optionsBuilder.unset(key);
+            return this;
         }
 
         @Override

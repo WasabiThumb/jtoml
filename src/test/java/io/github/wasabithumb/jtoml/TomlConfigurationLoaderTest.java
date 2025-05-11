@@ -1,6 +1,8 @@
 package io.github.wasabithumb.jtoml;
 
 import io.github.wasabithumb.jtoml.configurate.TomlConfigurationLoader;
+import io.github.wasabithumb.jtoml.option.JTomlOption;
+import io.github.wasabithumb.jtoml.option.prop.LineSeparator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.spongepowered.configurate.ConfigurationNode;
@@ -12,7 +14,7 @@ import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-class ConfigurateTest {
+class TomlConfigurationLoaderTest {
 
     @Test
     void simple(final @TempDir Path tempDir) throws IOException {
@@ -20,6 +22,8 @@ class ConfigurateTest {
 
         final TomlConfigurationLoader loader = TomlConfigurationLoader.builder()
                 .path(configPath)
+                .set(JTomlOption.LINE_SEPARATOR, LineSeparator.LF)
+                .set(JTomlOption.WRITE_EMPTY_TABLES, true)
                 .build();
 
         final ConfigurationNode node = loader.createNode();
