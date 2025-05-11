@@ -81,6 +81,16 @@ toml.serialize(JsonObject.class, table);
 If you are shading this library, serializers will not work as intended unless
 you configure shadowJar to merge the service files. See instructions below.
 
+#### Gradle
+```kotlin
+tasks.shadowJar {
+    mergeServiceFiles()
+}
+```
+
+#### Maven
+Use the [ServicesResourceTransformer](https://maven.apache.org/plugins/maven-shade-plugin/examples/resource-transformers.html#ServicesResourceTransformer).
+
 ## Comparison
 |                                                             | [WasabiThumb/jtoml](WasabiThumb/jtoml) | [tomlj/tomlj](https://github.com/tomlj/tomlj) | [mwanji/toml4j](https://github.com/mwanji/toml4j) | [asafh/jtoml](https://github.com/asafh/jtoml) |
 |:------------------------------------------------------------|:--------------------------------------:|:---------------------------------------------:|:-------------------------------------------------:|:---------------------------------------------:|
@@ -99,17 +109,7 @@ you configure shadowJar to merge the service files. See instructions below.
 
 1. Deserialization is not supported; JSON is in string format
 2. Passes [6 arbitrary tests](https://github.com/tomlj/tomlj/tree/e2d94e6dfe7633111b9e5aaec5a71d88c0af94ce/src/test/resources/org/tomlj), full suite has ~700
-
-#### Gradle
-```kotlin
-tasks.shadowJar {
-    mergeServiceFiles()
-}
-```
-
-#### Maven
-Use the [ServicesResourceTransformer](https://maven.apache.org/plugins/maven-shade-plugin/examples/resource-transformers.html#ServicesResourceTransformer).
-
+git add 
 ## License
 ```text
 Copyright 2025 Wasabi Codes
