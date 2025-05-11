@@ -109,7 +109,7 @@ Use the [ServicesResourceTransformer](https://maven.apache.org/plugins/maven-sha
 
 1. Deserialization is not supported; JSON is in string format
 2. Passes [6 arbitrary tests](https://github.com/tomlj/tomlj/tree/e2d94e6dfe7633111b9e5aaec5a71d88c0af94ce/src/test/resources/org/tomlj), full suite has ~700
-git add 
+
 ## License
 ```text
 Copyright 2025 Wasabi Codes
