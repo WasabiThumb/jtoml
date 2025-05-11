@@ -171,6 +171,13 @@ public final class TableWriter implements Closeable {
     private void writePrimitiveValue(@NotNull TomlPrimitive value) throws TomlException {
         if (value.isString()) {
             this.writeBasicString(value.asString());
+        } else if (value.isFloat()) {
+            String v = value.asString();
+            this.out.put(v);
+
+            // Ensure that we aren't writing a float as an integer
+            if (v.indexOf('.') == -1 && v.indexOf('e') == -1 && !v.contains("inf") && !v.contains("nan"))
+                this.out.put(".0");
         } else {
             this.out.put(value.asString());
         }
@@ -200,10 +207,10 @@ public final class TableWriter implements Closeable {
                 this.out.put("\\t");
             } else {
                 this.out.put("\\u");
-                this.out.put(Character.forDigit((c >> 12) & 0xFF, 16));
-                this.out.put(Character.forDigit((c >> 8) & 0xFF, 16));
-                this.out.put(Character.forDigit((c >> 4) & 0xFF, 16));
-                this.out.put(Character.forDigit(c & 0xFF, 16));
+                this.out.put(Character.forDigit((c >> 12) & 0xF, 16));
+                this.out.put(Character.forDigit((c >> 8) & 0xF, 16));
+                this.out.put(Character.forDigit((c >> 4) & 0xF, 16));
+                this.out.put(Character.forDigit(c & 0xF, 16));
             }
         }
 
