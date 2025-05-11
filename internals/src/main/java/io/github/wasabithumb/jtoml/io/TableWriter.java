@@ -124,6 +124,7 @@ public final class TableWriter implements Closeable {
             nextKey = b2.get(i);
             nextValue = table.get(nextKey);
             assert nextValue != null;
+            nextKey = TomlKey.join(prefix, nextKey);
             TomlArray arr = nextValue.asArray();
             TomlTable child;
             for (int z=0; z < arr.size(); z++) {
