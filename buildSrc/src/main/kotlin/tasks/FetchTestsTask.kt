@@ -3,124 +3,129 @@ package tasks
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import java.lang.IllegalStateException
+import java.lang.UnsupportedOperationException
 
-import gh.GitHubAPI
-import gh.GitHubTree
-import org.gradle.api.logging.LogLevel
-import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Optional
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.io.OutputStreamWriter
 import java.nio.file.Files
+import java.nio.file.LinkOption
 import java.nio.file.Path
-import java.nio.file.StandardOpenOption
+import kotlin.io.path.exists
+import kotlin.io.path.name
 
 abstract class FetchTestsTask : DefaultTask() {
 
     @get:OutputDirectory
     abstract val outDir: DirectoryProperty
 
-    @get:Input
-    @get:Optional
-    abstract val accessToken: Property<String>
+    private val tempDir: Path by lazy {
+        val dir = this.project.layout.buildDirectory.get()
+            .asFile
+            .toPath()
+            .resolve("tmp")
+            .resolve(this.name)
+
+        if (!Files.exists(dir))
+            Files.createDirectories(dir)
+
+        dir
+    }
 
     //
 
     @TaskAction
     fun execute() {
-        if (this.accessToken.isPresent)
-            GitHubAPI.accessToken = this.accessToken.get()
+        val dir = this.tempDir
+        val repo = this.tempDir.resolve("toml-test")
 
-        val commit = GitHubAPI.getLatestCommit("toml-lang", "toml-test")
-        if (this.checkCommit(commit)) {
-            this.logger.log(LogLevel.LIFECYCLE, "Up to date, skipping")
-            return
+        if (!Files.exists(repo)) {
+            this.logger.lifecycle("Cloning toml-lang/toml-test")
+            this.runGit(dir, "clone", "https://github.com/toml-lang/toml-test")
         } else {
-            this.logger.log(LogLevel.LIFECYCLE, "Fetching tests")
+            // this.logger.lifecycle("Checking for test suite updates")
+            // this.runGit(repo, "fetch", "origin")
         }
 
-        val tree = GitHubAPI.getTree("toml-lang", "toml-test", commit)
-            .sub("tests")
+        val currentSha = runGit(repo, "rev-parse", "HEAD").first()
+        val targetTag = runGit(repo, "tag", "--sort=v:refname").last()
+        val targetSha = runGit(repo, "rev-list", "-n", "1", targetTag).first()
 
-        val dir = this.outDir.get()
-            .asFile
-            .toPath()
+        if (currentSha == targetSha) {
+            this.logger.lifecycle("Test suite is up-to-date")
+        } else {
+            this.logger.lifecycle("Changing test suite version to $targetTag")
+            this.runGit(repo, "checkout", targetSha)
+        }
 
-        this.writeTree(tree, dir)
-        this.writeCommit(commit)
+        val srcDir = repo.resolve("tests")
+        val targetDir = this.outDir.get().asFile.toPath().resolve("tests")
+
+        if (!Files.exists(srcDir)) {
+            throw Error("\"tests\" directory not found in repository")
+        }
+
+        // Either symlink or copy src to target
+        if (Files.exists(targetDir)) this.nuke(targetDir)
+        try {
+            Files.createSymbolicLink(targetDir, srcDir)
+        } catch (e: UnsupportedOperationException) {
+            this.logger.warn("Failed to create symbolic link, making full copy")
+            this.copyDir(srcDir, targetDir)
+        }
     }
 
-    private fun writeTree(tree: GitHubTree, dir: Path) {
-        val projectDir = this.project.layout.projectDirectory.asFile.toPath()
-        this.logger.info("> ${projectDir.relativize(dir)}")
+    private fun copyDir(src: Path, target: Path) {
+        if (!Files.exists(target))
+            Files.createDirectories(target)
 
-        if (!Files.exists(dir))
-            Files.createDirectories(dir)
-
-        for (node in tree) {
-            val target = dir.resolve(node.name)
-
-            if (node.isTree) {
-                this.writeTree(node.asTree, target)
-            } else if (node.isBlob) {
-                node.asBlob.stream.use { inStream ->
-                    Files.newOutputStream(
-                        target,
-                        StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING
-                    ).use { outStream ->
-                        val buf = ByteArray(8192)
-                        var read: Int
-
-                        while (true) {
-                            read = inStream.read(buf)
-                            if (read == -1) break
-                            outStream.write(buf, 0, read)
-                        }
-                        outStream.flush()
-                    }
+        Files.list(src).use { stream ->
+            val iter = stream.iterator()
+            while (iter.hasNext()) {
+                val ent = iter.next()
+                if (Files.isSymbolicLink(ent)) {
+                    Files.createSymbolicLink(target.resolve(ent.name), Files.readSymbolicLink(ent))
+                } else if (Files.isDirectory(ent, LinkOption.NOFOLLOW_LINKS)) {
+                    this.copyDir(ent, target.resolve(ent.name))
+                } else {
+                    Files.copy(ent, target.resolve(ent.name))
                 }
             }
         }
     }
 
-    private fun checkCommit(commit: String): Boolean {
-        val f = this.tempDir.resolve("commit")
-        if (!Files.exists(f)) return false
-        Files.newInputStream(f, StandardOpenOption.READ).use { stream ->
-            BufferedReader(InputStreamReader(stream, Charsets.UTF_8)).use { reader ->
-                return commit == reader.readLine()
+    private fun nuke(ent: Path) {
+        if (Files.isDirectory(ent, LinkOption.NOFOLLOW_LINKS)) {
+            Files.list(ent).use { stream ->
+                val iter = stream.iterator()
+                while (iter.hasNext()) this.nuke(iter.next())
             }
         }
+        Files.delete(ent)
     }
 
-    private fun writeCommit(commit: String) {
-        val f = this.tempDir.resolve("commit")
-        Files.newOutputStream(
-            f,
-            StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING
-        ).use { stream ->
-            OutputStreamWriter(stream, Charsets.UTF_8).use { writer ->
-                writer.write("${commit}\n")
-                writer.flush()
+    private fun runGit(dir: Path, vararg args: String): List<String> {
+        val output: MutableList<String> = mutableListOf()
+        val process = ProcessBuilder(listOf("git", *args))
+            .redirectErrorStream(true)
+            .directory(dir.toFile())
+            .start()
+
+        process.inputReader(Charsets.UTF_8).use { reader ->
+            var line: String?
+            while (true) {
+                line = reader.readLine()
+                if (line == null) break
+                if (line.isBlank()) continue
+                output.add(line)
             }
         }
+
+        val ex: Int = process.waitFor()
+        if (ex != 0)
+            throw IllegalStateException("\"git ${args.joinToString(" ")}\" exited with non-zero status code $ex")
+
+        return output
     }
-
-    private val tempDir: Path
-        get() {
-            val dir = this.project.layout.buildDirectory.get()
-                .asFile
-                .toPath()
-                .resolve("tmp")
-                .resolve(this.name)
-
-            if (!Files.exists(dir))
-                Files.createDirectories(dir)
-
-            return dir
-        }
 
 }
