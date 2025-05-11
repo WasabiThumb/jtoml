@@ -7,7 +7,7 @@ allprojects {
     apply(plugin = "net.thebugmc.gradle.sonatype-central-portal-publisher")
 
     group = "io.github.wasabithumb"
-    version = "0.2.2"
+    version = "0.2.3"
 
     dependencies {
         compileOnly("org.jetbrains:annotations:26.0.1")
