@@ -48,9 +48,8 @@ final class JTomlImpl implements JToml {
     //
 
     private @NotNull TomlTable read(@NotNull BufferedCharSource cs) throws TomlException {
-        try (TableReader tr = new TableReader(cs, this.options)) {
-            return tr.readTable();
-        }
+        TableReader tr = new TableReader(cs, this.options);
+        return tr.readTable();
     }
 
     @Override
@@ -84,9 +83,8 @@ final class JTomlImpl implements JToml {
     //
 
     private void write(@NotNull CharTarget ct, @NotNull TomlTable table) throws TomlException {
-        try (TableWriter tw = new TableWriter(ct, this.options)) {
-            tw.writeTable(table);
-        }
+        TableWriter tw = new TableWriter(ct, this.options);
+        tw.writeTable(table);
     }
 
     @Override
