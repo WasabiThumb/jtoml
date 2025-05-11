@@ -1,5 +1,6 @@
 package io.github.wasabithumb.jtoml;
 
+import io.github.wasabithumb.jtoml.document.TomlDocument;
 import io.github.wasabithumb.jtoml.except.TomlException;
 import io.github.wasabithumb.jtoml.except.parse.TomlParseException;
 import io.github.wasabithumb.jtoml.key.TomlKey;
@@ -11,10 +12,13 @@ import io.github.wasabithumb.jtoml.value.primitive.TomlPrimitive;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -27,6 +31,30 @@ class JTomlTest {
     @BeforeAll
     static void setup() {
         TOML = JToml.jToml();
+    }
+
+    //
+
+    @Test
+    void readerWriter() {
+        final String basic = "[a]\nb.c = 'd'";
+
+        TomlDocument document = assertDoesNotThrow(() -> {
+            try (StringReader sr = new StringReader(basic)) {
+                return TOML.read(sr);
+            }
+        });
+
+        TomlValue abc = document.get("a.b.c");
+        assertNotNull(abc);
+        assertTrue(abc.isPrimitive());
+        assertEquals("d", abc.asPrimitive().asString());
+
+        assertDoesNotThrow(() -> {
+            try (StringWriter sw = new StringWriter()) {
+                TOML.write(sw, document);
+            }
+        });
     }
 
     //
