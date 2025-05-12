@@ -38,6 +38,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * A loader for TOML-formatted configurations, using the JToml library for
+ * parsing and generation.
+ */
 @DefaultQualifier(NonNull.class)
 public final class TomlConfigurationLoader extends AbstractConfigurationLoader<BasicConfigurationNode> {
 
@@ -54,6 +58,15 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<B
     static final ConfigurationOptions DEFAULT_OPTIONS = ConfigurationOptions.defaults()
             .nativeTypes(NATIVE_TYPES);
             //.serializers(TOML_SERIALIZERS);
+
+    /**
+     * Creates a new {@link TomlConfigurationLoader.Builder}.
+     *
+     * @return a new builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
 
     private final JToml jtoml;
 
@@ -212,14 +225,16 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<B
         return BasicConfigurationNode.root(options.nativeTypes(NATIVE_TYPES));
     }
 
-    public static Builder builder() {
-        return new Builder();
-    }
-
+    /**
+     * Builds a {@link TomlConfigurationLoader}.
+     */
     public static final class Builder extends AbstractConfigurationLoader.Builder<TomlConfigurationLoader.Builder, TomlConfigurationLoader> {
 
         private static final OptionSchema.Mutable UNSAFE_SCHEMA = OptionSchema.childSchema(AbstractConfigurationLoader.Builder.SCHEMA);
 
+        /**
+         * A schema of options available on the TOML loader. Does not include {@link JTomlOption JTomlOptions}.
+         */
         public static final OptionSchema SCHEMA = UNSAFE_SCHEMA.frozenView();
 
         private final JTomlOptions.Builder optionsBuilder;
@@ -234,6 +249,11 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<B
             return SCHEMA;
         }
 
+        /**
+         * Returns the {@link JTomlOptions.Builder} used to configure this loader.
+         *
+         * @return the options builder
+         */
         public JTomlOptions.Builder jTomlOptionsBuilder() {
             return this.optionsBuilder;
         }
