@@ -2,68 +2,97 @@ package io.github.wasabithumb.jtoml.configurate;
 
 import io.github.wasabithumb.jtoml.option.JTomlOption;
 import io.github.wasabithumb.jtoml.option.prop.LineSeparator;
+import io.leangen.geantyref.TypeToken;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.spongepowered.configurate.BasicConfigurationNode;
+import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
-import org.spongepowered.configurate.objectmapping.ConfigSerializable;
+import org.spongepowered.configurate.loader.ConfigurationLoader;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.LinkedHashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+/**
+ * Basic sanity checks for the loader.
+ */
 class TomlConfigurationLoaderTest {
 
     @Test
-    void simple(final @TempDir Path tempDir) throws IOException {
-        final Path configPath = tempDir.resolve("simple.toml");
+    void testSimpleLoading() throws ConfigurateException {
+        final URL url = this.getClass().getResource("/example.toml");
+        final ConfigurationLoader<BasicConfigurationNode> loader = TomlConfigurationLoader.builder()
+                .url(url).build();
+        final ConfigurationNode node = loader.load();
+        assertEquals("unicorn", node.node("test", "op-level").raw());
+        assertEquals("dragon", node.node("other", "op-level").raw());
+        assertEquals("dog park", node.node("other", "location").raw());
 
-        final TomlConfigurationLoader loader = TomlConfigurationLoader.builder()
-                .path(configPath)
-                .set(JTomlOption.LINE_SEPARATOR, LineSeparator.LF)
-                .set(JTomlOption.WRITE_EMPTY_TABLES, true)
-                .build();
 
-        final ConfigurationNode node = loader.createNode();
-        node.set(new TestConfig1());
-        loader.save(node);
-
-        System.out.println("=== START SAVE 1 ===");
-        System.out.println(String.join("\n", Files.readAllLines(configPath)));
-        System.out.println("=== END SAVE 1 ===");
-
-        final ConfigurationNode loadedNode = loader.load();
-        loader.save(loadedNode);
-
-        System.out.println("=== START SAVE 2 ===");
-        System.out.println(String.join("\n", Files.readAllLines(configPath)));
-        System.out.println("=== END SAVE 2 ===");
+        final List<Map<String, List<String>>> fooList = new ArrayList<>(node.node("foo")
+                .getList(new TypeToken<Map<String, List<String>>>() {}));
+        assertEquals(0, fooList.get(0).get("bar").size());
     }
 
-    @ConfigSerializable
-    public static final class TestConfig1 {
-        public String name = "test";
-        public int age = 0;
-        public boolean isTest = false;
-        public String[] tags = new String[0];
-        public NestedConfig nested = new NestedConfig();
-        public Map<String, NestedConfig> nestedMap = defaultNestedMap();
+    @Test
+    void testReadWithTabs() throws ConfigurateException {
+        final ConfigurationNode expected = BasicConfigurationNode.root(n -> {
+            n.node("document").act(d -> {
+                d.node("we").raw("support tabs");
+                d.node("and").raw("literal tabs\tin strings");
+                d.node("with").act(w -> {
+                    w.appendListNode().raw("more levels");
+                    w.appendListNode().raw("of indentation");
+                });
+            });
+        });
 
-        private static Map<String, NestedConfig> defaultNestedMap() {
-            Map<String, NestedConfig> map = new LinkedHashMap<>();
-            map.put("uno", new NestedConfig());
-            map.put("dos", new NestedConfig());
-            map.put("tres", new NestedConfig());
-            return map;
-        }
+        final URL url = this.getClass().getResource("/tab-example.toml");
+        final ConfigurationLoader<BasicConfigurationNode> loader = TomlConfigurationLoader.builder()
+                .url(url).build();
+        final ConfigurationNode node = loader.load();
+        assertEquals(expected, node);
+    }
 
-        @ConfigSerializable
-        public static final class NestedConfig {
-            public String name = "nested";
-            public int age = 0;
-            public boolean isTest = false;
-            public String[] tags = new String[0];
+    @Test
+    void testWriteBasicFile(final @TempDir Path tempDir) throws ConfigurateException, IOException {
+        final Path target = tempDir.resolve("write-basic.toml");
+        final ConfigurationNode node = BasicConfigurationNode.root(n -> {
+            n.node("mapping", "first").set("hello");
+            n.node("mapping", "second").set("world");
+
+            n.node("list").act(c -> {
+                c.appendListNode().set(1);
+                c.appendListNode().set(2);
+                c.appendListNode().set(3);
+                c.appendListNode().set(4);
+            });
+        });
+
+        final TomlConfigurationLoader loader = TomlConfigurationLoader.builder()
+                .path(target)
+                .set(JTomlOption.LINE_SEPARATOR, LineSeparator.LF)
+                .build();
+
+        loader.save(node);
+
+        assertEquals(readLines(this.getClass().getResource("write-expected.toml")), Files.readAllLines(target, StandardCharsets.UTF_8));
+    }
+
+    private static List<String> readLines(final URL source) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(source.openStream(), StandardCharsets.UTF_8))) {
+            return reader.lines().collect(Collectors.toList());
         }
     }
 }
