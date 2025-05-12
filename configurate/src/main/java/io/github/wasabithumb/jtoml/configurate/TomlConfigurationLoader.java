@@ -25,10 +25,13 @@ import org.spongepowered.configurate.loader.AbstractConfigurationLoader;
 import org.spongepowered.configurate.loader.CommentHandler;
 import org.spongepowered.configurate.loader.CommentHandlers;
 import org.spongepowered.configurate.loader.ParsingException;
+import org.spongepowered.configurate.serialize.TypeSerializer;
+import org.spongepowered.configurate.serialize.TypeSerializerCollection;
 import org.spongepowered.configurate.util.UnmodifiableCollections;
 
 import java.io.BufferedReader;
 import java.io.Writer;
+import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -47,17 +50,20 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<B
 
     private static final Set<Class<?>> NATIVE_TYPES = UnmodifiableCollections.toSet(
             String.class, Boolean.class, Integer.class, Float.class, OffsetDateTime.class, LocalDateTime.class,
-            LocalDate.class, LocalTime.class);
-    // See GsonConfigurationLoader for reference, would allow users to get/set TomlValues to ConfigurationNode
-    // Could also be used to implement save/loadInternal, since we don't have an API equivalent to JsonWriter
-    //private static final TypeSerializerCollection TOML_SERIALIZERS = TypeSerializerCollection.defaults().childBuilder()
-    //        .register(TomlValue.class, TomlValueSerializer.INSTANCE)
-    //        .build();
+            LocalDate.class, LocalTime.class, Number.class);
+    private static final TypeSerializerCollection TOML_SERIALIZERS = TypeSerializerCollection.defaults().childBuilder()
+            .register(OffsetDateTime.class, new NativeTypeSerializer<>())
+            .register(LocalDateTime.class, new NativeTypeSerializer<>())
+            .register(LocalDate.class, new NativeTypeSerializer<>())
+            .register(LocalTime.class, new NativeTypeSerializer<>())
+            // See GsonConfigurationLoader for reference, would allow users to get/set TomlValues to ConfigurationNode
+            //.register(TomlValue.class, TomlValueSerializer.INSTANCE)
+            .build();
 
     // visible for tests
     static final ConfigurationOptions DEFAULT_OPTIONS = ConfigurationOptions.defaults()
-            .nativeTypes(NATIVE_TYPES);
-            //.serializers(TOML_SERIALIZERS);
+            .nativeTypes(NATIVE_TYPES)
+            .serializers(TOML_SERIALIZERS);
 
     /**
      * Creates a new {@link TomlConfigurationLoader.Builder}.
@@ -203,10 +209,12 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<B
                 return TomlPrimitive.of((String) value);
             } else if (value instanceof Boolean) {
                 return TomlPrimitive.of((Boolean) value);
-            } else if (value instanceof Integer) {
-                return TomlPrimitive.of((Integer) value);
-            } else if (value instanceof Float) {
-                return TomlPrimitive.of((Float) value);
+            } else if (value instanceof Integer || value instanceof Long) {
+                return TomlPrimitive.of(((Number) value).longValue());
+            } else if (value instanceof Float || value instanceof Double) {
+                return TomlPrimitive.of(((Number) value).doubleValue());
+            } else if (value instanceof Number) {
+                return TomlPrimitive.of(((Number) value).longValue());
             } else if (value instanceof OffsetDateTime) {
                 return TomlPrimitive.of((OffsetDateTime) value);
             } else if (value instanceof LocalDateTime) {
@@ -274,6 +282,19 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<B
         public TomlConfigurationLoader build() {
             this.defaultOptions(o -> o.nativeTypes(NATIVE_TYPES));
             return new TomlConfigurationLoader(this);
+        }
+    }
+
+    private static final class NativeTypeSerializer<T> implements TypeSerializer<T> {
+        @SuppressWarnings({"DataFlowIssue", "unchecked"})
+        @Override
+        public T deserialize(final Type type, final ConfigurationNode node) {
+            return (T) node.raw();
+        }
+
+        @Override
+        public void serialize(final Type type, final @Nullable T obj, final ConfigurationNode node) {
+            node.raw(obj);
         }
     }
 }
