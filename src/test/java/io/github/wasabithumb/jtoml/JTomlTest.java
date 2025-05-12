@@ -2,8 +2,10 @@ package io.github.wasabithumb.jtoml;
 
 import io.github.wasabithumb.jtoml.document.TomlDocument;
 import io.github.wasabithumb.jtoml.except.TomlException;
+import io.github.wasabithumb.jtoml.except.TomlValueException;
 import io.github.wasabithumb.jtoml.except.parse.TomlParseException;
 import io.github.wasabithumb.jtoml.key.TomlKey;
+import io.github.wasabithumb.jtoml.pojo.SimpleTable;
 import io.github.wasabithumb.jtoml.test.TestSpec;
 import io.github.wasabithumb.jtoml.test.TestSpecs;
 import io.github.wasabithumb.jtoml.value.TomlValue;
@@ -19,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -55,6 +58,22 @@ class JTomlTest {
                 TOML.write(sw, document);
             }
         });
+    }
+
+    @Test
+    void reflect() {
+        SimpleTable original = SimpleTable.create();
+        TomlTable toml = TOML.deserialize(SimpleTable.class, original);
+        System.out.println(TOML.writeToString(toml));
+        SimpleTable out = TOML.serialize(SimpleTable.class, toml);
+        assertEquals(original, out);
+    }
+
+    @Test
+    void badDateTime() {
+        SimpleTable table = SimpleTable.create();
+        table.localDate = LocalDate.of(-1, 7, 16); // year -1
+        assertThrows(TomlValueException.class, () -> TOML.deserialize(SimpleTable.class, table));
     }
 
     //

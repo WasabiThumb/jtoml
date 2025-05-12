@@ -3,6 +3,7 @@ package io.github.wasabithumb.jtoml;
 import io.github.wasabithumb.jtoml.document.TomlDocument;
 import io.github.wasabithumb.jtoml.except.TomlException;
 import io.github.wasabithumb.jtoml.except.TomlIOException;
+import io.github.wasabithumb.jtoml.except.TomlValueException;
 import io.github.wasabithumb.jtoml.option.JTomlOptions;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import org.jetbrains.annotations.ApiStatus;
@@ -69,17 +70,17 @@ public interface JToml {
     //
 
     /** Converts a TOML table to a string */
-    @NotNull String writeToString(@NotNull TomlTable table);
+    @NotNull String writeToString(@NotNull TomlTable table) throws TomlValueException;
 
     /** Writes a TOML table to a stream */
-    void write(@NotNull OutputStream out, @NotNull TomlTable table) throws TomlIOException;
+    void write(@NotNull OutputStream out, @NotNull TomlTable table) throws TomlException;
 
     /** Writes a TOML table to a writer */
     @ApiStatus.AvailableSince("0.3.0")
-    void write(@NotNull Writer writer, @NotNull TomlTable table) throws TomlIOException;
+    void write(@NotNull Writer writer, @NotNull TomlTable table) throws TomlException;
 
     /** Writes a TOML table to a file */
-    default void write(@NotNull Path file, @NotNull TomlTable table) throws TomlIOException {
+    default void write(@NotNull Path file, @NotNull TomlTable table) throws TomlException {
         try (OutputStream os = Files.newOutputStream(
                 file,
                 StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING
@@ -91,7 +92,7 @@ public interface JToml {
     }
 
     /** Writes a TOML table to a file */
-    default void write(@NotNull File file, @NotNull TomlTable table) throws TomlIOException {
+    default void write(@NotNull File file, @NotNull TomlTable table) throws TomlException {
         this.write(file.toPath(), table);
     }
 

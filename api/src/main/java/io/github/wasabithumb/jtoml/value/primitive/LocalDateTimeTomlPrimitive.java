@@ -1,5 +1,6 @@
 package io.github.wasabithumb.jtoml.value.primitive;
 
+import io.github.wasabithumb.jtoml.except.TomlValueException;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -12,6 +13,7 @@ final class LocalDateTimeTomlPrimitive extends AbstractTomlPrimitive<LocalDateTi
     private final ZoneOffset offset;
 
     public LocalDateTimeTomlPrimitive(@NotNull LocalDateTime value, @NotNull ZoneOffset offset) {
+        TomlValueException.checkDate(value);
         this.value = value;
         this.offset = offset;
     }

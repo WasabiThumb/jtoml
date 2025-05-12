@@ -11,6 +11,10 @@ import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -144,6 +148,14 @@ public final class ReflectTomlSerializer<T extends TomlSerializable> implements 
             }
         } else if (ft.isAssignableFrom(String.class)) {
             return value.asPrimitive().asString();
+        } else if (ft.isAssignableFrom(OffsetDateTime.class)) {
+            return value.asPrimitive().asOffsetDateTime();
+        } else if (ft.isAssignableFrom(LocalDateTime.class)) {
+            return value.asPrimitive().asLocalDateTime();
+        } else if (ft.isAssignableFrom(LocalDate.class)) {
+            return value.asPrimitive().asLocalDate();
+        } else if (ft.isAssignableFrom(LocalTime.class)) {
+            return value.asPrimitive().asLocalTime();
         } else if (ft.isAssignableFrom(Map.class)) {
             Map<String, Object> map = new HashMap<>();
             if (!value.isTable()) throw new IllegalStateException("Cannot unpack non-table value (" + value + ")");
@@ -216,6 +228,14 @@ public final class ReflectTomlSerializer<T extends TomlSerializable> implements 
             }
         } else if (o instanceof Character) {
             return TomlPrimitive.of(Character.toString((Character) o));
+        } else if (o instanceof OffsetDateTime) {
+            return TomlPrimitive.of((OffsetDateTime) o);
+        } else if (o instanceof LocalDateTime) {
+            return TomlPrimitive.of((LocalDateTime) o);
+        } else if (o instanceof LocalDate) {
+            return TomlPrimitive.of((LocalDate) o);
+        } else if (o instanceof LocalTime) {
+            return TomlPrimitive.of((LocalTime) o);
         } else if (o instanceof Map) {
             Map<?, ?> map = (Map<?, ?>) o;
             TomlTable ret = TomlTable.create();
