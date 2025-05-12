@@ -65,7 +65,6 @@ tasks.test {
 }
 
 tasks.register<FetchTestsTask>("fetchTests") {
-    enabled = false
     outputs.upToDateWhen { false }
     outDir.set(layout.projectDirectory.dir("src/test/resources"))
 }
