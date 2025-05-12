@@ -10,7 +10,7 @@ import org.spongepowered.configurate.util.UnmodifiableCollections;
 import java.util.Set;
 
 /**
- * A {@link ConfigurationFormat} for the GSON configuration loader.
+ * A {@link ConfigurationFormat} for the {@link TomlConfigurationLoader}.
  *
  * <p>This format should not be used directly, but instead accessed
  * through methods on {@link ConfigurationFormat}.</p>
@@ -28,6 +28,6 @@ public final class TomlConfigurationFormat extends AbstractConfigurationFormat<
      * For use by service loader only.
      */
     public TomlConfigurationFormat() {
-        super("gson", TomlConfigurationLoader::builder, SUPPORTED_EXTENSIONS);
+        super("jtoml", TomlConfigurationLoader::builder, SUPPORTED_EXTENSIONS);
     }
 }
