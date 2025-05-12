@@ -1,5 +1,5 @@
 
-description = "Gson integration for Configurate"
+description = "TOML integration for Configurate"
 
 repositories {
     mavenCentral()
