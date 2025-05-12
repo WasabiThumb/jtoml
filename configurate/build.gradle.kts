@@ -6,9 +6,17 @@ repositories {
 }
 
 dependencies {
-    implementation(project(":api"))
+    implementation(project(":"))
     api(platform("org.spongepowered:configurate-bom:4.2.0"))
     api("org.spongepowered:configurate-core")
+
+    // JUnit Test Platform
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 //

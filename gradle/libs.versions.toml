@@ -1,0 +1,5 @@
+[versions]
+junit = "5.7.1"
+
+[libraries]
+junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }

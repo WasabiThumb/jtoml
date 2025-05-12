@@ -1,6 +1,5 @@
-package io.github.wasabithumb.jtoml;
+package io.github.wasabithumb.jtoml.configurate;
 
-import io.github.wasabithumb.jtoml.configurate.TomlConfigurationLoader;
 import io.github.wasabithumb.jtoml.option.JTomlOption;
 import io.github.wasabithumb.jtoml.option.prop.LineSeparator;
 import org.junit.jupiter.api.Test;
