@@ -9,6 +9,7 @@ import io.github.wasabithumb.jtoml.option.JTomlOption;
 import io.github.wasabithumb.jtoml.option.JTomlOptions;
 import io.github.wasabithumb.jtoml.value.FlaggedTomlValue;
 import io.github.wasabithumb.jtoml.value.TomlValue;
+import io.github.wasabithumb.jtoml.value.UnsafePrimitives;
 import io.github.wasabithumb.jtoml.value.array.TomlArray;
 import io.github.wasabithumb.jtoml.value.primitive.TomlPrimitive;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
@@ -455,9 +456,10 @@ public class ExpressionReader implements Closeable {
             char c1 = str.charAt(head + 1);
             char c2 = str.charAt(head + 2);
             if (c0 == 'i' && c1 == 'n' && c2 == 'f') {
-                return TomlPrimitive.of(negative ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY);
+                return negative ? UnsafePrimitives.createFloat(Double.NEGATIVE_INFINITY, "-inf") :
+                        UnsafePrimitives.createFloat(Double.POSITIVE_INFINITY, "inf");
             } else if (c0 == 'n' && c1 == 'a' && c2 == 'n') {
-                return TomlPrimitive.of(Double.NaN);
+                return UnsafePrimitives.createFloat(Double.NaN, "nan");
             }
         }
 
@@ -567,7 +569,7 @@ public class ExpressionReader implements Closeable {
             d = ((double) ip) + frac;
         }
         if (negative) d = -d;
-        return TomlPrimitive.of(d);
+        return UnsafePrimitives.createFloat(d, str.toString());
     }
 
     private @NotNull TomlPrimitive parseDateTime(@NotNull CharSequence str) throws TomlException, DateTimeException {

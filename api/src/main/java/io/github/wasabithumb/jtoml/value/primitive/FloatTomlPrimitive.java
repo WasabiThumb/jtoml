@@ -10,12 +10,30 @@ final class FloatTomlPrimitive extends AbstractTomlPrimitive<Double> {
 
     private static final DecimalFormat DF = new DecimalFormat("0.###############");
 
+    private static @NotNull String autoChars(double value) {
+        if (value == Double.POSITIVE_INFINITY) return "inf";
+        if (value == Double.NEGATIVE_INFINITY) return "-inf";
+        if (Double.isNaN(value)) return "nan";
+        if ((value % 1) == 0) {
+            if (Double.doubleToLongBits(value) == -9223372036854775808L) return "-0";
+            return Long.toString((long) value);
+        }
+        return DF.format(value);
+    }
+
     //
 
     private final double value;
+    private final String chars;
+
+    /** Called by {@code UnsafePrimitives} in {@code jtoml-internals} */
+    public FloatTomlPrimitive(double value, @NotNull String chars) {
+        this.value = value;
+        this.chars = chars;
+    }
 
     public FloatTomlPrimitive(double value) {
-        this.value = value;
+        this(value, autoChars(value));
     }
 
     //
@@ -32,14 +50,7 @@ final class FloatTomlPrimitive extends AbstractTomlPrimitive<Double> {
 
     @Override
     public @NotNull String asString() {
-        if (this.value == Double.POSITIVE_INFINITY) return "inf";
-        if (this.value == Double.NEGATIVE_INFINITY) return "-inf";
-        if (Double.isNaN(this.value)) return "nan";
-        if ((this.value % 1) == 0) {
-            if (Double.doubleToLongBits(this.value) == -9223372036854775808L) return "-0";
-            return Long.toString((long) this.value);
-        }
-        return DF.format(this.value);
+        return this.chars;
     }
 
     @Override
