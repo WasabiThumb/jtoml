@@ -170,8 +170,11 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<B
         populateTable(document, node);
         try {
             this.jtoml.write(writer, document);
-        } catch (final TomlIOException ex) {
-            throw new ConfigurateException("Exception writing TOML document", ex.getCause());
+        } catch (final TomlException ex) {
+            throw new ConfigurateException(
+                    "Exception writing TOML document",
+                    (ex instanceof TomlIOException) ? ex.getCause() : ex
+            );
         }
     }
 

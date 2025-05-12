@@ -1,5 +1,6 @@
 package io.github.wasabithumb.jtoml.value.primitive;
 
+import io.github.wasabithumb.jtoml.except.TomlValueException;
 import io.github.wasabithumb.jtoml.value.TomlValue;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
@@ -44,12 +45,12 @@ public interface TomlPrimitive extends TomlValue {
     }
 
     @Contract("null -> fail; !null -> new")
-    static @NotNull TomlPrimitive of(OffsetDateTime value) {
+    static @NotNull TomlPrimitive of(OffsetDateTime value) throws TomlValueException {
         return new OffsetDateTimeTomlPrimitive(Objects.requireNonNull(value));
     }
 
     @Contract("null, _ -> fail; !null, _ -> new")
-    static @NotNull TomlPrimitive of(LocalDateTime value, @Nullable ZoneOffset offset) {
+    static @NotNull TomlPrimitive of(LocalDateTime value, @Nullable ZoneOffset offset) throws TomlValueException {
         return new LocalDateTimeTomlPrimitive(
                 Objects.requireNonNull(value),
                 (offset == null) ? ZoneOffset.UTC : offset
@@ -57,12 +58,12 @@ public interface TomlPrimitive extends TomlValue {
     }
 
     @Contract("null -> fail; !null -> new")
-    static @NotNull TomlPrimitive of(LocalDateTime value) {
+    static @NotNull TomlPrimitive of(LocalDateTime value) throws TomlValueException {
         return of(value, null);
     }
 
     @Contract("null, _ -> fail; !null, _ -> new")
-    static @NotNull TomlPrimitive of(LocalDate value, @Nullable ZoneOffset offset) {
+    static @NotNull TomlPrimitive of(LocalDate value, @Nullable ZoneOffset offset) throws TomlValueException {
         return new LocalDateTomlPrimitive(
                 Objects.requireNonNull(value),
                 (offset == null) ? ZoneOffset.UTC : offset
@@ -70,7 +71,7 @@ public interface TomlPrimitive extends TomlValue {
     }
 
     @Contract("null -> fail; !null -> new")
-    static @NotNull TomlPrimitive of(LocalDate value) {
+    static @NotNull TomlPrimitive of(LocalDate value) throws TomlValueException {
         return of(value, null);
     }
 

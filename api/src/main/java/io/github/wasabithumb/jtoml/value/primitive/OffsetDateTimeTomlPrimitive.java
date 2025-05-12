@@ -1,5 +1,6 @@
 package io.github.wasabithumb.jtoml.value.primitive;
 
+import io.github.wasabithumb.jtoml.except.TomlValueException;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -11,6 +12,7 @@ final class OffsetDateTimeTomlPrimitive extends AbstractTomlPrimitive<OffsetDate
     private final OffsetDateTime value;
 
     public OffsetDateTimeTomlPrimitive(@NotNull OffsetDateTime value) {
+        TomlValueException.checkDate(value);
         this.value = value;
     }
 
