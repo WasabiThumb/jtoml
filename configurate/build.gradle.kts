@@ -7,6 +7,7 @@ repositories {
 
 dependencies {
     implementation(project(":"))
+    api(project(":api"))
     api(platform("org.spongepowered:configurate-bom:4.2.0"))
     api("org.spongepowered:configurate-core")
 
