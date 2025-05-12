@@ -177,7 +177,7 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<B
                 continue;
             }
             final TomlValue v = makeValue(child);
-            final TomlKey tomlKey = TomlKey.literal(key.toString());
+            final TomlKey tomlKey = TomlKey.literal(String.valueOf(key));
             table.put(tomlKey, v);
         }
     }
