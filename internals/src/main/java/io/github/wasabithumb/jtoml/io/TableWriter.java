@@ -176,8 +176,14 @@ public final class TableWriter implements Closeable {
             this.out.put(v);
 
             // Ensure that we aren't writing a float as an integer
-            if (v.indexOf('.') == -1 && v.indexOf('e') == -1 && !v.contains("inf") && !v.contains("nan"))
+            if (v.indexOf('.') == -1 &&
+                    v.indexOf('e') == -1 &&
+                    v.indexOf('E') == -1 &&
+                    !v.contains("inf") &&
+                    !v.contains("nan")
+            ) {
                 this.out.put(".0");
+            }
         } else {
             this.out.put(value.asString());
         }
