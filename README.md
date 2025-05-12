@@ -10,19 +10,26 @@ parsers which exposed an opaque API for TOML keys. JToml can parse TOML String k
 
 The strongly typed nature of JToml is both an extension of this goal and a personal preference.
 
+## Table of Contents
+- [Quick Start](#quick-start)
+- [Serializers](#serializers)
+- [Configurate](#configurate)
+- [Feature Matrix](#comparison)
+- [License](#license)
+
 ## Quick Start
 ### Declaration
 #### Gradle (Kotlin)
 ```kotlin
 dependencies {
-    implementation("io.github.wasabithumb:jtoml:0.3.1")
+    implementation("io.github.wasabithumb:jtoml:0.4.0")
 }
 ```
 
 #### Gradle (Groovy)
 ```groovy
 dependencies {
-    implementation 'io.github.wasabithumb:jtoml:0.3.1'
+    implementation 'io.github.wasabithumb:jtoml:0.4.0'
 }
 ```
 
@@ -32,7 +39,7 @@ dependencies {
     <dependency>
         <groupId>io.github.wasabithumb</groupId>
         <artifactId>jtoml</artifactId>
-        <version>0.3.1</version>
+        <version>0.4.0</version>
         <scope>compile</scope>
     </dependency>
 </dependencies>
@@ -90,6 +97,23 @@ tasks.shadowJar {
 
 #### Maven
 Use the [ServicesResourceTransformer](https://maven.apache.org/plugins/maven-shade-plugin/examples/resource-transformers.html#ServicesResourceTransformer).
+
+## Configurate
+JToml can now be used as a [Configurate](https://github.com/SpongePowered/Configurate) format/loader through the ``jtoml-configurate`` artifact. Special thanks to [jpenilla](https://github.com/jpenilla) for this contribution.
+
+### Examples
+```java
+ConfigurationFormat format = ConfigurationFormat.forExtension("toml");
+ConfigurationNode node = format.create(this.getClass().getResource("foo.toml")).load();
+```
+```java
+TomlConfigurationLoader loader = TomlConfigurationLoader.builder()
+        .path(target)
+        .set(JTomlOption.LINE_SEPARATOR, LineSeparator.LF)
+        .build();
+
+loader.save(node);
+```
 
 ## Comparison
 |                                                             | [WasabiThumb/jtoml](WasabiThumb/jtoml) | [tomlj/tomlj](https://github.com/tomlj/tomlj) | [mwanji/toml4j](https://github.com/mwanji/toml4j) | [asafh/jtoml](https://github.com/asafh/jtoml) |
