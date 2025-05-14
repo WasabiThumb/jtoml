@@ -10,7 +10,8 @@ repositories {
 }
 
 dependencies {
-    api(project(":"))
+    api(project(":api"))
+    implementation(project(":"))
 }
 
 //
