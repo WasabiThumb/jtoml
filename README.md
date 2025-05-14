@@ -14,6 +14,7 @@ The strongly typed nature of JToml is both an extension of this goal and a perso
 - [Quick Start](#quick-start)
 - [Serializers](#serializers)
 - [Configurate](#configurate)
+- [Kotlin Extensions](#kotlin-extensions)
 - [Feature Matrix](#comparison)
 - [License](#license)
 
@@ -113,6 +114,19 @@ TomlConfigurationLoader loader = TomlConfigurationLoader.builder()
         .build();
 
 loader.save(node);
+```
+
+## Kotlin Extensions
+The ``jtoml-kotlin`` artifact provides extensions for Kotlin. Notably adds ``KToml``, a
+static instance of JToml. Also adds many extra functions for coercing values, performing primitive arithmetic, and
+working with arrays/tables.
+
+### Example
+```kotlin
+val table = TomlTable.create()
+table["foo.bar"] = "baz"
+table["meaning.of.life"] = 40.asTomlPrimitive + 2
+val str = KToml.writeToString(table)
 ```
 
 ## Comparison
