@@ -1,5 +1,6 @@
 package io.github.wasabithumb.jtoml.util;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,11 +49,30 @@ public final class ReferenceHolder {
         return value.equals(ref.get());
     }
 
+    @Contract("_ -> new")
+    public static @NotNull ReferenceHolder copyOf(@NotNull ReferenceHolder other) {
+        final int capacity = other.capacity;
+        ReferenceHolder ret = new ReferenceHolder(capacity);
+        System.arraycopy(other.buckets, 0, ret.buckets, 0, capacity);
+        ret.size = other.size;
+        return ret;
+    }
+
     //
 
-    private int capacity = INITIAL_CAPACITY;
-    private Bucket[] buckets = new Bucket[INITIAL_CAPACITY];
-    private int size = 0;
+    private int capacity;
+    private Bucket[] buckets;
+    private int size;
+
+    private ReferenceHolder(int capacity) {
+        this.capacity = capacity;
+        this.buckets = new Bucket[capacity];
+        this.size = 0;
+    }
+
+    public ReferenceHolder() {
+        this(INITIAL_CAPACITY);
+    }
 
     //
 
@@ -109,7 +129,9 @@ public final class ReferenceHolder {
     }
 
     private int hash(@NotNull Object object, int mod) {
-        return (int) (Integer.toUnsignedLong(object.hashCode()) % ((long) mod));
+        long h = Integer.toUnsignedLong(System.identityHashCode(object));
+        h %= mod;
+        return (int) h;
     }
 
     //
