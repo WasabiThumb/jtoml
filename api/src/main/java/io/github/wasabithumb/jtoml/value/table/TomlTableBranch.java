@@ -166,7 +166,7 @@ final class TomlTableBranch implements TomlTableNode {
 
     private void addParent(@NotNull TomlTableBranch parent) {
         if (parent.isInHierarchy(this))
-            throw new IllegalStateException("Attempt to create recursive table relationship");
+            throw new IllegalStateException("Attempt to create circular table relationship");
         this.parents.add(parent);
     }
 
