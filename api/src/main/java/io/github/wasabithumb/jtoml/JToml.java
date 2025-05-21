@@ -24,7 +24,8 @@ import java.nio.file.StandardOpenOption;
 public interface JToml {
 
     /**
-     * Creates a new JToml instance with the given options
+     * Creates a new JToml instance
+     * @param options Options to set on the instance
      * @see JTomlOptions#builder()
      */
     @Contract("_ -> new")
@@ -42,17 +43,40 @@ public interface JToml {
 
     //
 
-    /** Reads a TOML table from a string */
+    /**
+     * Reads a TOML table from a string
+     * @param toml A string containing a TOML document
+     * @throws TomlException String is not valid TOML
+     */
     @NotNull TomlDocument readFromString(@NotNull String toml) throws TomlException;
 
-    /** Reads a TOML table from a stream */
+    /**
+     * Reads a TOML table from a stream
+     * @param in Stream to read from
+     * @throws TomlIOException The underlying stream raised an exception
+     * @throws TomlException Data is not valid TOML
+     */
     @NotNull TomlDocument read(@NotNull InputStream in) throws TomlException;
 
-    /** Reads a TOML table from a reader */
+    /**
+     * Reads a TOML table from a reader. A reader that is configured to use
+     * any encoding other than {@link java.nio.charset.StandardCharsets#UTF_8 UTF-8}
+     * may fail to read some valid TOML documents, so this method should be used with care.
+     * @param reader Reader to read from
+     * @throws TomlIOException The underlying reader raised an exception
+     * @throws TomlException Data is not valid TOML
+     * @see #read(InputStream)
+     */
     @ApiStatus.AvailableSince("0.3.0")
     @NotNull TomlDocument read(@NotNull Reader reader) throws TomlException;
 
-    /** Reads a TOML table from a file */
+    /**
+     * Reads a TOML table from the filesystem
+     * @param file Path to the TOML file
+     * @throws TomlIOException The filesystem raised an exception
+     * @throws TomlException File is not valid TOML
+     * @see #read(InputStream)
+     */
     default @NotNull TomlDocument read(@NotNull Path file) throws TomlException {
         try (InputStream is = Files.newInputStream(file, StandardOpenOption.READ)) {
             return this.read(is);
@@ -62,25 +86,60 @@ public interface JToml {
         }
     }
 
-    /** Reads a TOML table from a file */
+    /**
+     * Reads a TOML table from the filesystem
+     * @param file Path to the TOML file
+     * @throws TomlIOException The filesystem raised an exception
+     * @throws TomlException File is not valid TOML
+     * @see #read(InputStream)
+     */
     default @NotNull TomlDocument read(@NotNull File file) throws TomlException {
         return this.read(file.toPath());
     }
 
     //
 
-    /** Converts a TOML table to a string */
+    /**
+     * Writes a TOML table to a string
+     * @param table Table to write
+     * @throws TomlValueException The TOML spec does not allow for lossless serialization of the table data.
+     * See exception docs for more details.
+     */
     @NotNull String writeToString(@NotNull TomlTable table) throws TomlValueException;
 
-    /** Writes a TOML table to a stream */
-    void write(@NotNull OutputStream out, @NotNull TomlTable table) throws TomlException;
+    /**
+     * Writes a TOML table to a stream
+     * @param out Stream to receive the UTF-8 encoded TOML data
+     * @param table Table to write
+     * @throws TomlValueException The TOML spec does not allow for lossless serialization of the table data.
+     * See exception docs for more details.
+     * @throws TomlIOException The underlying stream raised an exception
+     */
+    void write(@NotNull OutputStream out, @NotNull TomlTable table) throws TomlValueException, TomlIOException;
 
-    /** Writes a TOML table to a writer */
+    /**
+     * Writes a TOML table to a writer. If the writer is configured to use any encoding other than
+     * {@link java.nio.charset.StandardCharsets#UTF_8 UTF-8}, this may produce documents which are not
+     * considered valid by the TOML spec. Hence, this method should be used with care.
+     * @param writer Writer to receive the TOML plaintext
+     * @param table Table to write
+     * @throws TomlValueException The TOML spec does not allow for lossless serialization of the table data.
+     * See exception docs for more details.
+     * @throws TomlIOException The underlying writer raised an exception
+     */
     @ApiStatus.AvailableSince("0.3.0")
-    void write(@NotNull Writer writer, @NotNull TomlTable table) throws TomlException;
+    void write(@NotNull Writer writer, @NotNull TomlTable table) throws TomlValueException, TomlIOException;
 
-    /** Writes a TOML table to a file */
-    default void write(@NotNull Path file, @NotNull TomlTable table) throws TomlException {
+    /**
+     * Writes a TOML table to a file
+     * @param file Path of the file to receive the UTF-8 encoded TOML data
+     * @param table Table to write
+     * @throws TomlValueException The TOML spec does not allow for lossless serialization of the table data.
+     * See exception docs for more details.
+     * @throws TomlIOException The underlying filesystem raised an exception
+     * @see #write(OutputStream, TomlTable)
+     */
+    default void write(@NotNull Path file, @NotNull TomlTable table) throws TomlValueException, TomlIOException {
         try (OutputStream os = Files.newOutputStream(
                 file,
                 StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING
@@ -91,8 +150,16 @@ public interface JToml {
         }
     }
 
-    /** Writes a TOML table to a file */
-    default void write(@NotNull File file, @NotNull TomlTable table) throws TomlException {
+    /**
+     * Writes a TOML table to a file
+     * @param file Path of the file to receive the UTF-8 encoded TOML data
+     * @param table Table to write
+     * @throws TomlValueException The TOML spec does not allow for lossless serialization of the table data.
+     * See exception docs for more details.
+     * @throws TomlIOException The underlying filesystem raised an exception
+     * @see #write(OutputStream, TomlTable)
+     */
+    default void write(@NotNull File file, @NotNull TomlTable table) throws TomlValueException, TomlIOException {
         this.write(file.toPath(), table);
     }
 
@@ -100,13 +167,21 @@ public interface JToml {
 
     /**
      * Serializes the given TOML table to the given type,
-     * if an appropriate serializer is present in the classpath
+     * if an appropriate serializer is present in the classpath.
+     * A list of serializers can be found {@link io.github.wasabithumb.jtoml.serial.TomlSerializer here}.
+     * @param type The type to serialize to
+     * @param table The table to serialize
+     * @throws IllegalArgumentException No serializer is registered for the given type
      */
     <T> @NotNull T serialize(@NotNull Class<T> type, @NotNull TomlTable table) throws IllegalArgumentException;
 
     /**
-     * Deserializes a TOML table from the given type,
-     * if an appropriate deserializer is present in the classpath
+     * Deserializes a given TOML table from the given type,
+     * if an appropriate deserializer is present in the classpath.
+     * A list of serializers can be found {@link io.github.wasabithumb.jtoml.serial.TomlSerializer here}.
+     * @param type The type to deserialize from
+     * @param data The data to deserialize into a TOML table
+     * @throws IllegalArgumentException No deserializer is registered for the given type
      */
     <T> @NotNull TomlTable deserialize(@NotNull Class<T> type, @NotNull T data) throws IllegalArgumentException;
 

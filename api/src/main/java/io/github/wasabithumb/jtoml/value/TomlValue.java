@@ -16,28 +16,73 @@ import org.jetbrains.annotations.NotNull;
 @ApiStatus.NonExtendable
 public interface TomlValue {
 
+    /**
+     * <p>
+     *     Returns true if the value represents a {@link TomlPrimitive primitive}
+     *     and {@link #asPrimitive()} may be called.
+     * </p>
+     * <p>
+     *     The return value of this method may or may not be identical to
+     *     {@code this instanceof TomlPrimitive}.
+     * </p>
+     */
     default boolean isPrimitive() {
         return this instanceof TomlPrimitive;
     }
 
+    /**
+     * Converts this value to a {@link TomlPrimitive primitive}.
+     * Whether the method returns {@code this} or not is an implementation detail.
+     * @throws UnsupportedOperationException Value does not represent a primitive (see {@link #isPrimitive()})
+     */
     default @NotNull TomlPrimitive asPrimitive() throws UnsupportedOperationException {
         if (this instanceof TomlPrimitive) return (TomlPrimitive) this;
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * <p>
+     *     Returns true if the value represents a {@link TomlArray array}
+     *     and {@link #asArray()} may be called.
+     * </p>
+     * <p>
+     *     The return value of this method may or may not be identical to
+     *     {@code this instanceof TomlArray}.
+     * </p>
+     */
     default boolean isArray() {
         return this instanceof TomlArray;
     }
 
+    /**
+     * Converts this value to a {@link TomlArray array}.
+     * Whether the method returns {@code this} or not is an implementation detail.
+     * @throws UnsupportedOperationException Value does not represent an array (see {@link #isArray()})
+     */
     default @NotNull TomlArray asArray() throws UnsupportedOperationException {
         if (this instanceof TomlArray) return (TomlArray) this;
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * <p>
+     *     Returns true if the value represents a {@link TomlTable table}
+     *     and {@link #asTable()} may be called.
+     * </p>
+     * <p>
+     *     The return value of this method may or may not be identical to
+     *     {@code this instanceof TomlTable}.
+     * </p>
+     */
     default boolean isTable() {
         return this instanceof TomlTable;
     }
 
+    /**
+     * Converts this value to a {@link TomlTable table}.
+     * Whether the method returns {@code this} or not is an implementation detail.
+     * @throws UnsupportedOperationException Value does not represent a table (see {@link #isTable()})
+     */
     default @NotNull TomlTable asTable() throws UnsupportedOperationException {
         if (this instanceof TomlTable) return (TomlTable) this;
         throw new UnsupportedOperationException();
