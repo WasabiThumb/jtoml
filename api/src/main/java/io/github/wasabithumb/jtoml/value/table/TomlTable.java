@@ -26,15 +26,12 @@ public interface TomlTable extends TomlValue {
     }
 
     /**
-     * Creates a new table which contains the same
-     * tree as the given table
+     * Creates a new table which contains a
+     * deep copy of the given table
      */
     @Contract("_ -> new")
     static @NotNull TomlTable copyOf(@NotNull TomlTable other) {
-        TomlTableImpl ret = new TomlTableImpl();
-        // TODO: this cast will be bad soon
-        ret.putAll((TomlTableImpl) other);
-        return ret;
+        return TomlTableImpl.copyOf((TomlTableImpl) other);
     }
 
     //
@@ -64,14 +61,14 @@ public interface TomlTable extends TomlValue {
     void clear();
 
     /**
-     * Reports the keys in this table
-     * @param deep If true, children will be traversed (as in {@link #keys()}). Otherwise,
-     *             the top-level keys are reported; each having a length of 1
+     * Reports the keys in this table in lexicographical order.
+     * @param deep If true, children will be traversed (as in {@link #keys()}). Otherwise only
+     *             the top-level keys are reported, each having a length of 1.
      */
     @NotNull @Unmodifiable Set<TomlKey> keys(boolean deep);
 
     /**
-     * Reports the keys present in this table recursively.
+     * Reports the keys present in this table recursively in lexicographical order.
      * Keys that map to tables are not included.
      * @see #keys(boolean)
      */
@@ -281,7 +278,7 @@ public interface TomlTable extends TomlValue {
 
     /**
      * Creates a new map which contains a flattened view of this
-     * table
+     * table. The resulting table is ordered arbitrarily.
      */
     @Contract("-> new")
     default @NotNull Map<TomlKey, TomlValue> toMap() {
