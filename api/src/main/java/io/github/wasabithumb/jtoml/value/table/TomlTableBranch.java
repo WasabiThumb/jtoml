@@ -156,10 +156,17 @@ final class TomlTableBranch implements TomlTableNode {
             parent.modifyEntryCount(mod);
     }
 
-    private void addParent(@NotNull TomlTableBranch parent) {
-        if (parent.equals(this) || parent.parents.contains(this)) {
-            throw new IllegalStateException("Attempt to create recursive table relationship");
+    private boolean isInHierarchy(@NotNull TomlTableBranch subject) {
+        if (this.equals(subject)) return true;
+        for (TomlTableBranch parent : this.parents) {
+            if (parent.isInHierarchy(subject)) return true;
         }
+        return false;
+    }
+
+    private void addParent(@NotNull TomlTableBranch parent) {
+        if (parent.isInHierarchy(this))
+            throw new IllegalStateException("Attempt to create recursive table relationship");
         this.parents.add(parent);
     }
 
