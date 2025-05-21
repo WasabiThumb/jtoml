@@ -69,7 +69,7 @@ serializers:
 | :-: | :-: | :-: |
 | ``PlainTextTomlSerializer`` | - included - | ``String`` |
 | ``GsonTomlSerializer`` | ``jtoml-serializer-gson`` | [``JsonObject``](https://javadoc.io/doc/com.google.code.gson/gson/latest/com.google.gson/com/google/gson/JsonObject.html) |
-| ``ReflectTomlSerializer`` | ``jtoml-serializer-reflect`` | ``TomlSerializable``, ``Map<String, ?>``, ``List<?>``, boxed and unboxed primitives
+| ``ReflectTomlSerializer`` | ``jtoml-serializer-reflect`` | ``TomlSerializable``, ``Map<String, ?>``, ``List<?>``, records, boxed and unboxed primitives
 
 ### Example
 ```java

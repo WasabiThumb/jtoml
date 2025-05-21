@@ -1,5 +1,6 @@
 package io.github.wasabithumb.jtoml.util;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -11,7 +12,7 @@ import java.lang.reflect.Method;
 /**
  * Holds {@link java.lang.ref.WeakReference}s,
  * currently only for the purpose of checking for recursion
- * in the reflection serializer.
+ * in the reflection deserializer.
  * This is distinct from a {@link java.util.WeakHashMap}'s key set
  * in that the equality function is as strict as possible within
  * JVM constraints. Two objects which are "equal" may not
@@ -19,6 +20,7 @@ import java.lang.reflect.Method;
  * This is entirely intended, as the strict equality of objects is
  * the only important property for handling recursion.
  */
+@ApiStatus.Internal
 public final class ReferenceHolder {
 
     private static final int INITIAL_CAPACITY = 16;
