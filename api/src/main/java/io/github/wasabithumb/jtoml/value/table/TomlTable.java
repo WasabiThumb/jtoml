@@ -83,6 +83,16 @@ public interface TomlTable extends TomlValue {
     boolean contains(@NotNull TomlKey key);
 
     /**
+     * Returns true if the given key has a mapping within this table.
+     * This will return true for keys mapped to tables, including empty tables.
+     * The key is parsed as specified by {@link TomlKey#parse(CharSequence)}.
+     * @see #contains(TomlKey)
+     */
+    default boolean contains(@NotNull CharSequence key) {
+        return this.contains(TomlKey.parse(key));
+    }
+
+    /**
      * Gets the value mapped to the given key, or null
      * if no entry exists.
      */
