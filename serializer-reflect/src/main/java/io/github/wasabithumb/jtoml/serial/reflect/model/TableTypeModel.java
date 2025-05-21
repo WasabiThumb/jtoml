@@ -20,13 +20,13 @@ public interface TableTypeModel<T> extends TypeModel<T> {
     static <O> @Nullable TableTypeModel<O> match(@NotNull ParameterizedClass<O> pc) {
         Class<O> raw = pc.raw();
 
-        // TomlSerializable
-        if (TomlSerializable.class.isAssignableFrom(raw))
-            return (TableTypeModel<O>) Serializable.create(raw);
-
         // Record
         if (RecordSupport.isRecord(raw))
             return new Record<>(raw);
+
+        // TomlSerializable
+        if (TomlSerializable.class.isAssignableFrom(raw))
+            return (TableTypeModel<O>) Serializable.create(raw);
 
         // TomlTable
         if (TomlTable.class.equals(raw))
