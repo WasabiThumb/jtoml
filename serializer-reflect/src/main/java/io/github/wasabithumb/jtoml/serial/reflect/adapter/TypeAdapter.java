@@ -19,30 +19,6 @@ public interface TypeAdapter<T> {
         return new BasicTypeAdapter<>(typeClass, toJava, toToml);
     }
 
-    @Contract("_, _, _, _ -> new")
-    static <O, F> @NotNull TypeAdapter<O> alias(
-            @NotNull Class<O> typeClass,
-            @NotNull TypeAdapter<F> foreign,
-            @NotNull Function<F, O> toNative,
-            @NotNull Function<O, F> toForeign
-    ) {
-        return new AliasTypeAdapter<>(typeClass, foreign, toNative, toForeign);
-    }
-
-    @Contract("_, _ -> new")
-    static <O, F> @NotNull TypeAdapter<O> alias(
-            @NotNull Class<O> typeClass,
-            @NotNull TypeAdapter<F> foreign
-    ) {
-        final Class<F> foreignClass = foreign.typeClass();
-        return alias(
-                typeClass,
-                foreign,
-                typeClass::cast,
-                foreignClass::cast
-        );
-    }
-
     //
 
     @NotNull Class<T> typeClass();
