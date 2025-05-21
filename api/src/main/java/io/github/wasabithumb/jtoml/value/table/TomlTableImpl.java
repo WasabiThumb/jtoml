@@ -70,6 +70,7 @@ final class TomlTableImpl implements TomlTable {
         TomlTableNode old;
         if (value.isTable()) {
             TomlTableImpl tbl = (TomlTableImpl) value.asTable();
+            tbl.root.attachedValue = value;
             old = r.branch.put(r.label, tbl.root);
         } else {
             TomlTableLeaf leaf = new TomlTableLeaf(value);
@@ -92,7 +93,10 @@ final class TomlTableImpl implements TomlTable {
         if (node.isLeaf()) {
             return node.asLeaf().value();
         } else {
-            return new TomlTableImpl(node.asBranch());
+            TomlTableBranch branch = node.asBranch();
+            TomlValue ret = branch.attachedValue;
+            if (ret != null) return ret;
+            return new TomlTableImpl(branch);
         }
     }
 

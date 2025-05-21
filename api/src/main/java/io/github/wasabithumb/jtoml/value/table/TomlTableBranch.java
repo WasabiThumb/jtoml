@@ -1,5 +1,6 @@
 package io.github.wasabithumb.jtoml.value.table;
 
+import io.github.wasabithumb.jtoml.value.TomlValue;
 import org.jetbrains.annotations.*;
 
 import java.util.*;
@@ -41,6 +42,7 @@ final class TomlTableBranch implements TomlTableNode {
     private String[] labels;
     private TomlTableNode[] nodes;
     private int entryCount;
+    TomlValue attachedValue;
 
     private TomlTableBranch(int capacity) {
         this.parents = Collections.newSetFromMap(new WeakHashMap<>());
@@ -49,6 +51,7 @@ final class TomlTableBranch implements TomlTableNode {
         this.labels = new String[capacity];
         this.nodes = new TomlTableNode[capacity];
         this.entryCount = 0;
+        this.attachedValue = null;
     }
 
     TomlTableBranch() {
