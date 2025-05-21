@@ -16,6 +16,8 @@ import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Closeable;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 public final class TableWriter implements Closeable {
@@ -83,10 +85,10 @@ public final class TableWriter implements Closeable {
         // Bin 1: Arrays
         // Bin 2: Arrays of Tables
         // Bin 3: Tables
-        KeyBin b0 = new KeyBin(count);
-        KeyBin b1 = new KeyBin(count);
-        KeyBin b2 = new KeyBin(count);
-        KeyBin b3 = new KeyBin(count);
+        List<TomlKey> b0 = new ArrayList<>(count);
+        List<TomlKey> b1 = new ArrayList<>(count);
+        List<TomlKey> b2 = new ArrayList<>(count);
+        List<TomlKey> b3 = new ArrayList<>(count);
         for (TomlKey tk : set) {
             TomlValue tv = table.get(tk);
             assert tv != null;
@@ -103,29 +105,25 @@ public final class TableWriter implements Closeable {
             }
         }
 
-        if (andHeader && (this.options.get(JTomlOption.WRITE_EMPTY_TABLES) || b0.size() != 0 || b1.size() != 0)) {
+        if (andHeader && (this.options.get(JTomlOption.WRITE_EMPTY_TABLES) || !b0.isEmpty() || !b1.isEmpty())) {
             this.writeTableHeader(prefix, false);
         }
 
-        TomlKey nextKey;
         TomlValue nextValue;
 
-        for (int i=0; i < b0.size(); i++) {
-            nextKey = b0.get(i);
+        for (TomlKey nextKey : b0) {
             nextValue = table.get(nextKey);
             assert nextValue != null;
             this.writePrimitive(nextKey, nextValue.asPrimitive());
         }
 
-        for (int i=0; i < b1.size(); i++) {
-            nextKey = b1.get(i);
+        for (TomlKey nextKey : b1) {
             nextValue = table.get(nextKey);
             assert nextValue != null;
             this.writeArray(nextKey, nextValue.asArray());
         }
 
-        for (int i=0; i < b2.size(); i++) {
-            nextKey = b2.get(i);
+        for (TomlKey nextKey : b2) {
             nextValue = table.get(nextKey);
             assert nextValue != null;
             nextKey = TomlKey.join(prefix, nextKey);
@@ -138,8 +136,7 @@ public final class TableWriter implements Closeable {
             }
         }
 
-        for (int i=0; i < b3.size(); i++) {
-            nextKey = b3.get(i);
+        for (TomlKey nextKey : b3) {
             nextValue = table.get(nextKey);
             assert nextValue != null;
             nextKey = TomlKey.join(prefix, nextKey);
@@ -314,48 +311,6 @@ public final class TableWriter implements Closeable {
     @Override
     public void close() throws TomlException {
         this.out.close();
-    }
-
-    //
-
-    private static final class KeyBin {
-
-        private final TomlKey[] arr;
-        private int head;
-
-        KeyBin(int capacity) {
-            this.arr = new TomlKey[capacity];
-            this.head = 0;
-        }
-
-        //
-
-        public int size() {
-            return this.head;
-        }
-
-        public void add(@NotNull TomlKey key) {
-            int idx = 0;
-            int cmp;
-            while (idx < this.head) {
-                cmp = key.compareTo(this.arr[idx]);
-                if (cmp < 0) {
-                    break;
-                } else if (cmp == 0) {
-                    return;
-                } else {
-                    idx++;
-                }
-            }
-            System.arraycopy(this.arr, idx, this.arr, idx + 1, this.head - idx);
-            this.arr[idx] = key;
-            this.head++;
-        }
-
-        public @NotNull TomlKey get(int index) {
-            return this.arr[index];
-        }
-
     }
 
 }
