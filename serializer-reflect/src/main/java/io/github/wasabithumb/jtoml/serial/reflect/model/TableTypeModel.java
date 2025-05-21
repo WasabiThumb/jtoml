@@ -99,6 +99,10 @@ public interface TableTypeModel<T> extends TypeModel<T> {
                 );
             }
 
+            try {
+                con.setAccessible(true);
+            } catch (Exception ignored) { }
+
             Object o;
             try {
                 o = con.newInstance();

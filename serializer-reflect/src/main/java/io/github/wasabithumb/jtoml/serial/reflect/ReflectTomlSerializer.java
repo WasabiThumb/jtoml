@@ -99,12 +99,13 @@ final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<T> {
 
     //
 
+    @SuppressWarnings("unchecked")
     private <E> @NotNull TomlValue deserializeValueUnsafe(
             @NotNull ReferenceHolder parents,
             @NotNull TypeModel<E> model,
             @NotNull Object value
     ) {
-        return this.deserializeValue(parents, model, model.type().cast(value));
+        return this.deserializeValue(parents, model, (E) value);
     }
 
     private <E> @NotNull TomlValue deserializeValue(
