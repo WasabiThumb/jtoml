@@ -100,8 +100,10 @@ final class TomlTableImpl implements TomlTable {
         }
     }
 
-    @Contract("_, true -> !null")
-    private @Nullable Resolution resolve(@NotNull TomlKey key, boolean create) {
+    @Contract("null, _ -> fail; _, true -> !null")
+    private @Nullable Resolution resolve(TomlKey key, boolean create) {
+        if (key == null) throw new NullPointerException("Key may not be null");
+
         Iterator<String> iter = key.iterator();
         if (!iter.hasNext()) throw new IllegalArgumentException("Cannot use empty (zero part) key in TomlTable");
 
