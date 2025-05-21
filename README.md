@@ -14,6 +14,7 @@ The strongly typed nature of JToml is both an extension of this goal and a perso
 - [Quick Start](#quick-start)
 - [Serializers](#serializers)
 - [Configurate](#configurate)
+- [Kotlin Extensions](#kotlin-extensions)
 - [Feature Matrix](#comparison)
 - [License](#license)
 
@@ -22,14 +23,14 @@ The strongly typed nature of JToml is both an extension of this goal and a perso
 #### Gradle (Kotlin)
 ```kotlin
 dependencies {
-    implementation("io.github.wasabithumb:jtoml:0.4.0")
+    implementation("io.github.wasabithumb:jtoml:0.5.0")
 }
 ```
 
 #### Gradle (Groovy)
 ```groovy
 dependencies {
-    implementation 'io.github.wasabithumb:jtoml:0.4.0'
+    implementation 'io.github.wasabithumb:jtoml:0.5.0'
 }
 ```
 
@@ -39,7 +40,7 @@ dependencies {
     <dependency>
         <groupId>io.github.wasabithumb</groupId>
         <artifactId>jtoml</artifactId>
-        <version>0.4.0</version>
+        <version>0.5.0</version>
         <scope>compile</scope>
     </dependency>
 </dependencies>
@@ -76,7 +77,7 @@ serializers:
 | :-: | :-: | :-: |
 | ``PlainTextTomlSerializer`` | - included - | ``String`` |
 | ``GsonTomlSerializer`` | ``jtoml-serializer-gson`` | [``JsonObject``](https://javadoc.io/doc/com.google.code.gson/gson/latest/com.google.gson/com/google/gson/JsonObject.html) |
-| ``ReflectTomlSerializer`` | ``jtoml-serializer-reflect`` | ``TomlSerializable``, ``Map<String, ?>``, ``List<?>``, boxed and unboxed primitives
+| ``ReflectTomlSerializer`` | ``jtoml-serializer-reflect`` | ``TomlSerializable``, ``Map<String, ?>``, ``List<?>``, records, boxed and unboxed primitives
 
 ### Example
 ```java
@@ -113,6 +114,19 @@ TomlConfigurationLoader loader = TomlConfigurationLoader.builder()
         .build();
 
 loader.save(node);
+```
+
+## Kotlin Extensions
+The ``jtoml-kotlin`` artifact provides extensions for Kotlin. Notably adds ``KToml``, a
+static instance of JToml. Also adds many extra functions for coercing values, performing primitive arithmetic, and
+working with arrays/tables.
+
+### Example
+```kotlin
+val table = TomlTable.create()
+table["foo.bar"] = "baz"
+table["meaning.of.life"] = 40.asTomlPrimitive + 2
+val str = KToml.writeToString(table)
 ```
 
 ## Comparison

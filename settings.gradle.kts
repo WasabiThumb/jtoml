@@ -3,4 +3,11 @@ plugins {
 }
 
 rootProject.name = "jtoml"
-include(":api", ":internals", ":serializer-gson", ":serializer-reflect", ":configurate")
+include(
+    ":api",
+    ":internals",
+    ":kotlin",
+    ":serializer-gson",
+    ":serializer-reflect",
+    ":configurate"
+)
