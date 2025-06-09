@@ -9,215 +9,159 @@ import java.util.*;
 @ApiStatus.Internal
 final class TomlTableImpl implements TomlTable {
 
-    private static @NotNull TomlTableImpl unwrapTable(@NotNull TomlValue value) {
-        return (TomlTableImpl) value.asTable();
+    public static @NotNull TomlTableImpl copyOf(@NotNull TomlTableImpl table) {
+        return new TomlTableImpl(TomlTableBranch.copyOf(table.root));
     }
 
     //
 
-    private final Set<TomlTableImpl> parents = Collections.newSetFromMap(new WeakHashMap<>());
-    private final Map<String, TomlValue> backing = new HashMap<>();
-    private int entryCount = 0;
+    private final TomlTableBranch root;
 
-    TomlTableImpl() { }
+    private TomlTableImpl(@NotNull TomlTableBranch root) {
+        this.root = root;
+    }
+
+    TomlTableImpl() {
+        this(new TomlTableBranch());
+    }
 
     //
 
     @Override
     public int size() {
-        return this.entryCount;
+        return this.root.entryCount();
     }
 
     @Override
     public boolean isEmpty() {
-        return this.entryCount == 0;
+        return this.root.entryCount() == 0;
     }
 
     @Override
     public void clear() {
-        this.backing.clear();
-        this.entryCount = 0;
+        this.root.clear();
     }
 
     @Override
     public @NotNull @Unmodifiable Set<TomlKey> keys(boolean deep) {
-        if (deep) {
-            return new DeepKeySet(this);
-        } else {
-            return new ShallowKeySet(this.backing.keySet());
-        }
+        return deep ?
+                new DeepKeySet(this) :
+                new ShallowKeySet(this.root);
     }
 
     @Override
     public boolean contains(@NotNull TomlKey key) {
-        this.checkValidKey(key);
-        TomlTableImpl head;
-        TomlValue next = this;
-
-        for (String part : key) {
-            if (!next.isTable()) return false;
-            head = unwrapTable(next);
-            next = head.backing.get(part);
-            if (next == null) return false;
-        }
-
-        return true;
+        Resolution r = this.resolve(key, false);
+        if (r == null) return false;
+        return r.branch.get(r.label) != null;
     }
 
     @Override
     public @Nullable TomlValue get(@NotNull TomlKey key) {
-        this.checkValidKey(key);
-        TomlTableImpl head;
-        TomlValue next = this;
-
-        for (String part : key) {
-            if (!next.isTable()) return null;
-            head = unwrapTable(next);
-            next = head.backing.get(part);
-            if (next == null) return null;
-        }
-
-        return next;
+        Resolution r = this.resolve(key, false);
+        if (r == null) return null;
+        TomlTableNode node = r.branch.get(r.label);
+        return this.wrapNode(node);
     }
 
     @Override
     public @Nullable TomlValue put(@NotNull TomlKey key, @NotNull TomlValue value) {
-        this.checkValidKey(key);
-        this.checkValidValue(value);
-        TomlTableImpl head = this;
-
-        Iterator<String> iter = key.iterator();
-        String part;
-        TomlValue v;
-        do {
-            part = iter.next();
-            if (!iter.hasNext()) break;
-            v = head.backing.get(part);
-            if (v == null) {
-                TomlTableImpl n = new TomlTableImpl();
-                n.parents.addAll(this.parents);
-                n.parents.add(head);
-                head.backing.put(part, n);
-                v = n;
-            } else if (!v.isTable()) {
-                throw new IllegalArgumentException("Creating entry at " + key +
-                        " would overwrite an existing non-table entry (" + part + ")");
-            }
-            head = unwrapTable(v);
-        } while (true);
-
-        TomlValue removed = head.backing.put(part, value);
-        int mod = -this.entryCountOf(removed);
+        Resolution r = this.resolve(key, true);
+        TomlTableNode old;
         if (value.isTable()) {
-            TomlTableImpl addedTable = unwrapTable(value);
-            addedTable.parents.addAll(this.parents);
-            addedTable.parents.add(head);
-            mod += addedTable.entryCount;
+            TomlTableImpl tbl = (TomlTableImpl) value.asTable();
+            tbl.root.attachedValue = value;
+            old = r.branch.put(r.label, tbl.root);
         } else {
-            mod++;
+            TomlTableLeaf leaf = new TomlTableLeaf(value);
+            old = r.branch.put(r.label, leaf);
         }
-        this.modifyEntryCount(mod);
-        return removed;
+        return this.wrapNode(old);
     }
 
     @Override
     public @Nullable TomlValue remove(@NotNull TomlKey key) {
-        this.checkValidKey(key);
-        TomlTableImpl head = this;
+        Resolution r = this.resolve(key, false);
+        if (r == null) return null;
+        TomlTableNode node = r.branch.remove(r.label);
+        return this.wrapNode(node);
+    }
+
+    @Contract("null -> null; !null -> !null")
+    private TomlValue wrapNode(TomlTableNode node) {
+        if (node == null) return null;
+        if (node.isLeaf()) {
+            return node.asLeaf().value();
+        } else {
+            TomlTableBranch branch = node.asBranch();
+            TomlValue ret = branch.attachedValue;
+            if (ret != null) return ret;
+            return new TomlTableImpl(branch);
+        }
+    }
+
+    @Contract("null, _ -> fail; _, true -> !null")
+    private @Nullable Resolution resolve(TomlKey key, boolean create) {
+        if (key == null) throw new NullPointerException("Key may not be null");
 
         Iterator<String> iter = key.iterator();
-        String part;
-        TomlValue v;
-        do {
-            part = iter.next();
-            if (!iter.hasNext()) break;
-            v = head.backing.get(part);
-            if (v == null || !v.isTable()) return null;
-            head = unwrapTable(v);
-        } while (true);
+        if (!iter.hasNext()) throw new IllegalArgumentException("Cannot use empty (zero part) key in TomlTable");
 
-        TomlValue removed = head.backing.remove(part);
-        if (removed != null){
-            if (removed.isTable()) {
-                TomlTableImpl removedTable = unwrapTable(removed);
-                removedTable.parents.removeAll(this.parents);
-                removedTable.parents.remove(this);
-                this.modifyEntryCount(-removedTable.entryCount);
+        TomlTableBranch head = this.root;
+        String label = iter.next();
+
+        while (iter.hasNext()) {
+            TomlTableNode node = head.get(label);
+            if (node != null && node.isBranch()) {
+                head = node.asBranch();
+            } else if (create) {
+                TomlTableBranch branch = new TomlTableBranch();
+                head.put(label, branch);
+                head = branch;
             } else {
-                this.modifyEntryCount(-1);
+                return null;
             }
+            label = iter.next();
         }
-        return removed;
-    }
 
-    public void putAll(@NotNull TomlTableImpl other) {
-        this.putAll0(TomlKey.literal(), other.backing);
-    }
-
-    private void putAll0(@NotNull TomlKey prefix, @NotNull Map<String, TomlValue> map) {
-        TomlKey key;
-        TomlValue value;
-        for (Map.Entry<String, TomlValue> entry : map.entrySet()) {
-            key = TomlKey.join(prefix, TomlKey.literal(entry.getKey()));
-            value = entry.getValue();
-            if (value.isTable()) {
-                this.putAll0(key, unwrapTable(value).backing);
-            } else {
-                this.put(key, value);
-            }
-        }
-    }
-
-    @Contract("null -> fail")
-    private void checkValidKey(TomlKey key) {
-        if (key == null) throw new NullPointerException("Key may not be null");
-        if (key.isEmpty()) throw new IllegalArgumentException("Key is empty (0 parts)");
-    }
-
-    private int entryCountOf(@Nullable TomlValue value) {
-        if (value == null) return 0;
-        if (value.isTable()) return unwrapTable(value).entryCount;
-        return 1;
-    }
-
-    private void modifyEntryCount(int mod) {
-        this.entryCount += mod;
-        for (TomlTableImpl parent : this.parents) parent.entryCount += mod;
-    }
-
-    @Contract("null -> fail")
-    private void checkValidValue(TomlValue value) {
-        if (value == null) throw new NullPointerException("Value may not be null");
-        if (value.isTable()) {
-            if (this.equals(value)) {
-                throw new IllegalArgumentException("Cannot add table to itself");
-            }
-            TomlTableImpl table = unwrapTable(value);
-            if (this.isInAncestry(table) || table.isInAncestry(this)) {
-                throw new IllegalArgumentException("Cannot create cyclic table relationship");
-            }
-        }
-    }
-
-    private boolean isInAncestry(@NotNull TomlTableImpl value) {
-        return this.parents.contains(value);
+        return new Resolution(head, label);
     }
 
     //
 
+    private static final class Resolution {
+
+        final TomlTableBranch branch;
+        final String label;
+
+        Resolution(
+                @NotNull TomlTableBranch branch,
+                @NotNull String label
+        ) {
+            this.branch = branch;
+            this.label = label;
+        }
+
+    }
+
     private static final class ShallowKeySet extends AbstractSet<TomlKey> {
 
-        private final Set<String> backing;
+        private final TomlTableBranch parent;
 
-        ShallowKeySet(@NotNull Set<String> backing) {
-            this.backing = backing;
+        ShallowKeySet(@NotNull TomlTableBranch parent) {
+            this.parent = parent;
         }
 
         //
 
         @Override
         public int size() {
-            return this.backing.size();
+            return this.parent.keyCount();
+        }
+
+        @Override
+        public @NotNull Iter iterator() {
+            return new Iter(this.parent.keys().iterator());
         }
 
         @Override
@@ -225,12 +169,7 @@ final class TomlTableImpl implements TomlTable {
             if (!(o instanceof TomlKey)) return false;
             TomlKey key = (TomlKey) o;
             if (key.size() != 1) return false;
-            return this.backing.contains(key.get(0));
-        }
-
-        @Override
-        public @NotNull Iterator<TomlKey> iterator() {
-            return new Iter(this.backing.iterator());
+            return this.parent.get(key.get(0)) != null;
         }
 
         //
@@ -271,7 +210,7 @@ final class TomlTableImpl implements TomlTable {
 
         @Override
         public int size() {
-            return this.parent.entryCount;
+            return this.parent.size();
         }
 
         @Override
@@ -282,66 +221,102 @@ final class TomlTableImpl implements TomlTable {
 
         @Override
         public @NotNull Iterator<TomlKey> iterator() {
-            return new Iter(this.parent);
+            return new Iter(this.parent.root);
         }
 
         //
 
         private static final class Iter implements Iterator<TomlKey> {
 
-            private final Queue<QueuedTable> queue;
-            private TomlKey prefix;
-            private Iterator<Map.Entry<String, TomlValue>> backing;
-            private int remaining;
+            private final Queue<SubIter> queue;
 
-            Iter(@NotNull TomlTableImpl start) {
+            Iter(@NotNull TomlTableBranch branch) {
                 this.queue = new LinkedList<>();
-                this.prefix = TomlKey.literal();
-                this.backing = start.backing.entrySet().iterator();
-                this.remaining = start.entryCount;
+                this.queue.add(new SubIter(TomlKey.literal(), branch, this.queue));
             }
 
             //
 
+            private @Nullable SubIter acquire() {
+                SubIter ret = this.queue.peek();
+                while (ret != null) {
+                    if (ret.hasNext()) return ret;
+                    this.queue.poll();
+                    ret = this.queue.peek();
+                }
+                return null;
+            }
+
             @Override
             public boolean hasNext() {
-                return this.remaining > 0;
+                return this.acquire() != null;
             }
 
             @Override
             public @NotNull TomlKey next() {
-                if (this.remaining <= 0) throw new NoSuchElementException();
-
-                while (true) {
-                    while (this.backing.hasNext()) {
-                        Map.Entry<String, TomlValue> entry = this.backing.next();
-                        TomlKey key = TomlKey.join(this.prefix, TomlKey.literal(entry.getKey()));
-                        TomlValue value = entry.getValue();
-                        if (value.isTable()) {
-                            this.queue.add(new QueuedTable(key, unwrapTable(value)));
-                        } else {
-                            this.remaining--;
-                            return key;
-                        }
-                    }
-
-                    QueuedTable queued = this.queue.poll();
-                    if (queued == null) throw new ConcurrentModificationException();
-                    this.prefix = queued.prefix;
-                    this.backing = queued.table.backing.entrySet().iterator();
-                }
+                SubIter sub = this.acquire();
+                if (sub == null) throw new NoSuchElementException();
+                return sub.next();
             }
 
             //
 
-            private static final class QueuedTable {
+            private static final class SubIter implements Iterator<TomlKey> {
 
                 private final TomlKey prefix;
-                private final TomlTableImpl table;
+                private final TomlTableBranch branch;
+                private final Iterator<String> backing;
+                private final Queue<SubIter> queue;
+                private TomlKey head;
 
-                QueuedTable(@NotNull TomlKey prefix, @NotNull TomlTableImpl table) {
+                SubIter(
+                        @NotNull TomlKey prefix,
+                        @NotNull TomlTableBranch branch,
+                        @NotNull Queue<SubIter> queue
+                ) {
                     this.prefix = prefix;
-                    this.table = table;
+                    this.branch = branch;
+                    this.backing = branch.keys().iterator();
+                    this.queue = queue;
+                }
+
+                //
+
+                private void compute() {
+                    if (this.head != null) return;
+
+                    String label;
+                    TomlKey key;
+                    TomlTableNode node;
+
+                    while (this.backing.hasNext()) {
+                        label = this.backing.next();
+                        key = TomlKey.join(this.prefix, TomlKey.literal(label));
+                        node = this.branch.get(label);
+                        if (node == null) throw new ConcurrentModificationException();
+                        if (node.isBranch()) {
+                            this.queue.add(new SubIter(key, node.asBranch(), this.queue));
+                        } else if (node.isLeaf()) {
+                            this.head = key;
+                            break;
+                        }
+                    }
+                }
+
+                @Override
+                public boolean hasNext() {
+                    this.compute();
+                    return this.head != null;
+                }
+
+                @Override
+                public @NotNull TomlKey next() {
+                    this.compute();
+                    TomlKey ret = this.head;
+                    this.head = null;
+                    if (ret == null)
+                        throw new NoSuchElementException();
+                    return ret;
                 }
 
             }
