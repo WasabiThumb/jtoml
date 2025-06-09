@@ -36,7 +36,7 @@ final class TomlArrayImpl implements TomlArray {
 
     @Override
     public void add(TomlValue value) {
-        if (value == null) throw new IllegalArgumentException("Cannot add null to TomlArray");
+        if (value == null) throw new NullPointerException("Cannot add null to TomlArray");
         this.backing.add(value);
     }
 
@@ -46,8 +46,8 @@ final class TomlArrayImpl implements TomlArray {
     }
 
     @Override
-    public @Nullable TomlValue set(int index, TomlValue value) throws IndexOutOfBoundsException {
-        if (value == null) throw new IllegalArgumentException("Cannot insert null into TomlArray");
+    public @NotNull TomlValue set(int index, TomlValue value) throws IndexOutOfBoundsException {
+        if (value == null) throw new NullPointerException("Cannot insert null into TomlArray");
         return this.backing.set(index, value);
     }
 

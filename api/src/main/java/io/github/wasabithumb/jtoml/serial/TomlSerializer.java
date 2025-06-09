@@ -5,16 +5,39 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * <p>
- *     An abstraction for facets which can transform
- *     TOML tables to/from some other type in-memory.
- *     Useful for digesting and converting configuration
- *     files.
- * </p>
- * <p>
- *     No serializers are present in the base JToml artifact,
- *     they are separate dependencies.
- * </p>
+ * An abstraction for facets which can transform
+ * TOML tables to/from some other type in-memory.
+ *
+ * <h2>Available Serializers</h2>
+ * <table border="1">
+ *     <tr>
+ *         <th>Name</th>
+ *         <th>Artifact</th>
+ *         <th>Supported Type(s)</th>
+ *     </tr>
+ *     <tr>
+ *         <td>{@code PlainTextTomlSerializer}</td>
+ *         <td>N/A</td>
+ *         <td>{@link String}</td>
+ *     </tr>
+ *     <tr>
+ *         <td>{@code GsonTomlSerializer}</td>
+ *         <td>{@code jtoml-serializer-gson}</td>
+ *         <td><a href="https://javadoc.io/doc/com.google.code.gson/gson/latest/com.google.gson/com/google/gson/JsonObject.html">{@code JsonObject}</a></td>
+ *     </tr>
+ *     <tr>
+ *         <td>{@code ReflectTomlSerializer}</td>
+ *         <td>{@code jtoml-serializer-reflect}</td>
+ *         <td>
+ *             {@link TomlSerializable},
+ *             {@link java.util.Map Map&lt;String, ?&gt;},
+ *             {@link java.util.List List&lt;?&gt;},
+ *             <a href="https://openjdk.org/jeps/395">records</a>,
+ *             primitives (boxed and unboxed) and
+ *             arrays
+ *         </td>
+ *     </tr>
+ * </table>
  */
 public interface TomlSerializer<I, O> {
 
