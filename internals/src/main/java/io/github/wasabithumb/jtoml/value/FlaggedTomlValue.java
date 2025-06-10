@@ -1,5 +1,6 @@
 package io.github.wasabithumb.jtoml.value;
 
+import io.github.wasabithumb.jtoml.comment.Comments;
 import io.github.wasabithumb.jtoml.value.array.TomlArray;
 import io.github.wasabithumb.jtoml.value.primitive.TomlPrimitive;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
@@ -92,6 +93,11 @@ public final class FlaggedTomlValue implements TomlValue {
     }
 
     // START Super
+
+    @Override
+    public @NotNull Comments comments() {
+        return this.backing.comments();
+    }
 
     @Override
     public boolean isPrimitive() {

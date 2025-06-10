@@ -1,5 +1,6 @@
 package io.github.wasabithumb.jtoml.value.array;
 
+import io.github.wasabithumb.jtoml.comment.Comments;
 import io.github.wasabithumb.jtoml.value.TomlValue;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -13,16 +14,24 @@ import java.util.List;
 final class TomlArrayImpl implements TomlArray {
 
     private final List<TomlValue> backing;
+    private final Comments comments;
 
     TomlArrayImpl(int initialCapacity) {
         this.backing = new ArrayList<>(initialCapacity);
+        this.comments = Comments.empty();
     }
 
     TomlArrayImpl() {
         this.backing = new ArrayList<>();
+        this.comments = Comments.empty();
     }
 
     //
+
+    @Override
+    public @NotNull Comments comments() {
+        return this.comments;
+    }
 
     @Override
     public int size() {

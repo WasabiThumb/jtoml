@@ -74,10 +74,21 @@ public interface JTomlOption<T> {
 
     /**
      * If true, table headers will be written even if they do not
-     * contain any key-values.
+     * contain any key-values or comments.
      */
     @ApiStatus.AvailableSince("0.2.3")
     Bool WRITE_EMPTY_TABLES = of("WRITE_EMPTY_TABLES", false);
+
+    /**
+     * If true, comments will be stored in the resulting document
+     * (rather than ignored) when reading
+     */
+    Bool READ_COMMENTS = of("READ_COMMENTS", true);
+
+    /**
+     * If true, comments defined on values will be written.
+     */
+    Bool WRITE_COMMENTS = of("WRITE_COMMENTS", true);
 
     //
 

@@ -22,6 +22,11 @@ final class CommentsImpl implements Comments {
     //
 
     @Override
+    public int count() {
+        return this.postHead;
+    }
+
+    @Override
     public @NotNull @Unmodifiable List<Comment> all() {
         return Collections.unmodifiableList(Arrays.asList(this.array).subList(0, this.postHead));
     }

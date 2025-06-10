@@ -19,6 +19,12 @@ public interface Comments {
     //
 
     /**
+     * Reports the total number of comments,
+     * equivalent to {@code all().length()}
+     */
+    int count();
+
+    /**
      * Provides an immutable list of all comments held
      * by this object, in the order they would appear in a
      * document. Comments are sorted by {@link CommentPosition position},
