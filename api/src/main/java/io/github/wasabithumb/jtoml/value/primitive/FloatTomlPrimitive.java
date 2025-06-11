@@ -19,6 +19,7 @@ final class FloatTomlPrimitive extends AbstractTomlPrimitive<Double> {
         }
         NumberFormat decimalFormat = NumberFormat.getInstance(Locale.ROOT);
         decimalFormat.setMaximumFractionDigits(15);
+        decimalFormat.setMinimumFractionDigits(1);
         return decimalFormat.format(value);
     }
 
