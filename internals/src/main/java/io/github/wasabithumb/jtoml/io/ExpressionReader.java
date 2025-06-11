@@ -42,17 +42,18 @@ public class ExpressionReader implements Closeable {
             return Expression.empty();
         } else if (c0 == '\n') { // newline (LF)
             return Expression.empty();
-        } else if (c0 == '#') {        // comment
-            this.in.finishExpression(true);
-            return Expression.empty();
-        } else if (c0 == '[') { // std table or array table
+        } else if (c0 == '#') {  // comment
+            ret = Expression.empty();
+            ret.setComment(this.in.finishExpression(true));
+            return ret;
+        } else if (c0 == '[') {  // std table or array table
             boolean isArray = this.in.peek() == '[';
             if (isArray) this.in.next();
             if (!this.in.skipWhitespace()) this.in.raise("Incomplete table header");
             TomlKey key = this.readKey(new StringBuilder(), ']', '\0');
             if (isArray && this.in.next() != ']') this.in.raise("Missing 2nd closing bracket for array table");
             ret = Expression.table(key, isArray);
-        } else {                // key-values
+        } else {                 // key-values
             StringBuilder sb = new StringBuilder();
             sb.append(c0);
             TomlKey key = this.readKey(sb, '=', (c0 == '\"' || c0 == '\'') ? c0 : '\0');
@@ -61,7 +62,7 @@ public class ExpressionReader implements Closeable {
             ret = Expression.keyValue(key, value);
         }
 
-        this.in.finishExpression(false);
+        ret.setComment(this.in.finishExpression(false));
         return ret;
     }
 

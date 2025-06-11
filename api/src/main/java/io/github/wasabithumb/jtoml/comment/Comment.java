@@ -46,7 +46,7 @@ public interface Comment {
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD, ElementType.TYPE})
     @interface Pre {
-        @NotNull @Pattern("^[\\x09\\x20-\\uFFFF]*$") String value();
+        @NotNull @Pattern("^[^\\x00-\\x08\\x0A-\\x1F\\x7F]*$") String value();
     }
 
     /**
@@ -58,7 +58,7 @@ public interface Comment {
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD, ElementType.TYPE})
     @interface Inline {
-        @NotNull @Pattern("^[\\x09\\x20-\\uFFFF]*$") String value();
+        @NotNull @Pattern("^[^\\x00-\\x08\\x0A-\\x1F\\x7F]*$") String value();
     }
 
     /**
@@ -70,7 +70,7 @@ public interface Comment {
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD, ElementType.TYPE})
     @interface Post {
-        @NotNull @Pattern("^[\\x09\\x20-\\uFFFF]*$") String value();
+        @NotNull @Pattern("^[^\\x00-\\x08\\x0A-\\x1F\\x7F]*$") String value();
     }
 
 }

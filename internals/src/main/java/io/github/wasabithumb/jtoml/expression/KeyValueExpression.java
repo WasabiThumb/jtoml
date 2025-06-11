@@ -4,7 +4,7 @@ import io.github.wasabithumb.jtoml.key.TomlKey;
 import io.github.wasabithumb.jtoml.value.TomlValue;
 import org.jetbrains.annotations.NotNull;
 
-public final class KeyValueExpression implements Expression {
+public final class KeyValueExpression extends AbstractExpression {
 
     private final TomlKey key;
     private final TomlValue value;
