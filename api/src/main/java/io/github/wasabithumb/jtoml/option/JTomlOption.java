@@ -90,6 +90,12 @@ public interface JTomlOption<T> {
      */
     Bool WRITE_COMMENTS = of("WRITE_COMMENTS", true);
 
+    /**
+     * Determines how non-table arrays should be written;
+     * specifically when elements should receive a newline
+     */
+    JTomlOption<ArrayStrategy> ARRAY_STRATEGY = of("ARRAY_STRATEGY", ArrayStrategy.class, ArrayStrategy.DYNAMIC);
+
     //
 
     /**

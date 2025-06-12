@@ -1,19 +1,20 @@
 package io.github.wasabithumb.jtoml.io;
 
+import io.github.wasabithumb.jtoml.comment.Comment;
+import io.github.wasabithumb.jtoml.comment.CommentPosition;
+import io.github.wasabithumb.jtoml.comment.Comments;
 import io.github.wasabithumb.jtoml.except.TomlException;
 import io.github.wasabithumb.jtoml.io.target.CharTarget;
 import io.github.wasabithumb.jtoml.key.TomlKey;
 import io.github.wasabithumb.jtoml.option.JTomlOption;
 import io.github.wasabithumb.jtoml.option.JTomlOptions;
-import io.github.wasabithumb.jtoml.option.prop.IndentationPolicy;
-import io.github.wasabithumb.jtoml.option.prop.LineSeparator;
-import io.github.wasabithumb.jtoml.option.prop.PaddingPolicy;
-import io.github.wasabithumb.jtoml.option.prop.SpacingPolicy;
+import io.github.wasabithumb.jtoml.option.prop.*;
 import io.github.wasabithumb.jtoml.value.TomlValue;
 import io.github.wasabithumb.jtoml.value.array.TomlArray;
 import io.github.wasabithumb.jtoml.value.primitive.TomlPrimitive;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Closeable;
 import java.util.ArrayList;
@@ -35,7 +36,33 @@ public final class TableWriter implements Closeable {
 
     public void writeTable(@NotNull TomlTable table) throws TomlException {
         this.indentLevel = this.options.get(JTomlOption.INDENTATION).globalIndent();
-        this.writeTableBody(TomlKey.literal(), table, false);
+
+        final Comments comments = table.comments();
+        final boolean writeComments = this.options.get(JTomlOption.WRITE_COMMENTS) && comments.count() != 0;
+        final LineSeparator newline = this.options.get(JTomlOption.LINE_SEPARATOR);
+
+        if (writeComments) {
+            for (Comment c : comments.all()) {
+                if (c.position() == CommentPosition.POST) break;
+                this.out.put("# ");
+                this.out.put(c.content());
+                this.out.put(newline);
+            }
+        }
+
+        this.writeTableBody(
+                TomlKey.literal(),
+                table,
+                false
+        );
+
+        if (writeComments) {
+            for (Comment c : comments.get(CommentPosition.POST)) {
+                this.out.put("# ");
+                this.out.put(c.content());
+                this.out.put(newline);
+            }
+        }
     }
 
     private void writeIndent() {
@@ -43,7 +70,7 @@ public final class TableWriter implements Closeable {
         for (int i=0; i < this.indentLevel; i++) this.out.put(c);
     }
 
-    private void writeTableHeader(@NotNull TomlKey key, boolean array) throws TomlException {
+    private void writeTableHeader0(@NotNull TomlKey key, boolean array, @Nullable String inlineComment) throws TomlException {
         final SpacingPolicy spacing         = this.options.get(JTomlOption.SPACING);
         final PaddingPolicy padding         = this.options.get(JTomlOption.PADDING);
         final IndentationPolicy indentation = this.options.get(JTomlOption.INDENTATION);
@@ -68,9 +95,47 @@ public final class TableWriter implements Closeable {
         }
         for (int i=0; i < padding.tablePadding(); i++) this.out.put(' ');
         this.out.put(']');
+        if (inlineComment != null) {
+            this.out.put(" # ");
+            this.out.put(inlineComment);
+        }
         for (int i=0; i < (spacing.postTable() + 1); i++) this.out.put(newline);
 
         this.indentLevel += indentation.postIndent();
+    }
+
+    private void writeTableHeader(
+            @NotNull TomlKey key,
+            @NotNull TomlTable table,
+            boolean array,
+            boolean unconditional
+    ) throws TomlException {
+        final Comments comments = table.comments();
+        final boolean writeComments = this.options.get(JTomlOption.WRITE_COMMENTS) && comments.count() != 0;
+        final boolean writeEmptyTables = this.options.get(JTomlOption.WRITE_EMPTY_TABLES);
+        final LineSeparator newline = this.options.get(JTomlOption.LINE_SEPARATOR);
+
+        if (writeComments) {
+            for (Comment c : comments.get(CommentPosition.PRE)) {
+                this.out.put("# ");
+                this.out.put(c.content());
+                this.out.put(newline);
+            }
+        }
+        if (writeComments || writeEmptyTables || unconditional) {
+            this.writeTableHeader0(
+                    key,
+                    array,
+                    writeComments ? comments.getInline() : null
+            );
+        }
+        if (writeComments) {
+            for (Comment c : comments.get(CommentPosition.POST)) {
+                this.out.put("# ");
+                this.out.put(c.content());
+                this.out.put(newline);
+            }
+        }
     }
 
     private void writeTableBody(
@@ -105,9 +170,8 @@ public final class TableWriter implements Closeable {
             }
         }
 
-        if (andHeader && (this.options.get(JTomlOption.WRITE_EMPTY_TABLES) || !b0.isEmpty() || !b1.isEmpty())) {
-            this.writeTableHeader(prefix, false);
-        }
+        if (andHeader)
+            this.writeTableHeader(prefix, table, false, !b0.isEmpty() || !b1.isEmpty());
 
         TomlValue nextValue;
 
@@ -131,7 +195,7 @@ public final class TableWriter implements Closeable {
             TomlTable child;
             for (int z=0; z < arr.size(); z++) {
                 child = arr.get(z).asTable();
-                this.writeTableHeader(nextKey, true);
+                this.writeTableHeader(nextKey, child, true, true);
                 this.writeTableBody(nextKey, child, false);
             }
         }
@@ -144,25 +208,53 @@ public final class TableWriter implements Closeable {
         }
     }
 
-    private void openStatement(@NotNull TomlKey key) throws TomlException {
+    private void openStatement(@NotNull TomlKey key, @NotNull Comments comments) throws TomlException {
+        final boolean writeComments = this.options.get(JTomlOption.WRITE_COMMENTS) && comments.count() != 0;
         final SpacingPolicy spacing = this.options.get(JTomlOption.SPACING);
         final LineSeparator newline = this.options.get(JTomlOption.LINE_SEPARATOR);
+
         for (int i=0; i < spacing.preStatement(); i++) this.out.put(newline);
         this.writeIndent();
+
+        if (writeComments) {
+            for (Comment c : comments.get(CommentPosition.PRE)) {
+                this.out.put("# ");
+                this.out.put(c.content());
+                this.out.put(newline);
+                this.writeIndent();
+            }
+        }
+
         this.out.put(key.toString());
         this.out.put(" = ");
     }
 
-    private void closeStatement() throws TomlException {
+    private void closeStatement(@NotNull Comments comments) throws TomlException {
+        final boolean writeComments = this.options.get(JTomlOption.WRITE_COMMENTS);
+        final String inline = comments.getInline();
         final SpacingPolicy spacing = this.options.get(JTomlOption.SPACING);
         final LineSeparator newline = this.options.get(JTomlOption.LINE_SEPARATOR);
-        for (int i=0; i < (spacing.postStatement() + 1); i++) this.out.put(newline);
+        if (writeComments && inline != null) {
+            this.out.put(" # ");
+            this.out.put(inline);
+        }
+        this.out.put(newline);
+        if (writeComments) {
+            for (Comment c : comments.get(CommentPosition.POST)) {
+                this.out.put("# ");
+                this.out.put(c.content());
+                this.out.put(newline);
+            }
+        }
+        for (int i=0; i < spacing.postStatement(); i++)
+            this.out.put(newline);
     }
 
     private void writePrimitive(@NotNull TomlKey key, @NotNull TomlPrimitive value) throws TomlException {
-        this.openStatement(key);
+        final Comments comments = value.comments();
+        this.openStatement(key, comments);
         this.writePrimitiveValue(value);
-        this.closeStatement();
+        this.closeStatement(comments);
     }
 
     private void writePrimitiveValue(@NotNull TomlPrimitive value) throws TomlException {
@@ -221,12 +313,39 @@ public final class TableWriter implements Closeable {
     }
 
     private void writeArray(@NotNull TomlKey key, @NotNull TomlArray value) throws TomlException {
-        this.openStatement(key);
+        final Comments comments = value.comments();
+        this.openStatement(key, comments);
         this.writeArrayValue(value);
-        this.closeStatement();
+        this.closeStatement(comments);
     }
 
     private void writeArrayValue(@NotNull TomlArray value) throws TomlException {
+        final ArrayStrategy strategy = this.options.get(JTomlOption.ARRAY_STRATEGY);
+        boolean allowComments, doNewlines;
+        switch (strategy) {
+            case SHORT:
+                allowComments = false;
+                doNewlines = false;
+                break;
+            case TALL:
+                allowComments = this.options.get(JTomlOption.WRITE_COMMENTS);
+                doNewlines = true;
+                break;
+            case DYNAMIC:
+                boolean anyCommented = false;
+                boolean anyNonPrimitive = false;
+                for (TomlValue child : value) {
+                    anyCommented |= (child.comments().count() != 0);
+                    anyNonPrimitive |= (!child.isPrimitive());
+                }
+                allowComments = this.options.get(JTomlOption.WRITE_COMMENTS) && anyCommented;
+                doNewlines = (anyCommented || anyNonPrimitive);
+                break;
+            default:
+                throw new AssertionError("Unreachable code");
+        }
+
+        final LineSeparator newline = this.options.get(JTomlOption.LINE_SEPARATOR);
         final PaddingPolicy padding = this.options.get(JTomlOption.PADDING);
         this.out.put('[');
 
@@ -235,19 +354,72 @@ public final class TableWriter implements Closeable {
             return;
         }
 
-        for (int i=0; i < padding.arrayPadding(); i++) this.out.put(' ');
-
-        TomlValue next;
-        for (int i=0; i < value.size(); i++) {
-            if (i != 0) {
-                this.out.put(',');
-                for (int z=0; z < padding.elementPadding(); z++) this.out.put(' ');
-            }
-            next = value.get(i);
-            this.writeAnyValue(next);
+        if (doNewlines) {
+            this.out.put(newline);
+            this.indentLevel++;
+        } else {
+            for (int i=0; i < padding.arrayPadding(); i++)
+                this.out.put(' ');
         }
 
-        for (int i=0; i < padding.arrayPadding(); i++) this.out.put(' ');
+        final int al = value.size();
+        TomlValue next;
+        Comments nextComments;
+        for (int i=0; i < al; i++) {
+            next = value.get(i);
+            nextComments = next.comments();
+
+            if (doNewlines) this.writeIndent();
+            if (allowComments) {
+                for (Comment c : nextComments.get(CommentPosition.PRE)) {
+                    this.out.put("# ");
+                    this.out.put(c.content());
+                    this.out.put(newline);
+                    this.writeIndent();
+                }
+            }
+
+            this.writeAnyValue(next);
+
+            String inline;
+            if (i != (al - 1)) {
+                this.out.put(',');
+                if (allowComments && (inline = nextComments.getInline()) != null) {
+                    this.out.put(" # ");
+                    this.out.put(inline);
+                    this.out.put(newline);
+                } else if (doNewlines) {
+                    this.out.put(newline);
+                } else {
+                    for (int z=0; z < padding.elementPadding(); z++)
+                        this.out.put(' ');
+                }
+            } else if (allowComments && (inline = nextComments.getInline()) != null) {
+                this.out.put(" # ");
+                this.out.put(inline);
+                this.out.put(newline);
+            } else if (doNewlines) {
+                this.out.put(newline);
+            }
+
+            if (allowComments) {
+                for (Comment c : nextComments.get(CommentPosition.POST)) {
+                    this.writeIndent();
+                    this.out.put("# ");
+                    this.out.put(c.content());
+                    this.out.put(newline);
+                }
+            }
+        }
+
+        if (doNewlines) {
+            this.indentLevel--;
+            this.writeIndent();
+        } else {
+            for (int i=0; i < padding.arrayPadding(); i++)
+                this.out.put(' ');
+        }
+
         this.out.put(']');
     }
 
