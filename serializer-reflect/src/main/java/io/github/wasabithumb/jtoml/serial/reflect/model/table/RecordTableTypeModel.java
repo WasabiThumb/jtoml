@@ -9,10 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.UnknownNullability;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 @ApiStatus.Internal
 final class RecordTableTypeModel<T> extends AbstractTableTypeModel<T> {
@@ -79,7 +76,7 @@ final class RecordTableTypeModel<T> extends AbstractTableTypeModel<T> {
     @Override
     public void applyFieldComments(@NotNull TomlKey key, @NotNull Comments comments) {
         RecordSupport.Component component = this.lookupComponent(key);
-        applyAnnotationComments(component.declaredAnnotations(), comments);
+        applyAnnotationComments(component.accessor().getDeclaredAnnotations(), comments);
     }
 
     //
