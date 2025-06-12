@@ -1,5 +1,6 @@
 package io.github.wasabithumb.jtoml.configurate;
 
+import io.github.wasabithumb.jtoml.Faker;
 import io.github.wasabithumb.jtoml.option.JTomlOption;
 import io.github.wasabithumb.jtoml.option.prop.LineSeparator;
 import io.leangen.geantyref.TypeToken;
@@ -105,7 +106,7 @@ class TomlConfigurationLoaderTest {
                 .build();
 
         final BasicConfigurationNode node = loader.load();
-        final NativeTypesTestConfig data = new NativeTypesTestConfig();
+        final NativeTypesTestConfig data = Faker.create(NativeTypesTestConfig.class);
         node.set(data);
         loader.save(node);
         final NativeTypesTestConfig roundTripped = loader.load().get(NativeTypesTestConfig.class);
@@ -114,14 +115,14 @@ class TomlConfigurationLoaderTest {
 
     @ConfigSerializable
     public static final class NativeTypesTestConfig {
-        String string = "I am a string";
-        Boolean bool = true;
-        Integer integer = 42;
-        Float floatNum = 3.14f;
-        OffsetDateTime offsetDateTime = OffsetDateTime.now();
-        LocalDateTime localDateTime = LocalDateTime.now();
-        LocalDate localDate = LocalDate.now();
-        LocalTime localTime = LocalTime.now();
+        String string ;
+        Boolean bool;
+        Integer integer;
+        Float floatNum;
+        OffsetDateTime offsetDateTime;
+        LocalDateTime localDateTime;
+        LocalDate localDate;
+        LocalTime localTime;
 
         @Override
         public boolean equals(Object o) {

@@ -56,6 +56,7 @@ dependencies {
     testImplementation(project(":serializer-reflect"))
     testImplementation("com.google.code.gson:gson:2.13.1")
 
+    testImplementation(project(":internals:test-utils"))
     // JUnit Test Platform
     testImplementation(libs.junit.jupiter)
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

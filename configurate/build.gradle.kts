@@ -16,6 +16,7 @@ dependencies {
     api(platform("org.spongepowered:configurate-bom:4.2.0"))
     api("org.spongepowered:configurate-core")
 
+    testImplementation(project(":internals:test-utils"))
     // JUnit Test Platform
     testImplementation(libs.junit.jupiter)
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

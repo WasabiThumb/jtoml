@@ -1,5 +1,6 @@
 package io.github.wasabithumb.jtoml.pojo;
 
+import io.github.wasabithumb.jtoml.Faker;
 import io.github.wasabithumb.jtoml.comment.Comment;
 import io.github.wasabithumb.jtoml.serial.TomlSerializable;
 
@@ -12,15 +13,7 @@ import java.util.Objects;
 public final class SimpleTable implements TomlSerializable {
 
     public static SimpleTable create() {
-        SimpleTable ret = new SimpleTable();
-        ret.text = "hello\njtoml ❤";
-        ret.integer = 1234;
-        ret.decimal = 56.789;
-        ret.localDate = LocalDate.of(1996, 1, 23);
-        ret.localTime = LocalTime.of(16, 50);
-        ret.localDateTime = LocalDateTime.now();
-        ret.offsetDateTime = OffsetDateTime.now();
-        return ret;
+        return Faker.create(SimpleTable.class);
     }
 
     //
