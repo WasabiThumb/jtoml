@@ -20,10 +20,7 @@ final class FloatTomlPrimitive extends AbstractTomlPrimitive<Double> {
         if (value == Double.POSITIVE_INFINITY) return "inf";
         if (value == Double.NEGATIVE_INFINITY) return "-inf";
         if (Double.isNaN(value)) return "nan";
-        if ((value % 1) == 0) {
-            if (Double.doubleToLongBits(value) == -9223372036854775808L) return "-0";
-            return Long.toString((long) value);
-        }
+        if (Double.doubleToLongBits(value) == -9223372036854775808L) return "-0.0";
         return NUMBER_FORMAT.get().format(value);
     }
 
