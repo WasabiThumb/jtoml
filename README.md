@@ -1,14 +1,10 @@
 # JToml
-The ultimate [TOML](https://toml.io/en/v1.0.0) parser for Java 8+.
-Goals are feature-completeness and a robust, type-safe API.
+The ultimate [TOML](https://toml.io/en/v1.0.0) library for Java 8+.
+Goals are feature completeness and a permissive yet type-safe API.
 JToml supports the latest version of the TOML spec (``v1.0.0``).
 TOML is a first-class citizen; no casts, no wonky date-time handling,
-no dependencies.
-
-The main reason for JToml's existence is that there were no other pure-Java TOML
-parsers which exposed an opaque API for TOML keys. JToml can parse TOML String keys like the other libraries, but also slice and join keys and perform shallow and deep enumeration of keys.
-
-The strongly typed nature of JToml is both an extension of this goal and a personal preference.
+no dependencies. Working with keys is fluid and unambiguous with
+methods for parsing, slicing and joining.
 
 ## Table of Contents
 - [Quick Start](#quick-start)
@@ -16,7 +12,7 @@ The strongly typed nature of JToml is both an extension of this goal and a perso
 - [Configurate](#configurate)
 - [Kotlin Extensions](#kotlin-extensions)
 - [Comments](#comments)
-- [Feature Matrix](#comparison)
+- [Feature Matrix](#feature-matrix)
 - [License](#license)
 
 ## Quick Start
@@ -47,15 +43,15 @@ dependencies {
 </dependencies>
 ```
 
-### Basic Usage
+### Simple Reading Example
 ```java
 final String source = """
-[a]
-number = 0xCAFEBABE
-
-[a.b]
-string = "hello from jtoml \\U0001F60E"
-""";
+        [a]
+        number = 0xCAFEBABE
+        
+        [a.b]
+        string = "hello from jtoml \\U0001F60E"
+        """;
 
 JToml toml = JToml.jToml();
 TomlTable table = toml.readFromString(source);
@@ -66,19 +62,40 @@ table.get(key1).asPrimitive().asLong();   // 3405691582
 TomlKey key2 = TomlKey.join(TomlKey.parse("a.b"), TomlKey.literal("string"));
 table.get(key2).asPrimitive().asString(); // hello from jtoml 😎
 ```
-Files and streams are also supported. For streams, very minimal buffering is
-performed.
+
+### Simple Writing Example
+```java
+TomlTable table = TomlTable.create();
+table.put("a.number", 0xCAFEBABEL);
+table.put("a.b.string", "hello from jtoml 😎");
+
+String source = JToml.jToml()
+        .writeToString(table);
+```
+
+## Options
+Options may be supplied when creating ``JToml`` instances. For example, if you wanted to
+minimize the output size of the serializer:
+```java
+JToml minimal = JToml.jToml(JTomlOptions.builder()
+        .set(JTomlOption.INDENTATION, IndentationPolicy.NONE)
+        .set(JTomlOption.SPACING, SpacingPolicy.NONE)
+        .set(JTomlOption.PADDING, PaddingPolicy.NONE)
+        .set(JTomlOption.WRITE_COMMENTS, false)
+        .set(JTomlOption.ARRAY_STRATEGY, ArrayStrategy.SHORT)
+        .build());
+```
 
 ## Serializers
 The ``JToml#serialize`` and ``JToml#deserialize`` methods can be used to
 convert ``TomlTable``s into various formats. Here is the current list of
 serializers:
 
-| Name | Dependency | Types |
-| :-: | :-: | :-: |
-| ``PlainTextTomlSerializer`` | - included - | ``String`` |
-| ``GsonTomlSerializer`` | ``jtoml-serializer-gson`` | [``JsonObject``](https://javadoc.io/doc/com.google.code.gson/gson/latest/com.google.gson/com/google/gson/JsonObject.html) |
-| ``ReflectTomlSerializer`` | ``jtoml-serializer-reflect`` | ``TomlSerializable``, ``Map<String, ?>``, ``List<?>``, records, boxed and unboxed primitives
+|            Name             |          Dependency          |                                                           Types                                                           |
+|:---------------------------:|:----------------------------:|:-------------------------------------------------------------------------------------------------------------------------:|
+| ``PlainTextTomlSerializer`` |         - included -         |                                                        ``String``                                                         |
+|   ``GsonTomlSerializer``    |  ``jtoml-serializer-gson``   | [``JsonObject``](https://javadoc.io/doc/com.google.code.gson/gson/latest/com.google.gson/com/google/gson/JsonObject.html) |
+|  ``ReflectTomlSerializer``  | ``jtoml-serializer-reflect`` |               ``TomlSerializable``, ``Map<String, ?>``, ``List<?>``, records, boxed and unboxed primitives                |
 
 ### Example
 ```java
@@ -90,18 +107,11 @@ toml.serialize(JsonObject.class, table);
 If you are shading this library, serializers will not work as intended unless
 you configure shadowJar to merge the service files. See instructions below.
 
-#### Gradle
-```kotlin
-tasks.shadowJar {
-    mergeServiceFiles()
-}
-```
-
-#### Maven
-Use the [ServicesResourceTransformer](https://maven.apache.org/plugins/maven-shade-plugin/examples/resource-transformers.html#ServicesResourceTransformer).
+- **Gradle**: Call ``mergeServiceFiles()`` within the ``shadowJar`` block
+- **Maven**: Use the [ServicesResourceTransformer](https://maven.apache.org/plugins/maven-shade-plugin/examples/resource-transformers.html#ServicesResourceTransformer)
 
 ## Configurate
-JToml can now be used as a [Configurate](https://github.com/SpongePowered/Configurate) format/loader through the ``jtoml-configurate`` artifact. Special thanks to [jpenilla](https://github.com/jpenilla) for this contribution.
+JToml may be used as a [Configurate](https://github.com/SpongePowered/Configurate) format/loader through the ``jtoml-configurate`` artifact.
 
 ### Examples
 ```java
@@ -137,7 +147,7 @@ with the ``TomlValue#comments()`` accessor. Comments can be placed in one of 3 "
 comment.
 
 ### Integration with ``jtoml-serializer-reflect``
-The ``@Comment.Pre``, ``@Comment.Inline`` and ``@Comment.Post`` annotation can be used to add comments
+The ``@Comment.Pre``, ``@Comment.Inline`` and ``@Comment.Post`` annotations can be used to add comments
 to fields on ``TomlSerializable`` classes or components on records. For instance:
 ```java
 class MyObject implements TomlSerializable {
@@ -148,24 +158,21 @@ class MyObject implements TomlSerializable {
 }
 ```
 
-## Comparison
+## Feature Matrix
 |                                                             | [WasabiThumb/jtoml](WasabiThumb/jtoml) | [tomlj/tomlj](https://github.com/tomlj/tomlj) | [mwanji/toml4j](https://github.com/mwanji/toml4j) | [asafh/jtoml](https://github.com/asafh/jtoml) |
 |:------------------------------------------------------------|:--------------------------------------:|:---------------------------------------------:|:-------------------------------------------------:|:---------------------------------------------:|
-| Safe Key Join & Split                                       |                   ✅                    |                       ❌                       |                         ❌                         |                       ❌                       |
-| ``v1.0.0`` Compliance                                       |                   ✅                    |                       ✅                       |                         ❌                         |                       ❌                       |
-| Positional Errors                                           |                   ✅                    |                       ✅                       |                         ✅                         |                       ✅                       |
-| Error Recovery                                              |                   ❌                    |                       ✅                       |                         ✅                         |                       ❌                       |
-| Configurable Read Rules                                     |                   ✅                    |                       ✅                       |                         ❌                         |                       ❌                       |
-| Configurable Write Rules                                    |                   ✅                    |                       ❌                       |                         ✅                         |                       ❌                       |
+| Key join & split                                            |                   ✅                    |                       ❌                       |                         ❌                         |                       ❌                       |
+| ``v1.0.0`` compliance                                       |                   ✅                    |                       ✅                       |                         ❌                         |                       ❌                       |
+| Positional errors                                           |                   ✅                    |                       ✅                       |                         ✅                         |                       ✅                       |
+| Error recovery                                              |                   ❌                    |                       ✅                       |                         ✅                         |                       ❌                       |
+| Configurable read rules                                     |                   ✅                    |                       ✅                       |                         ❌                         |                       ❌                       |
+| Configurable write rules                                    |                   ✅                    |                       ❌                       |                         ✅                         |                       ❌                       |
 | Enum-based type inspection                                  |                   ✅                    |                       ✅                       |                         ❌                         |                       ❌                       |
 | Safe type coercion                                          |                   ✅                    |                       ❌                       |                         ❌                         |                       ❌                       |
 | Reflect serialization                                       |                   ✅                    |                       ❌                       |                         ✅                         |                       ✅                       |
-| JSON serialization                                          |                   ✅                    |                 ✅<sup>1</sup>                 |                         ✅                         |                       ❌                       |
-| Zero Dependencies                                           |                   ✅                    |                       ❌                       |                         ❌                         |                       ✅                       |
-| Passes [test suite](https://github.com/toml-lang/toml-test) |                   ✅                    |                 ❌<sup>2</sup>                 |                         ❌                         |                       ❌                       |
-
-1. Deserialization is not supported; JSON is in string format
-2. Passes [6 arbitrary tests](https://github.com/tomlj/tomlj/tree/e2d94e6dfe7633111b9e5aaec5a71d88c0af94ce/src/test/resources/org/tomlj), full suite has ~700
+| JSON serialization                                          |                   ✅                    |                       ✅                       |                         ✅                         |                       ❌                       |
+| Zero dependencies                                           |                   ✅                    |                       ❌                       |                         ❌                         |                       ✅                       |
+| Passes [test suite](https://github.com/toml-lang/toml-test) |                   ✅                    |                       ❌                       |                         ❌                         |                       ❌                       |
 
 ## License
 ```text
