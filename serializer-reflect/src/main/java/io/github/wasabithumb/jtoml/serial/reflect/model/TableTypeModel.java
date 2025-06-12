@@ -306,6 +306,25 @@ public interface TableTypeModel<T> extends TypeModel<T> {
             return this.lookupComponent(key).access(instance);
         }
 
+        @Override
+        public void applyTableComments(@NotNull Comments comments) {
+            this.applyAnnotationComments(this.clazz.getDeclaredAnnotations(), comments);
+        }
+
+        @Override
+        public void applyFieldComments(@NotNull TomlKey key, @NotNull Comments comments) {
+            RecordSupport.Component component = this.lookupComponent(key);
+            this.applyAnnotationComments(component.declaredAnnotations(), comments);
+        }
+
+        private void applyAnnotationComments(@NotNull Annotation @NotNull [] annotations, @NotNull Comments comments) {
+            for (Annotation a : annotations) {
+                if (a instanceof Comment.Pre) comments.addPre(((Comment.Pre) a).value());
+                if (a instanceof Comment.Inline) comments.addInline(((Comment.Inline) a).value());
+                if (a instanceof Comment.Post) comments.addPost(((Comment.Post) a).value());
+            }
+        }
+
         private static final class Builder<O> implements TableTypeModel.Builder<O> {
 
             private final Record<O> parent;

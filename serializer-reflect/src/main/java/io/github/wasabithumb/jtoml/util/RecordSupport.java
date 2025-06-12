@@ -4,6 +4,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.UnknownNullability;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 
 /**
@@ -20,6 +21,7 @@ public final class RecordSupport {
     private static final Method M_RECORD_COMPONENT_GET_TYPE;
     private static final Method M_RECORD_COMPONENT_GET_GENERIC_TYPE;
     private static final Method M_RECORD_COMPONENT_GET_ACCESSOR;
+    private static final Method M_RECORD_COMPONENT_GET_DECLARED_ANNOTATIONS;
 
     static {
         boolean ok = true;
@@ -30,6 +32,7 @@ public final class RecordSupport {
         Method mRecordComponentGetType = null;
         Method mRecordComponentGetGenericType = null;
         Method mRecordComponentGetAccessor = null;
+        Method mRecordComponentGetDeclaredAnnotations = null;
 
         try {
             cRecord = Class.forName("java.lang.Record");
@@ -46,6 +49,7 @@ public final class RecordSupport {
                 mRecordComponentGetType = cRecordComponent.getMethod("getType");
                 mRecordComponentGetGenericType = cRecordComponent.getMethod("getGenericType");
                 mRecordComponentGetAccessor = cRecordComponent.getMethod("getAccessor");
+                mRecordComponentGetDeclaredAnnotations = cRecordComponent.getMethod("getDeclaredAnnotations");
             } catch (NoSuchMethodException ignored) {
                 ok = false;
             }
@@ -58,6 +62,7 @@ public final class RecordSupport {
         M_RECORD_COMPONENT_GET_TYPE = mRecordComponentGetType;
         M_RECORD_COMPONENT_GET_GENERIC_TYPE = mRecordComponentGetGenericType;
         M_RECORD_COMPONENT_GET_ACCESSOR = mRecordComponentGetAccessor;
+        M_RECORD_COMPONENT_GET_DECLARED_ANNOTATIONS = mRecordComponentGetDeclaredAnnotations;
     }
 
     //
@@ -177,6 +182,10 @@ public final class RecordSupport {
 
         public @NotNull Object access(@NotNull Object record) {
             return invoke(record, this.accessor());
+        }
+
+        public @NotNull Annotation @NotNull [] declaredAnnotations() {
+            return (Annotation[]) invoke(this.handle, M_RECORD_COMPONENT_GET_DECLARED_ANNOTATIONS);
         }
 
         @Override
