@@ -1,9 +1,12 @@
 package io.github.wasabithumb.jtoml.comment;
 
+import org.jetbrains.annotations.ApiStatus;
+
 /**
  * Represents the part of a TOML expression which a comment is bound to.
  * One of {@link #PRE}, {@link #POST} pr {@link #INLINE}.
  */
+@ApiStatus.AvailableSince("0.6.0")
 public enum CommentPosition {
     /**
      * Comment is bound to the line(s) directly

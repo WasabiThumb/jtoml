@@ -16,6 +16,7 @@ import java.lang.annotation.*;
  * @see #content()
  */
 @ApiStatus.NonExtendable
+@ApiStatus.AvailableSince("0.6.0")
 public interface Comment {
 
     @Contract("_, _ -> new")

@@ -20,6 +20,7 @@ public interface TomlValue {
     /**
      * Accesses the comments stored on this value
      */
+    @ApiStatus.AvailableSince("0.6.0")
     @NotNull Comments comments();
 
     /**

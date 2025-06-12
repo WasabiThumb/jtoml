@@ -24,14 +24,14 @@ The strongly typed nature of JToml is both an extension of this goal and a perso
 #### Gradle (Kotlin)
 ```kotlin
 dependencies {
-    implementation("io.github.wasabithumb:jtoml:0.5.0")
+    implementation("io.github.wasabithumb:jtoml:0.6.0")
 }
 ```
 
 #### Gradle (Groovy)
 ```groovy
 dependencies {
-    implementation 'io.github.wasabithumb:jtoml:0.5.0'
+    implementation 'io.github.wasabithumb:jtoml:0.6.0'
 }
 ```
 
@@ -41,7 +41,7 @@ dependencies {
     <dependency>
         <groupId>io.github.wasabithumb</groupId>
         <artifactId>jtoml</artifactId>
-        <version>0.5.0</version>
+        <version>0.6.0</version>
         <scope>compile</scope>
     </dependency>
 </dependencies>

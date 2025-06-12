@@ -9,6 +9,7 @@ import java.util.List;
  * specific TOML expression
  */
 @ApiStatus.NonExtendable
+@ApiStatus.AvailableSince("0.6.0")
 public interface Comments {
 
     @Contract("-> new")
