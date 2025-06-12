@@ -1,5 +1,6 @@
-package io.github.wasabithumb.jtoml.pojo;
+package io.github.wasabithumb.jtoml.dummy;
 
+import io.github.wasabithumb.jtoml.Faker;
 import io.github.wasabithumb.jtoml.comment.Comment;
 import io.github.wasabithumb.jtoml.serial.TomlSerializable;
 
@@ -9,18 +10,10 @@ import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.util.Objects;
 
-public final class SimpleTable implements TomlSerializable {
+public final class PojoTable implements TomlSerializable {
 
-    public static SimpleTable create() {
-        SimpleTable ret = new SimpleTable();
-        ret.text = "hello\njtoml ❤";
-        ret.integer = 1234;
-        ret.decimal = 56.789;
-        ret.localDate = LocalDate.of(1996, 1, 23);
-        ret.localTime = LocalTime.of(16, 50);
-        ret.localDateTime = LocalDateTime.now();
-        ret.offsetDateTime = OffsetDateTime.now();
-        return ret;
+    public static PojoTable create() {
+        return Faker.create(PojoTable.class);
     }
 
     //
@@ -34,7 +27,7 @@ public final class SimpleTable implements TomlSerializable {
     public LocalDateTime localDateTime;
     public OffsetDateTime offsetDateTime;
     
-    SimpleTable() { }
+    PojoTable() { }
 
     //
 
@@ -54,8 +47,8 @@ public final class SimpleTable implements TomlSerializable {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof SimpleTable)) return false;
-        SimpleTable other = (SimpleTable) obj;
+        if (!(obj instanceof PojoTable)) return false;
+        PojoTable other = (PojoTable) obj;
 
         return Objects.equals(this.text, other.text) &&
                 this.integer == other.integer &&

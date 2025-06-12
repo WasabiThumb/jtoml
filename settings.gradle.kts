@@ -6,6 +6,7 @@ rootProject.name = "jtoml"
 include(
     ":api",
     ":internals",
+   ":internals:test-utils",
     ":kotlin",
     ":serializer-gson",
     ":serializer-reflect",

@@ -5,4 +5,5 @@ junit = "5.7.1"
 junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
 
 [plugins]
-jvm = { id = "org.jetbrains.kotlin.jvm", version = "1.9.22" }
+jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.1.21" }
+publish = { id = "com.vanniktech.maven.publish", version = "0.32.0" }

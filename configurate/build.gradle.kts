@@ -1,3 +1,8 @@
+import com.vanniktech.maven.publish.SonatypeHost
+
+plugins {
+    alias(libs.plugins.publish)
+}
 
 description = "TOML integration for Configurate"
 
@@ -11,6 +16,7 @@ dependencies {
     api(platform("org.spongepowered:configurate-bom:4.2.0"))
     api("org.spongepowered:configurate-core")
 
+    testImplementation(project(":internals:test-utils"))
     // JUnit Test Platform
     testImplementation(libs.junit.jupiter)
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
@@ -22,33 +28,32 @@ tasks.test {
 
 //
 
-centralPortal {
-    name = "jtoml-configurate"
-    jarTask = tasks.jar
-    sourcesJarTask = tasks.sourcesJar
-    javadocJarTask = tasks.javadocJar
+mavenPublishing {
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    signAllPublications()
+    coordinates("${project.group}", "jtoml-configurate", "${project.version}")
     pom {
-        name = "JToml Configurate"
-        description = project.description
-        url = "https://github.com/WasabiThumb/jtoml"
+        name.set("JToml Configurate")
+        description.set(project.description!!)
+        inceptionYear.set("2025")
+        url.set("https://github.com/WasabiThumb/jtoml")
         licenses {
             license {
-                name = "The Apache License, Version 2.0"
-                url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+                name.set("The Apache License, Version 2.0")
+                url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                distribution.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
             }
         }
         developers {
             developer {
-                id = "wasabithumb"
-                email = "wasabithumbs@gmail.com"
-                organization = "Wasabi Codes"
-                organizationUrl = "https://wasabithumb.github.io/"
-                timezone = "-5"
+                id.set("wasabithumb")
+                name.set("Xavier Pedraza")
+                url.set("https://github.com/WasabiThumb/")
             }
         }
         scm {
-            connection = "scm:git:git://github.com/WasabiThumb/jtoml.git"
-            url = "https://github.com/WasabiThumb/jtoml"
+            url.set("https://github.com/WasabiThumb/jtoml/")
+            connection.set("scm:git:git://github.com/WasabiThumb/jtoml.git")
         }
     }
 }
