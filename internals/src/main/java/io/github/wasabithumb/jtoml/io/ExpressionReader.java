@@ -637,7 +637,7 @@ public class ExpressionReader implements Closeable {
                 if (negative) hour = -hour;
                 if (hour < -18 || hour > 18) this.in.raise("Offset hour out of range (got " + hour + ")");
                 if (minute < 0 || minute > 59) this.in.raise("Offset minute out of range (got " + minute + ")");
-                offset = ZoneOffset.ofHoursMinutes(hour, minute);
+                offset = ZoneOffset.ofHoursMinutes(hour, (hour < 0) ? -minute : minute);
             } else {
                 offset = ZoneOffset.UTC;
             }
