@@ -16,13 +16,18 @@ allprojects {
     java {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
-        toolchain.languageVersion.set(JavaLanguageVersion.of(8))
+        toolchain.languageVersion.set(JavaLanguageVersion.of(17))
         withSourcesJar()
         withJavadocJar()
     }
 
     tasks.compileJava {
         options.encoding = "UTF-8"
+    }
+
+    tasks.compileTestJava {
+        sourceCompatibility = "17"
+        targetCompatibility = "17"
     }
 
     tasks.javadoc {
