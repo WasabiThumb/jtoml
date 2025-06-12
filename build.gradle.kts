@@ -1,10 +1,8 @@
+import com.vanniktech.maven.publish.SonatypeHost
 import tasks.FetchTestsTask
 
 allprojects {
     apply(plugin = "java-library")
-    apply(plugin = "maven-publish")
-    apply(plugin = "signing")
-    apply(plugin = "net.thebugmc.gradle.sonatype-central-portal-publisher")
 
     group = "io.github.wasabithumb"
     version = "0.6.1"
@@ -40,9 +38,8 @@ allprojects {
 
 plugins {
     id("java-library")
-    id("maven-publish")
-    id("signing")
-    id("net.thebugmc.gradle.sonatype-central-portal-publisher") version "1.2.4"
+    alias(libs.plugins.publish)
+    alias(libs.plugins.jvm) apply false
 }
 
 description = "Fully compliant TOML parser and serializer for Java"
@@ -79,33 +76,32 @@ tasks.processTestResources {
 
 //
 
-centralPortal {
-    name = "jtoml"
-    jarTask = tasks.jar
-    sourcesJarTask = tasks.sourcesJar
-    javadocJarTask = tasks.javadocJar
+mavenPublishing {
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    signAllPublications()
+    coordinates("${project.group}", "jtoml", "${project.version}")
     pom {
-        name = "JToml"
-        description = project.description
-        url = "https://github.com/WasabiThumb/jtoml"
+        name.set("JToml")
+        description.set(project.description!!)
+        inceptionYear.set("2025")
+        url.set("https://github.com/WasabiThumb/jtoml")
         licenses {
             license {
-                name = "The Apache License, Version 2.0"
-                url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+                name.set("The Apache License, Version 2.0")
+                url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                distribution.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
             }
         }
         developers {
             developer {
-                id = "wasabithumb"
-                email = "wasabithumbs@gmail.com"
-                organization = "Wasabi Codes"
-                organizationUrl = "https://wasabithumb.github.io/"
-                timezone = "-5"
+                id.set("wasabithumb")
+                name.set("Xavier Pedraza")
+                url.set("https://github.com/WasabiThumb/")
             }
         }
         scm {
-            connection = "scm:git:git://github.com/WasabiThumb/jtoml.git"
-            url = "https://github.com/WasabiThumb/jtoml"
+            url.set("https://github.com/WasabiThumb/jtoml/")
+            connection.set("scm:git:git://github.com/WasabiThumb/jtoml.git")
         }
     }
 }
