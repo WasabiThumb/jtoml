@@ -1,6 +1,6 @@
 package io.github.wasabithumb.jtoml.expression;
 
-public final class EmptyExpression implements Expression {
+public final class EmptyExpression extends AbstractExpression {
 
     public static final EmptyExpression INSTANCE = new EmptyExpression();
 

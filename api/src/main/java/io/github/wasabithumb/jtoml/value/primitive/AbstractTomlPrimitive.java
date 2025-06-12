@@ -1,5 +1,6 @@
 package io.github.wasabithumb.jtoml.value.primitive;
 
+import io.github.wasabithumb.jtoml.comment.Comments;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
@@ -64,6 +65,16 @@ abstract class AbstractTomlPrimitive<T extends Serializable> implements TomlPrim
     }
 
     //
+
+    protected final Comments comments =
+            Comments.empty();
+
+    //
+
+    @Override
+    public @NotNull Comments comments() {
+        return this.comments;
+    }
 
     @Override
     public abstract @NotNull T value();

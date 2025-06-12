@@ -1,5 +1,6 @@
 package io.github.wasabithumb.jtoml.value.table;
 
+import io.github.wasabithumb.jtoml.comment.Comments;
 import io.github.wasabithumb.jtoml.key.TomlKey;
 import io.github.wasabithumb.jtoml.value.TomlValue;
 import org.jetbrains.annotations.*;
@@ -16,9 +17,11 @@ final class TomlTableImpl implements TomlTable {
     //
 
     private final TomlTableBranch root;
+    private final Comments comments;
 
     private TomlTableImpl(@NotNull TomlTableBranch root) {
         this.root = root;
+        this.comments = Comments.empty();
     }
 
     TomlTableImpl() {
@@ -26,6 +29,11 @@ final class TomlTableImpl implements TomlTable {
     }
 
     //
+
+    @Override
+    public @NotNull Comments comments() {
+        return this.comments;
+    }
 
     @Override
     public int size() {
@@ -95,8 +103,11 @@ final class TomlTableImpl implements TomlTable {
         } else {
             TomlTableBranch branch = node.asBranch();
             TomlValue ret = branch.attachedValue;
-            if (ret != null) return ret;
-            return new TomlTableImpl(branch);
+            if (ret == null) {
+                ret = new TomlTableImpl(branch);
+                branch.attachedValue = ret;
+            }
+            return ret;
         }
     }
 

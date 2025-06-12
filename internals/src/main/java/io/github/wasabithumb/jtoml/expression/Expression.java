@@ -4,6 +4,7 @@ import io.github.wasabithumb.jtoml.key.TomlKey;
 import io.github.wasabithumb.jtoml.value.TomlValue;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface Expression {
 
@@ -20,6 +21,10 @@ public interface Expression {
     }
 
     //
+
+    @Nullable String getComment();
+
+    void setComment(@Nullable String comment);
 
     default boolean isEmpty() {
         return false;

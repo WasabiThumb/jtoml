@@ -1,5 +1,6 @@
 package io.github.wasabithumb.jtoml.value;
 
+import io.github.wasabithumb.jtoml.comment.Comments;
 import io.github.wasabithumb.jtoml.value.array.TomlArray;
 import io.github.wasabithumb.jtoml.value.primitive.TomlPrimitive;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
@@ -15,6 +16,11 @@ import org.jetbrains.annotations.NotNull;
  */
 @ApiStatus.NonExtendable
 public interface TomlValue {
+
+    /**
+     * Accesses the comments stored on this value
+     */
+    @NotNull Comments comments();
 
     /**
      * <p>

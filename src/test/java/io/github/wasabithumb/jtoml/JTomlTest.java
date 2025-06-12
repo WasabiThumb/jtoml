@@ -1,5 +1,6 @@
 package io.github.wasabithumb.jtoml;
 
+import io.github.wasabithumb.jtoml.comment.CommentPosition;
 import io.github.wasabithumb.jtoml.document.TomlDocument;
 import io.github.wasabithumb.jtoml.except.TomlException;
 import io.github.wasabithumb.jtoml.except.TomlValueException;
@@ -40,7 +41,7 @@ class JTomlTest {
 
     @Test
     void readerWriter() {
-        final String basic = "[a]\nb.c = 'd'";
+        final String basic = "[a]\n# sample comment\nb.c = 'd' # sample inline comment";
 
         TomlDocument document = assertDoesNotThrow(() -> {
             try (StringReader sr = new StringReader(basic)) {
@@ -50,6 +51,8 @@ class JTomlTest {
 
         TomlValue abc = document.get("a.b.c");
         assertNotNull(abc);
+        assertEquals(1, abc.comments().get(CommentPosition.PRE).size());
+        assertEquals("sample inline comment", abc.comments().getInline());
         assertTrue(abc.isPrimitive());
         assertEquals("d", abc.asPrimitive().asString());
 
