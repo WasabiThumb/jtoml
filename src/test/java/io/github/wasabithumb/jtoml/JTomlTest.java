@@ -2,11 +2,12 @@ package io.github.wasabithumb.jtoml;
 
 import io.github.wasabithumb.jtoml.comment.CommentPosition;
 import io.github.wasabithumb.jtoml.document.TomlDocument;
+import io.github.wasabithumb.jtoml.dummy.RecordTable;
 import io.github.wasabithumb.jtoml.except.TomlException;
 import io.github.wasabithumb.jtoml.except.TomlValueException;
 import io.github.wasabithumb.jtoml.except.parse.TomlParseException;
 import io.github.wasabithumb.jtoml.key.TomlKey;
-import io.github.wasabithumb.jtoml.pojo.SimpleTable;
+import io.github.wasabithumb.jtoml.dummy.PojoTable;
 import io.github.wasabithumb.jtoml.test.TestSpec;
 import io.github.wasabithumb.jtoml.test.TestSpecs;
 import io.github.wasabithumb.jtoml.value.TomlValue;
@@ -65,18 +66,27 @@ class JTomlTest {
 
     @Test
     void reflect() {
-        SimpleTable original = SimpleTable.create();
-        TomlTable toml = TOML.deserialize(SimpleTable.class, original);
+        PojoTable original = PojoTable.create();
+        TomlTable toml = TOML.deserialize(PojoTable.class, original);
         System.out.println(TOML.writeToString(toml));
-        SimpleTable out = TOML.serialize(SimpleTable.class, toml);
+        PojoTable out = TOML.serialize(PojoTable.class, toml);
+        assertEquals(original, out);
+    }
+
+    @Test
+    void recordReflect() {
+        RecordTable original = RecordTable.create();
+        TomlTable toml = TOML.deserialize(RecordTable.class, original);
+        System.out.println(TOML.writeToString(toml));
+        RecordTable out = TOML.serialize(RecordTable.class, toml);
         assertEquals(original, out);
     }
 
     @Test
     void badDateTime() {
-        SimpleTable table = SimpleTable.create();
+        PojoTable table = PojoTable.create();
         table.localDate = LocalDate.of(-1, 7, 16); // year -1
-        assertThrows(TomlValueException.class, () -> TOML.deserialize(SimpleTable.class, table));
+        assertThrows(TomlValueException.class, () -> TOML.deserialize(PojoTable.class, table));
     }
 
     //
