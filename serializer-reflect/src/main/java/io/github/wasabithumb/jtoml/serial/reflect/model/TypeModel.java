@@ -1,5 +1,7 @@
 package io.github.wasabithumb.jtoml.serial.reflect.model;
 
+import io.github.wasabithumb.jtoml.serial.reflect.model.array.ArrayTypeModel;
+import io.github.wasabithumb.jtoml.serial.reflect.model.table.TableTypeModel;
 import io.github.wasabithumb.jtoml.util.ParameterizedClass;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
