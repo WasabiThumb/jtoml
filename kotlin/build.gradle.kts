@@ -16,6 +16,10 @@ dependencies {
     implementation(project(":"))
 }
 
+kotlin {
+    jvmToolchain(8)
+}
+
 //
 
 mavenPublishing {
