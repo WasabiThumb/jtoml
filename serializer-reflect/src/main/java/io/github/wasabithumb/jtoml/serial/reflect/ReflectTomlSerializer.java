@@ -164,9 +164,11 @@ final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<T> {
                     valueModel,
                     next
             );
+            model.applyFieldComments(key, nextValue.comments());
             ret.put(key, nextValue);
         }
 
+        model.applyTableComments(ret.comments());
         return ret;
     }
 

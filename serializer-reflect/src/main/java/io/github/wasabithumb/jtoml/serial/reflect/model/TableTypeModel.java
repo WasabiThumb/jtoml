@@ -1,5 +1,7 @@
 package io.github.wasabithumb.jtoml.serial.reflect.model;
 
+import io.github.wasabithumb.jtoml.comment.Comment;
+import io.github.wasabithumb.jtoml.comment.Comments;
 import io.github.wasabithumb.jtoml.key.TomlKey;
 import io.github.wasabithumb.jtoml.serial.TomlSerializable;
 import io.github.wasabithumb.jtoml.util.ParameterizedClass;
@@ -8,6 +10,7 @@ import io.github.wasabithumb.jtoml.value.TomlValue;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import org.jetbrains.annotations.*;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -52,6 +55,11 @@ public interface TableTypeModel<T> extends TypeModel<T> {
     @NotNull ParameterizedClass<?> elementType(@NotNull TomlKey key);
 
     @UnknownNullability Object get(@NotNull T instance, @NotNull TomlKey key);
+
+    default void applyTableComments(@NotNull Comments comments) { }
+
+    @Contract(mutates = "param2")
+    default void applyFieldComments(@NotNull TomlKey key, @NotNull Comments comments) { }
 
     //
 
@@ -180,6 +188,27 @@ public interface TableTypeModel<T> extends TypeModel<T> {
                 throw ex;
             }
         }
+
+        @Override
+        public void applyTableComments(@NotNull Comments comments) {
+            this.applyAnnotationComments(this.type.getDeclaredAnnotations(), comments);
+        }
+
+        @Override
+        public void applyFieldComments(@NotNull TomlKey key, @NotNull Comments comments) {
+            Field f = this.resolveField(key);
+            this.applyAnnotationComments(f.getDeclaredAnnotations(), comments);
+        }
+
+        private void applyAnnotationComments(@NotNull Annotation @NotNull [] annotations, @NotNull Comments comments) {
+            for (Annotation a : annotations) {
+                if (a instanceof Comment.Pre) comments.addPre(((Comment.Pre) a).value());
+                if (a instanceof Comment.Inline) comments.addInline(((Comment.Inline) a).value());
+                if (a instanceof Comment.Post) comments.addPost(((Comment.Post) a).value());
+            }
+        }
+
+        //
 
         private static final class Builder<O extends TomlSerializable> implements TableTypeModel.Builder<O> {
 

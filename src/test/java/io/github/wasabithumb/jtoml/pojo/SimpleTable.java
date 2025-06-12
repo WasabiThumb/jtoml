@@ -1,5 +1,6 @@
 package io.github.wasabithumb.jtoml.pojo;
 
+import io.github.wasabithumb.jtoml.comment.Comment;
 import io.github.wasabithumb.jtoml.serial.TomlSerializable;
 
 import java.time.LocalDate;
@@ -24,6 +25,7 @@ public final class SimpleTable implements TomlSerializable {
 
     //
 
+    @Comment.Inline("Some text")
     public String text;
     public long integer;
     public double decimal;
