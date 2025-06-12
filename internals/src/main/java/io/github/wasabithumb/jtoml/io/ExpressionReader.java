@@ -1,5 +1,6 @@
 package io.github.wasabithumb.jtoml.io;
 
+import io.github.wasabithumb.jtoml.comment.Comments;
 import io.github.wasabithumb.jtoml.except.TomlException;
 import io.github.wasabithumb.jtoml.except.parse.TomlDateTimeException;
 import io.github.wasabithumb.jtoml.expression.Expression;
@@ -16,9 +17,12 @@ import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.UnknownNullability;
 
 import java.io.Closeable;
 import java.time.*;
+import java.util.LinkedList;
+import java.util.List;
 
 public class ExpressionReader implements Closeable {
 
@@ -42,17 +46,18 @@ public class ExpressionReader implements Closeable {
             return Expression.empty();
         } else if (c0 == '\n') { // newline (LF)
             return Expression.empty();
-        } else if (c0 == '#') {        // comment
-            this.in.finishExpression(true);
-            return Expression.empty();
-        } else if (c0 == '[') { // std table or array table
+        } else if (c0 == '#') {  // comment
+            ret = Expression.empty();
+            ret.setComment(this.in.finishExpression(true));
+            return ret;
+        } else if (c0 == '[') {  // std table or array table
             boolean isArray = this.in.peek() == '[';
             if (isArray) this.in.next();
             if (!this.in.skipWhitespace()) this.in.raise("Incomplete table header");
             TomlKey key = this.readKey(new StringBuilder(), ']', '\0');
             if (isArray && this.in.next() != ']') this.in.raise("Missing 2nd closing bracket for array table");
             ret = Expression.table(key, isArray);
-        } else {                // key-values
+        } else {                 // key-values
             StringBuilder sb = new StringBuilder();
             sb.append(c0);
             TomlKey key = this.readKey(sb, '=', (c0 == '\"' || c0 == '\'') ? c0 : '\0');
@@ -61,7 +66,7 @@ public class ExpressionReader implements Closeable {
             ret = Expression.keyValue(key, value);
         }
 
-        this.in.finishExpression(false);
+        ret.setComment(this.in.finishExpression(false));
         return ret;
     }
 
@@ -964,33 +969,55 @@ public class ExpressionReader implements Closeable {
     }
 
     private @NotNull TomlArray readArray() throws TomlException {
+        final boolean readComments = this.options.get(JTomlOption.READ_COMMENTS);
         TomlArray ret = TomlArray.create();
 
-        char ctrl = this.readArrayControl();
-        if (ctrl == ',') this.in.raise("Comma precedes array values");
-        if (ctrl == ']') return ret;
+        ArrayControl ctrl = this.readArrayControl(readComments);
+        if (ctrl.character == ',') this.in.raise("Comma precedes array values");
+        if (ctrl.character == ']') {
+            // TODO: If there were any comments inside the array, it gets thrown out here
+            // (no element to attach to). Maybe warn in the future?
+            return ret;
+        }
 
         boolean readComma;
+        TomlValue next;
         while (true) {
-            ret.add(this.readValue(ctrl));
-            ctrl = this.readArrayControl();
-            if (ctrl == ',') {
+            next = this.readValue(ctrl.character);
+            if (readComments) {
+                Comments nextComments = next.comments();
+                for (String pre : ctrl.comments) nextComments.addPre(pre);
+            }
+            ret.add(next);
+            ctrl = this.readArrayControl(readComments);
+            if (ctrl.character == ',') {
                 readComma = true;
-                ctrl = this.readArrayControl();
-                if (ctrl == ',') this.in.raise("Double comma in array");
+                ctrl = this.readArrayControl(readComments);
+                if (ctrl.character == ',') this.in.raise("Double comma in array");
             } else {
                 readComma = false;
             }
-            if (ctrl == ']') {
-                return ret;
+            if (ctrl.character == ']') {
+                break;
             } else if (!readComma) {
                 this.in.raise("Missing array separator");
             }
         }
+
+        // Apply trailing comments to last element
+        if (readComma && !ctrl.comments.isEmpty()) {
+            TomlValue last = ret.get(ret.size() - 1);
+            Comments lastComments = last.comments();
+            for (String post : ctrl.comments) lastComments.addPost(post);
+        }
+
+        return ret;
     }
 
     /** Skip specific to arrays */
-    private char readArrayControl() throws TomlException {
+    private @NotNull ArrayControl readArrayControl(boolean readComments) throws TomlException {
+        List<String> comments = readComments ? new LinkedList<>() : null;
+        StringBuilder commentBuffer = readComments ? new StringBuilder() : null;
         boolean inComment = false;
         int next;
 
@@ -998,17 +1025,41 @@ public class ExpressionReader implements Closeable {
             next = this.in.next();
             if (next == -1) this.in.raise("Unclosed array");
             if (next == '\r') {
-                if (this.in.next() != '\n') this.in.raise("Carriage return without matching newline");
-                inComment = false;
-            } else if (next == '\n') {
+                next = this.in.next();
+                if (next != '\n') this.in.raise("Carriage return without matching newline");
+            }
+            if (next == '\n') {
+                if (readComments && inComment) {
+                    comments.add(commentBuffer.toString());
+                    commentBuffer.setLength(0);
+                }
                 inComment = false;
             } else if (next == '#') {
                 inComment = true;
-            } else if (next != ' ' && next != '\t') {
-                if (!inComment) return (char) next;
+            } else if (next == ' ' || next == '\t') {
+                if (readComments && inComment && commentBuffer.length() != 0)
+                    commentBuffer.append((char) next);
+            } else {
+                if (!inComment) return new ArrayControl((char) next, comments);
                 if (next < ' ' || next == 0x7F) this.in.raise("Disallowed control character in comment");
+                if (readComments)
+                    commentBuffer.append((char) next);
             }
         }
+    }
+
+    //
+
+    private static final class ArrayControl {
+
+        final char character;
+        final List<String> comments;
+
+        ArrayControl(char character, @UnknownNullability List<String> comments) {
+            this.character = character;
+            this.comments = comments;
+        }
+
     }
 
 }

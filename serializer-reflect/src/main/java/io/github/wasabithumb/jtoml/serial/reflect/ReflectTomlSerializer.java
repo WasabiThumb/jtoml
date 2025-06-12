@@ -4,8 +4,8 @@ import io.github.wasabithumb.jtoml.key.TomlKey;
 import io.github.wasabithumb.jtoml.serial.TomlSerializer;
 import io.github.wasabithumb.jtoml.serial.reflect.adapter.TypeAdapter;
 import io.github.wasabithumb.jtoml.serial.reflect.adapter.TypeAdapters;
-import io.github.wasabithumb.jtoml.serial.reflect.model.ArrayTypeModel;
-import io.github.wasabithumb.jtoml.serial.reflect.model.TableTypeModel;
+import io.github.wasabithumb.jtoml.serial.reflect.model.array.ArrayTypeModel;
+import io.github.wasabithumb.jtoml.serial.reflect.model.table.TableTypeModel;
 import io.github.wasabithumb.jtoml.serial.reflect.model.TypeModel;
 import io.github.wasabithumb.jtoml.util.ParameterizedClass;
 import io.github.wasabithumb.jtoml.util.ReferenceHolder;
@@ -164,9 +164,11 @@ final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<T> {
                     valueModel,
                     next
             );
+            model.applyFieldComments(key, nextValue.comments());
             ret.put(key, nextValue);
         }
 
+        model.applyTableComments(ret.comments());
         return ret;
     }
 

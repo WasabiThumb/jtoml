@@ -64,31 +64,45 @@ public final class BufferedCharSource implements CharSource {
      * Reads past whitespace and comments until a newline or EOF is found
      * @param comment True if known to be inside a comment. If false,
      *                comments may still be entered.
+     * @return The comment read, if any
      */
-    public void finishExpression(boolean comment) throws TomlException {
+    @Contract("true -> !null")
+    public @Nullable String finishExpression(boolean comment) throws TomlException {
         int next;
+        StringBuilder commentBuffer = comment ?
+                new StringBuilder() :
+                null;
+
         while (true) {
             next = this.next();
-            if (next == -1) return;
-            if (next == '\n') return;
+            if (next == -1) break;
+            if (next == '\n') break;
             if (next == '\r') {
                 int lf = this.next();
                 if (lf != '\n') this.raise("Read CR without matching LF");
-                return;
+                break;
             }
             if (comment) {
-                if (next == 0x7F || (next < ' ' && next != '\t')) {
+                if (next == ' ' || next == '\t') {
+                    if (commentBuffer.length() == 0) continue;
+                } else if (next < ' ' || next == 0x7F) {
                     this.raise("Control character (" + next + ") is not allowed in comment");
                 }
+                commentBuffer.append((char) next);
                 continue;
             }
             if (next == ' ' || next == '\t') continue;
             if (next == '#') {
                 comment = true;
+                commentBuffer = new StringBuilder();
                 continue;
             }
             this.raise("Expected whitespace or comment, got character (" + next + ")");
         }
+
+        return comment ?
+                commentBuffer.toString() :
+                null;
     }
 
     @Contract("_ -> fail")

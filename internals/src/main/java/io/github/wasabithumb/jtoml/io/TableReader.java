@@ -1,5 +1,6 @@
 package io.github.wasabithumb.jtoml.io;
 
+import io.github.wasabithumb.jtoml.comment.Comments;
 import io.github.wasabithumb.jtoml.except.TomlException;
 import io.github.wasabithumb.jtoml.except.parse.TomlClobberException;
 import io.github.wasabithumb.jtoml.except.parse.TomlExtensionException;
@@ -16,6 +17,9 @@ import io.github.wasabithumb.jtoml.value.array.TomlArray;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.LinkedList;
+import java.util.List;
+
 public final class TableReader extends ExpressionReader {
 
     public TableReader(@NotNull BufferedCharSource in, @NotNull JTomlOptions options) {
@@ -29,12 +33,34 @@ public final class TableReader extends ExpressionReader {
         Context ctx = new Context(ret, this.options.get(JTomlOption.EXTENSION_GUARD));
         Expression next;
 
+        final boolean readComments = this.options.get(JTomlOption.READ_COMMENTS);
+        List<String> comments = readComments ? new LinkedList<>() : null;
+        TomlValue commentAttr = ret;
+
         while ((next = this.readExpression()) != null) {
+            TomlValue defined;
+            String comment;
             if (next.isKeyValue()) {
-                ctx.applyKeyValue(next.asKeyValue());
+                defined = ctx.applyKeyValue(next.asKeyValue());
             } else if (next.isTable()) {
-                ctx.applyTable(next.asTable());
+                defined = ctx.applyTable(next.asTable());
+            } else {
+                if (readComments && (comment = next.getComment()) != null)
+                    comments.add(comment);
+                continue;
             }
+            if (readComments) {
+                commentAttr = defined;
+                Comments definedComments = defined.comments();
+                if ((comment = next.getComment()) != null) definedComments.addInline(comment);
+                for (String pre : comments) definedComments.addPre(pre);
+                comments.clear();
+            }
+        }
+
+        if (readComments && !comments.isEmpty()) {
+            Comments attrComments = commentAttr.comments();
+            for (String post : comments) attrComments.addPost(post);
         }
 
         return ret;
@@ -63,11 +89,11 @@ public final class TableReader extends ExpressionReader {
 
         //
 
-        void applyTable(@NotNull TableExpression e) throws TomlException {
+        @NotNull TomlTable applyTable(@NotNull TableExpression e) throws TomlException {
             TomlValue head = this.global;
             TomlKey key = e.key();
             int ks = key.size();
-            if (ks == 0) return;
+            assert ks != 0;
 
             for (int i=0; i < (ks - 1); i++) {
                 TomlKey last = TomlKey.literal(key.get(i));
@@ -171,9 +197,10 @@ public final class TableReader extends ExpressionReader {
             this.useSub = true;
             this.subTable = newTable;
             this.subKey = key;
+            return newTable;
         }
 
-        void applyKeyValue(@NotNull KeyValueExpression e) throws TomlException {
+        @NotNull TomlValue applyKeyValue(@NotNull KeyValueExpression e) throws TomlException {
             TomlTable target = this.useSub ? this.subTable : this.global;
             TomlKey key = e.key();
             TomlValue value = e.value();
@@ -217,6 +244,7 @@ public final class TableReader extends ExpressionReader {
                 value = flaggedValue;
             }
             target.put(name, value);
+            return value;
         }
 
         private @NotNull TomlKey fullKey(@NotNull TomlKey key) {

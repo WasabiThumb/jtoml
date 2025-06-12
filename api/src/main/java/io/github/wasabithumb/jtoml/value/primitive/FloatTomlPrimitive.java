@@ -3,12 +3,18 @@ package io.github.wasabithumb.jtoml.value.primitive;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.Locale;
 
 @ApiStatus.Internal
 final class FloatTomlPrimitive extends AbstractTomlPrimitive<Double> {
 
-    private static final DecimalFormat DF = new DecimalFormat("0.###############");
+    private static final ThreadLocal<NumberFormat> NUMBER_FORMAT = ThreadLocal.withInitial(() -> {
+        NumberFormat df = NumberFormat.getInstance(Locale.ROOT);
+        df.setMaximumFractionDigits(15);
+        df.setMinimumFractionDigits(1);
+        return df;
+    });
 
     private static @NotNull String autoChars(double value) {
         if (value == Double.POSITIVE_INFINITY) return "inf";
@@ -18,7 +24,7 @@ final class FloatTomlPrimitive extends AbstractTomlPrimitive<Double> {
             if (Double.doubleToLongBits(value) == -9223372036854775808L) return "-0";
             return Long.toString((long) value);
         }
-        return DF.format(value);
+        return NUMBER_FORMAT.get().format(value);
     }
 
     //

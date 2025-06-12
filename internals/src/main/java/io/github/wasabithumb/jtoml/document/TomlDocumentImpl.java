@@ -1,5 +1,6 @@
 package io.github.wasabithumb.jtoml.document;
 
+import io.github.wasabithumb.jtoml.comment.Comments;
 import io.github.wasabithumb.jtoml.key.TomlKey;
 import io.github.wasabithumb.jtoml.value.TomlValue;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
@@ -33,6 +34,11 @@ public final class TomlDocumentImpl implements TomlDocument {
     // END Metadata
 
     // START Super
+
+    @Override
+    public @NotNull Comments comments() {
+        return this.backing.comments();
+    }
 
     @Override
     public int size() {

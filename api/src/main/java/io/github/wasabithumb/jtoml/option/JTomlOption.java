@@ -74,10 +74,30 @@ public interface JTomlOption<T> {
 
     /**
      * If true, table headers will be written even if they do not
-     * contain any key-values.
+     * contain any key-values or comments.
      */
     @ApiStatus.AvailableSince("0.2.3")
     Bool WRITE_EMPTY_TABLES = of("WRITE_EMPTY_TABLES", false);
+
+    /**
+     * If true, comments will be stored in the resulting document
+     * (rather than ignored) when reading
+     */
+    @ApiStatus.AvailableSince("0.6.0")
+    Bool READ_COMMENTS = of("READ_COMMENTS", true);
+
+    /**
+     * If true, comments defined on values will be written.
+     */
+    @ApiStatus.AvailableSince("0.6.0")
+    Bool WRITE_COMMENTS = of("WRITE_COMMENTS", true);
+
+    /**
+     * Determines how non-table arrays should be written;
+     * specifically when elements should receive a newline
+     */
+    @ApiStatus.AvailableSince("0.6.0")
+    JTomlOption<ArrayStrategy> ARRAY_STRATEGY = of("ARRAY_STRATEGY", ArrayStrategy.class, ArrayStrategy.DYNAMIC);
 
     //
 

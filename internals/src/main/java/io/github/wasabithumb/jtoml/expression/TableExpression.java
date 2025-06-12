@@ -3,7 +3,7 @@ package io.github.wasabithumb.jtoml.expression;
 import io.github.wasabithumb.jtoml.key.TomlKey;
 import org.jetbrains.annotations.NotNull;
 
-public final class TableExpression implements Expression {
+public final class TableExpression extends AbstractExpression {
 
     private final TomlKey key;
     private final boolean isArray;

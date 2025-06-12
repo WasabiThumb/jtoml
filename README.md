@@ -15,6 +15,7 @@ The strongly typed nature of JToml is both an extension of this goal and a perso
 - [Serializers](#serializers)
 - [Configurate](#configurate)
 - [Kotlin Extensions](#kotlin-extensions)
+- [Comments](#comments)
 - [Feature Matrix](#comparison)
 - [License](#license)
 
@@ -23,14 +24,14 @@ The strongly typed nature of JToml is both an extension of this goal and a perso
 #### Gradle (Kotlin)
 ```kotlin
 dependencies {
-    implementation("io.github.wasabithumb:jtoml:0.5.0")
+    implementation("io.github.wasabithumb:jtoml:0.6.0")
 }
 ```
 
 #### Gradle (Groovy)
 ```groovy
 dependencies {
-    implementation 'io.github.wasabithumb:jtoml:0.5.0'
+    implementation 'io.github.wasabithumb:jtoml:0.6.0'
 }
 ```
 
@@ -40,7 +41,7 @@ dependencies {
     <dependency>
         <groupId>io.github.wasabithumb</groupId>
         <artifactId>jtoml</artifactId>
-        <version>0.5.0</version>
+        <version>0.6.0</version>
         <scope>compile</scope>
     </dependency>
 </dependencies>
@@ -127,6 +128,24 @@ val table = TomlTable.create()
 table["foo.bar"] = "baz"
 table["meaning.of.life"] = 40.asTomlPrimitive + 2
 val str = KToml.writeToString(table)
+```
+
+## Comments
+By default, JToml will read/write comments to/from documents. Comments can be read & updated
+with the ``TomlValue#comments()`` accessor. Comments can be placed in one of 3 "sections";
+``PRE``, ``INLINE`` and ``POST``. The ``INLINE`` section is exclusive and can only contain up to 1
+comment.
+
+### Integration with ``jtoml-serializer-reflect``
+The ``@Comment.Pre``, ``@Comment.Inline`` and ``@Comment.Post`` annotation can be used to add comments
+to fields on ``TomlSerializable`` classes or components on records. For instance:
+```java
+class MyObject implements TomlSerializable {
+
+    @Comment.Inline("my comment")
+    String text;
+
+}
 ```
 
 ## Comparison
