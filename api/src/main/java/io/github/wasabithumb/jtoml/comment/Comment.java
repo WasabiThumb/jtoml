@@ -46,6 +46,7 @@ public interface Comment {
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD, ElementType.TYPE})
+    @Repeatable(MultiComment.Pre.class)
     @interface Pre {
         @NotNull @Pattern("^[^\\x00-\\x08\\x0A-\\x1F\\x7F]*$") String value();
     }
@@ -58,6 +59,7 @@ public interface Comment {
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD, ElementType.TYPE})
+    @Repeatable(MultiComment.Inline.class)
     @interface Inline {
         @NotNull @Pattern("^[^\\x00-\\x08\\x0A-\\x1F\\x7F]*$") String value();
     }
@@ -70,6 +72,7 @@ public interface Comment {
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD, ElementType.TYPE})
+    @Repeatable(MultiComment.Post.class)
     @interface Post {
         @NotNull @Pattern("^[^\\x00-\\x08\\x0A-\\x1F\\x7F]*$") String value();
     }
