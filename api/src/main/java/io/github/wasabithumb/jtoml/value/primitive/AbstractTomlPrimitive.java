@@ -57,26 +57,21 @@ abstract class AbstractTomlPrimitive<T extends Serializable> implements TomlPrim
         int nano = time.getNano();
         if (nano != 0) {
             char[] buf = new char[9];
-            int digits = 0;
-            int digit;
 
-            do {
-                digit = (nano % 10);
-                if (digit != 0) {
-                    buf[digits++] = (char) (digit + '0');
-                }
+            for (int i=0; i < 9; i++) {
+                buf[8 - i] = (char) ((nano % 10) + '0');
                 nano /= 10;
-            } while (nano != 0);
+            }
+
+            int end = 9;
+            while (end > 3 && buf[end - 1] == '0') {
+                end--;
+            }
 
             sb.append('.');
 
-            for (int i=0; i < digits; i++) {
-                sb.append(buf[digits - 1 - i]);
-            }
-
-            // Pad up to 3 digits, per convention
-            for (int i=digits; i < 3; i++) {
-                sb.append('0');
+            for (int i=0; i < end; i++) {
+                sb.append(buf[i]);
             }
         }
     }
