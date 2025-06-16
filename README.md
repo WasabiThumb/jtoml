@@ -20,14 +20,14 @@ methods for parsing, slicing and joining.
 #### Gradle (Kotlin)
 ```kotlin
 dependencies {
-    implementation("io.github.wasabithumb:jtoml:0.6.1")
+    implementation("io.github.wasabithumb:jtoml:0.6.2")
 }
 ```
 
 #### Gradle (Groovy)
 ```groovy
 dependencies {
-    implementation 'io.github.wasabithumb:jtoml:0.6.1'
+    implementation 'io.github.wasabithumb:jtoml:0.6.2'
 }
 ```
 
@@ -37,7 +37,7 @@ dependencies {
     <dependency>
         <groupId>io.github.wasabithumb</groupId>
         <artifactId>jtoml</artifactId>
-        <version>0.6.1</version>
+        <version>0.6.2</version>
         <scope>compile</scope>
     </dependency>
 </dependencies>

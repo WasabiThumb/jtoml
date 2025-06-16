@@ -37,6 +37,7 @@ import java.lang.annotation.*;
  * </table>
  */
 @ApiStatus.Internal
+@ApiStatus.AvailableSince("0.6.2")
 public abstract class MultiComment {
 
     private MultiComment() { }
