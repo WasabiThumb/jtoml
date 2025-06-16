@@ -115,7 +115,7 @@ class TomlConfigurationLoaderTest {
 
     @ConfigSerializable
     public static final class NativeTypesTestConfig {
-        String string ;
+        String string;
         Boolean bool;
         Integer integer;
         Float floatNum;
