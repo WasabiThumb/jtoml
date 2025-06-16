@@ -55,12 +55,29 @@ abstract class AbstractTomlPrimitive<T extends Serializable> implements TomlPrim
         writeDigit(sb, second % 10);
 
         int nano = time.getNano();
-        if (nano >= 1000000) {
-            int millis = nano / 1000000;
+        if (nano != 0) {
+            char[] buf = new char[9];
+            int digits = 0;
+            int digit;
+
+            do {
+                digit = (nano % 10);
+                if (digit != 0) {
+                    buf[digits++] = (char) (digit + '0');
+                }
+                nano /= 10;
+            } while (nano != 0);
+
             sb.append('.');
-            writeDigit(sb, millis / 100);
-            writeDigit(sb, (millis % 100) / 10);
-            writeDigit(sb, millis % 10);
+
+            for (int i=0; i < digits; i++) {
+                sb.append(buf[digits - 1 - i]);
+            }
+
+            // Pad up to 3 digits, per convention
+            for (int i=digits; i < 3; i++) {
+                sb.append('0');
+            }
         }
     }
 
