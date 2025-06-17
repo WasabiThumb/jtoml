@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Array;
+import java.util.Collection;
 import java.util.RandomAccess;
 
 /**
@@ -27,6 +28,26 @@ public interface TomlArray extends Iterable<TomlValue>, RandomAccess, TomlValue 
     @Contract("-> new")
     static @NotNull TomlArray create() {
         return new TomlArrayImpl();
+    }
+
+    /**
+     * Creates a new mutable TomlArray with the same
+     * content as the provided array
+     */
+    @Contract("_ -> new")
+    static @NotNull TomlArray copyOf(@NotNull Iterable<? extends TomlValue> array) {
+        if (array instanceof TomlArray) {
+            return TomlArrayImpl.copyOf((TomlArrayImpl) array);
+        } else {
+            TomlArray ret;
+            if (array instanceof Collection<?>) {
+                ret = create(((Collection<?>) array).size());
+            } else {
+                ret = create();
+            }
+            ret.addAll(array);
+            return ret;
+        }
     }
 
     //
