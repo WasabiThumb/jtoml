@@ -1,6 +1,7 @@
 package io.github.wasabithumb.jtoml.value.table;
 
 import io.github.wasabithumb.jtoml.value.TomlValue;
+import io.github.wasabithumb.jtoml.value.array.TomlArray;
 import org.jetbrains.annotations.*;
 
 import java.util.*;
@@ -23,8 +24,14 @@ final class TomlTableBranch implements TomlTableNode {
         TomlTableNode next;
         for (int i=0; i < branch.len; i++) {
             next = branch.nodes[i];
-            if (next.isBranch())
-                next = TomlTableBranch.copyOf(next.asBranch(), ret);
+            if (next.isBranch()) {
+                next = copyOf(next.asBranch(), ret);
+            } else {
+                TomlValue tv = next.asLeaf().value();
+                if (tv.isArray()) {
+                    next = new TomlTableLeaf(TomlArray.copyOf(tv.asArray()));
+                }
+            }
             ret.nodes[i] = next;
         }
 
