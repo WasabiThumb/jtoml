@@ -89,6 +89,34 @@ class JTomlTest {
         assertThrows(TomlValueException.class, () -> TOML.deserialize(PojoTable.class, table));
     }
 
+    @Test
+    void apiFloats() {
+        final TomlTable table = TomlTable.create();
+        table.put("a", 0d);
+        table.put("b", -0d);
+        table.put("c", 3.14159d);
+        table.put("d", -3.14159d);
+        table.put("e", 1e6d);
+        table.put("f", 1e6d);
+        table.put("g", 6.6743e-11d);
+        table.put("h", 6.6743e+11d);
+
+        final String expected = """
+                a = 0.0
+                b = -0.0
+                c = 3.14159
+                d = -3.14159
+                e = 1000000.0
+                f = 1000000.0
+                g = 0.000000000066743
+                h = 667430000000.0
+                """;
+
+        final String actual = assertDoesNotThrow(() -> TOML.writeToString(table));
+
+        assertEquals(expected, actual);
+    }
+
     //
 
     @TestFactory
