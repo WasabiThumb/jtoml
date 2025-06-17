@@ -13,6 +13,7 @@ final class FloatTomlPrimitive extends AbstractTomlPrimitive<Double> {
         NumberFormat df = NumberFormat.getInstance(Locale.ROOT);
         df.setMaximumFractionDigits(15);
         df.setMinimumFractionDigits(1);
+        df.setGroupingUsed(false);
         return df;
     });
 
