@@ -5,7 +5,7 @@ allprojects {
     apply(plugin = "java-library")
 
     group = "io.github.wasabithumb"
-    version = "0.6.2"
+    version = "0.6.3"
 
     dependencies {
         compileOnly("org.jetbrains:annotations:26.0.1")
