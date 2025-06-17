@@ -97,7 +97,7 @@ class JTomlTest {
         table.put("c", 3.14159d);
         table.put("d", -3.14159d);
         table.put("e", 1e6d);
-        table.put("f", 1e6d);
+        table.put("f", -1e6d);
         table.put("g", 6.6743e-11d);
         table.put("h", 6.6743e+11d);
 
@@ -107,7 +107,7 @@ class JTomlTest {
                 c = 3.14159
                 d = -3.14159
                 e = 1000000.0
-                f = 1000000.0
+                f = -1000000.0
                 g = 0.000000000066743
                 h = 667430000000.0
                 """;
