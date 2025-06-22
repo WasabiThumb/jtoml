@@ -10,8 +10,11 @@ import java.util.*;
 @ApiStatus.Internal
 final class TomlTableImpl implements TomlTable {
 
-    public static @NotNull TomlTableImpl copyOf(@NotNull TomlTableImpl table) {
-        return new TomlTableImpl(TomlTableBranch.copyOf(table.root));
+    static @NotNull TomlTableImpl copyOf(@NotNull TomlTableImpl table) {
+        return new TomlTableImpl(
+                TomlTableBranch.copyOf(table.root),
+                Comments.copyOf(table.comments)
+        );
     }
 
     //
@@ -19,9 +22,13 @@ final class TomlTableImpl implements TomlTable {
     private final TomlTableBranch root;
     private final Comments comments;
 
-    private TomlTableImpl(@NotNull TomlTableBranch root) {
+    private TomlTableImpl(@NotNull TomlTableBranch root, @NotNull Comments comments) {
         this.root = root;
-        this.comments = Comments.empty();
+        this.comments = comments;
+    }
+
+    private TomlTableImpl(@NotNull TomlTableBranch root) {
+        this(root, Comments.empty());
     }
 
     TomlTableImpl() {

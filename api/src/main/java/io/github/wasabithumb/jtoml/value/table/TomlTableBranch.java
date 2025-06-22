@@ -28,9 +28,7 @@ final class TomlTableBranch implements TomlTableNode {
                 next = copyOf(next.asBranch(), ret);
             } else {
                 TomlValue tv = next.asLeaf().value();
-                if (tv.isArray()) {
-                    next = new TomlTableLeaf(TomlArray.copyOf(tv.asArray()));
-                }
+                next = new TomlTableLeaf(TomlValue.copyOf(tv));
             }
             ret.nodes[i] = next;
         }

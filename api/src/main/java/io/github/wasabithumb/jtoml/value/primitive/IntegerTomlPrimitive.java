@@ -1,5 +1,6 @@
 package io.github.wasabithumb.jtoml.value.primitive;
 
+import io.github.wasabithumb.jtoml.comment.Comments;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -13,8 +14,13 @@ final class IntegerTomlPrimitive extends AbstractTomlPrimitive<Long> {
 
     private final long value;
 
-    public IntegerTomlPrimitive(long value) {
+    public IntegerTomlPrimitive(@NotNull Comments comments, long value) {
+        super(comments);
         this.value = value;
+    }
+
+    public IntegerTomlPrimitive(long value) {
+        this(Comments.empty(), value);
     }
 
     //

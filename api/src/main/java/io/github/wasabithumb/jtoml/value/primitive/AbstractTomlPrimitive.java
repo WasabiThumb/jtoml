@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Range;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneOffset;
 
 @ApiStatus.Internal
 abstract class AbstractTomlPrimitive<T extends Serializable> implements TomlPrimitive {
@@ -78,8 +79,11 @@ abstract class AbstractTomlPrimitive<T extends Serializable> implements TomlPrim
 
     //
 
-    protected final Comments comments =
-            Comments.empty();
+    protected final Comments comments;
+
+    protected AbstractTomlPrimitive(@NotNull Comments comments) {
+        this.comments = comments;
+    }
 
     //
 
@@ -90,6 +94,13 @@ abstract class AbstractTomlPrimitive<T extends Serializable> implements TomlPrim
 
     @Override
     public abstract @NotNull T value();
+
+    @ApiStatus.Internal
+    @NotNull ZoneOffset temporalOffset() throws UnsupportedOperationException {
+        throw new UnsupportedOperationException("Primitive has no temporal offset");
+    }
+
+    //
 
     @Override
     public int hashCode() {

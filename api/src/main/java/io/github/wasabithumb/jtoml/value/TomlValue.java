@@ -5,6 +5,7 @@ import io.github.wasabithumb.jtoml.value.array.TomlArray;
 import io.github.wasabithumb.jtoml.value.primitive.TomlPrimitive;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -16,6 +17,26 @@ import org.jetbrains.annotations.NotNull;
  */
 @ApiStatus.NonExtendable
 public interface TomlValue {
+
+    /**
+     * Returns a deep copy of the provided value
+     * @see TomlTable#copyOf(TomlTable)
+     * @see TomlArray#copyOf(Iterable)
+     * @see TomlPrimitive#copyOf(TomlPrimitive)
+     */
+    @Contract("_ -> new")
+    @ApiStatus.AvailableSince("0.6.4")
+    static @NotNull TomlValue copyOf(@NotNull TomlValue other) {
+        if (other.isTable()) {
+            return TomlTable.copyOf(other.asTable());
+        } else if (other.isArray()) {
+            return TomlArray.copyOf(other.asArray());
+        } else {
+            return TomlPrimitive.copyOf(other.asPrimitive());
+        }
+    }
+
+    //
 
     /**
      * Accesses the comments stored on this value
