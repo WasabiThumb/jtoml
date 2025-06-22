@@ -25,6 +25,7 @@ public interface TomlValue {
      * @see TomlPrimitive#copyOf(TomlPrimitive)
      */
     @Contract("_ -> new")
+    @ApiStatus.AvailableSince("0.6.4")
     static @NotNull TomlValue copyOf(@NotNull TomlValue other) {
         if (other.isTable()) {
             return TomlTable.copyOf(other.asTable());

@@ -18,6 +18,7 @@ public interface Comments {
     }
 
     @Contract("_ -> new")
+    @ApiStatus.AvailableSince("0.6.4")
     static @NotNull Comments copyOf(@NotNull Comments other) {
         return CommentsImpl.copyOf(other);
     }

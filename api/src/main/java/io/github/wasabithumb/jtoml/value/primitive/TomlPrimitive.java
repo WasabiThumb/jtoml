@@ -176,6 +176,7 @@ public interface TomlPrimitive extends TomlValue {
      * as the provided primitive
      */
     @Contract("_ -> new")
+    @ApiStatus.AvailableSince("0.6.4")
     static @NotNull TomlPrimitive copyOf(@NotNull TomlPrimitive other) {
         Comments comments = Comments.copyOf(other.comments());
         switch (other.type()) {
