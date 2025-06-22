@@ -34,7 +34,7 @@ public interface TomlPrimitive extends TomlValue {
      * wrapping the given boolean value
      */
     static @NotNull TomlPrimitive of(boolean value) {
-        return value ? BooleanTomlPrimitive.TRUE : BooleanTomlPrimitive.FALSE;
+        return new BooleanTomlPrimitive(value);
     }
 
     /**
