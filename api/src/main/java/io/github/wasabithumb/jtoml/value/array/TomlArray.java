@@ -37,18 +37,18 @@ public interface TomlArray extends Iterable<TomlValue>, RandomAccess, TomlValue 
     @Contract("_ -> new")
     @ApiStatus.AvailableSince("0.6.3")
     static @NotNull TomlArray copyOf(@NotNull Iterable<? extends TomlValue> array) {
-        if (array instanceof TomlArray) {
-            return TomlArrayImpl.copyOf((TomlArrayImpl) array);
+        TomlArray ret;
+        if (array instanceof Collection<?>) {
+            ret = create(((Collection<?>) array).size());
         } else {
-            TomlArray ret;
-            if (array instanceof Collection<?>) {
-                ret = create(((Collection<?>) array).size());
-            } else {
-                ret = create();
-            }
-            ret.addAll(array);
-            return ret;
+            ret = create();
         }
+
+        for (TomlValue value : array) {
+            ret.add(TomlValue.copyOf(value));
+        }
+
+        return ret;
     }
 
     //

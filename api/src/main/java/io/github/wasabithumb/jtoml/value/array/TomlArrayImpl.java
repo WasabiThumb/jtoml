@@ -3,9 +3,7 @@ package io.github.wasabithumb.jtoml.value.array;
 import io.github.wasabithumb.jtoml.comment.Comments;
 import io.github.wasabithumb.jtoml.value.TomlValue;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -13,15 +11,6 @@ import java.util.List;
 
 @ApiStatus.Internal
 final class TomlArrayImpl implements TomlArray {
-
-    @Contract("_ -> new")
-    static @NotNull TomlArrayImpl copyOf(@NotNull TomlArrayImpl other) {
-        TomlArrayImpl ret = new TomlArrayImpl(other.size());
-        ret.backing.addAll(other.backing);
-        return ret;
-    }
-
-    //
 
     private final List<TomlValue> backing;
     private final Comments comments;
