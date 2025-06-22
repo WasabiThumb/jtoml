@@ -1,5 +1,6 @@
 package io.github.wasabithumb.jtoml.value.primitive;
 
+import io.github.wasabithumb.jtoml.comment.Comments;
 import io.github.wasabithumb.jtoml.except.TomlValueException;
 import io.github.wasabithumb.jtoml.value.TomlValue;
 import org.jetbrains.annotations.ApiStatus;
@@ -168,6 +169,47 @@ public interface TomlPrimitive extends TomlValue {
     @Contract("null -> fail; !null -> new")
     static @NotNull TomlPrimitive of(LocalTime value) {
         return of(value, null);
+    }
+
+    /**
+     * Creates a new TomlPrimitive with the same value and comments
+     * as the provided primitive
+     */
+    @Contract("_ -> new")
+    static @NotNull TomlPrimitive copyOf(@NotNull TomlPrimitive other) {
+        Comments comments = Comments.copyOf(other.comments());
+        switch (other.type()) {
+            case BOOLEAN:
+                return new BooleanTomlPrimitive(comments, other.asBoolean());
+            case FLOAT:
+                return new FloatTomlPrimitive(comments, other.asDouble());
+            case INTEGER:
+                return new IntegerTomlPrimitive(comments, other.asLong());
+            case STRING:
+                return new StringTomlPrimitive(comments, other.asString());
+            case OFFSET_DATE_TIME:
+                return new OffsetDateTimeTomlPrimitive(comments, other.asOffsetDateTime());
+            case LOCAL_DATE_TIME:
+                return new LocalDateTimeTomlPrimitive(
+                        comments,
+                        other.asLocalDateTime(),
+                        ((AbstractTomlPrimitive<?>) other).temporalOffset()
+                );
+            case LOCAL_DATE:
+                return new LocalDateTomlPrimitive(
+                        comments,
+                        other.asLocalDate(),
+                        ((AbstractTomlPrimitive<?>) other).temporalOffset()
+                );
+            case LOCAL_TIME:
+                return new LocalTimeTomlPrimitive(
+                        comments,
+                        other.asLocalTime(),
+                        ((AbstractTomlPrimitive<?>) other).temporalOffset()
+                );
+            default:
+                throw new AssertionError("Unreachable code");
+        }
     }
 
     //

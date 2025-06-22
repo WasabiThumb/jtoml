@@ -1,5 +1,6 @@
 package io.github.wasabithumb.jtoml.value.primitive;
 
+import io.github.wasabithumb.jtoml.comment.Comments;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -11,9 +12,21 @@ final class LocalTimeTomlPrimitive extends AbstractTomlPrimitive<LocalTime> {
     private final LocalTime value;
     private final ZoneOffset offset;
 
-    public LocalTimeTomlPrimitive(@NotNull LocalTime value, @NotNull ZoneOffset offset) {
+    public LocalTimeTomlPrimitive(
+            @NotNull Comments comments,
+            @NotNull LocalTime value,
+            @NotNull ZoneOffset offset
+    ) {
+        super(comments);
         this.value = value;
         this.offset = offset;
+    }
+
+    public LocalTimeTomlPrimitive(
+            @NotNull LocalTime value,
+            @NotNull ZoneOffset offset
+    ) {
+        this(Comments.empty(), value, offset);
     }
 
     //
@@ -26,6 +39,11 @@ final class LocalTimeTomlPrimitive extends AbstractTomlPrimitive<LocalTime> {
     @Override
     public @NotNull LocalTime value() {
         return this.value;
+    }
+
+    @Override
+    @NotNull ZoneOffset temporalOffset() {
+        return this.offset;
     }
 
     @Override

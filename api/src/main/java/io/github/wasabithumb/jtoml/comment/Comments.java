@@ -17,6 +17,11 @@ public interface Comments {
         return new CommentsImpl();
     }
 
+    @Contract("_ -> new")
+    static @NotNull Comments copyOf(@NotNull Comments other) {
+        return CommentsImpl.copyOf(other);
+    }
+
     //
 
     /**

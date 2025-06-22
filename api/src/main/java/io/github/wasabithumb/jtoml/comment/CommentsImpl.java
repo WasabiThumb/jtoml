@@ -1,6 +1,7 @@
 package io.github.wasabithumb.jtoml.comment;
 
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
@@ -9,11 +10,34 @@ import java.util.*;
 @ApiStatus.Internal
 final class CommentsImpl implements Comments {
 
+    @Contract("_ -> new")
+    static @NotNull CommentsImpl copyOf(@NotNull Comments other) {
+        if (other instanceof CommentsImpl) {
+            return new CommentsImpl((CommentsImpl) other);
+        } else {
+            CommentsImpl ret = new CommentsImpl();
+            for (Comment c : other.all()) ret.add(c);
+            return ret;
+        }
+    }
+
+    //
+
     private Comment[] array;
     private int capacity;
     private int preHead;
     private int postHead;
     private boolean hasInline;
+
+    private CommentsImpl(@NotNull CommentsImpl other) {
+        final int capacity = other.capacity;
+        this.array = new Comment[capacity];
+        this.capacity = capacity;
+        this.preHead = other.preHead;
+        this.postHead = other.postHead;
+        this.hasInline = other.hasInline;
+        System.arraycopy(other.array, 0, this.array, 0, other.postHead);
+    }
 
     CommentsImpl() {
         this.clear();

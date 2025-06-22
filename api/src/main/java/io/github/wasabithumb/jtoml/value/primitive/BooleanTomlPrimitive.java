@@ -1,5 +1,6 @@
 package io.github.wasabithumb.jtoml.value.primitive;
 
+import io.github.wasabithumb.jtoml.comment.Comments;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -8,8 +9,13 @@ final class BooleanTomlPrimitive extends AbstractTomlPrimitive<Boolean> {
 
     private final boolean value;
 
-    public BooleanTomlPrimitive(boolean value) {
+    public BooleanTomlPrimitive(@NotNull Comments comments, boolean value) {
+        super(comments);
         this.value = value;
+    }
+
+    public BooleanTomlPrimitive(boolean value) {
+        this(Comments.empty(), value);
     }
 
     //

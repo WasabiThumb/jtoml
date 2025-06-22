@@ -1,5 +1,6 @@
 package io.github.wasabithumb.jtoml.value.primitive;
 
+import io.github.wasabithumb.jtoml.comment.Comments;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,14 +31,25 @@ final class FloatTomlPrimitive extends AbstractTomlPrimitive<Double> {
     private final double value;
     private final String chars;
 
-    /** Called by {@code UnsafePrimitives} in {@code jtoml-internals} */
-    public FloatTomlPrimitive(double value, @NotNull String chars) {
+    private FloatTomlPrimitive(@NotNull Comments comments, double value, @NotNull String chars) {
+        super(comments);
         this.value = value;
         this.chars = chars;
     }
 
+    /** Called by {@code UnsafePrimitives} in {@code jtoml-internals} */
+    public FloatTomlPrimitive(double value, @NotNull String chars) {
+        this(Comments.empty(), value, chars);
+    }
+
+    /** Called by {@code TomlPrimitive#copyOf} */
+    public FloatTomlPrimitive(@NotNull Comments comments, double value) {
+        this(comments, value, autoChars(value));
+    }
+
+    /** Called by {@code TomlPrimitive#of} */
     public FloatTomlPrimitive(double value) {
-        this(value, autoChars(value));
+        this(Comments.empty(), value, autoChars(value));
     }
 
     //
