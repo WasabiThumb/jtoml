@@ -33,8 +33,9 @@ public interface TomlPrimitive extends TomlValue {
      * Provides a primitive of type {@link TomlPrimitiveType#BOOLEAN BOOLEAN}
      * wrapping the given boolean value
      */
+    @Contract("_ -> new")
     static @NotNull TomlPrimitive of(boolean value) {
-        return value ? BooleanTomlPrimitive.TRUE : BooleanTomlPrimitive.FALSE;
+        return new BooleanTomlPrimitive(value);
     }
 
     /**

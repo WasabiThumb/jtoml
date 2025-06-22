@@ -6,14 +6,9 @@ import org.jetbrains.annotations.NotNull;
 @ApiStatus.Internal
 final class BooleanTomlPrimitive extends AbstractTomlPrimitive<Boolean> {
 
-    public static final BooleanTomlPrimitive TRUE = new BooleanTomlPrimitive(true);
-    public static final BooleanTomlPrimitive FALSE = new BooleanTomlPrimitive(false);
-
-    //
-
     private final boolean value;
 
-    private BooleanTomlPrimitive(boolean value) {
+    public BooleanTomlPrimitive(boolean value) {
         this.value = value;
     }
 
