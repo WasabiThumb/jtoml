@@ -4,7 +4,7 @@ import io.github.wasabithumb.jtoml.JToml;
 import io.github.wasabithumb.jtoml.serial.TomlSerializable;
 import io.github.wasabithumb.jtoml.serial.TomlSerializer;
 import io.github.wasabithumb.jtoml.serial.TomlSerializerService;
-import io.github.wasabithumb.jtoml.util.RecordSupport;
+import io.github.wasabithumb.recsup.RecordSupport;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Modifier;
