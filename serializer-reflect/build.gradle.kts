@@ -12,6 +12,7 @@ repositories {
 
 dependencies {
     implementation(project(":api"))
+    implementation("io.github.wasabithumb:recsup:0.1.1")
 }
 
 //

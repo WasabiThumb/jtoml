@@ -5,8 +5,8 @@ import io.github.wasabithumb.jtoml.key.TomlKey;
 import io.github.wasabithumb.jtoml.serial.TomlSerializable;
 import io.github.wasabithumb.jtoml.serial.reflect.model.TypeModel;
 import io.github.wasabithumb.jtoml.util.ParameterizedClass;
-import io.github.wasabithumb.jtoml.util.RecordSupport;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
+import io.github.wasabithumb.recsup.RecordSupport;
 import org.jetbrains.annotations.*;
 
 import java.util.*;
