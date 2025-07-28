@@ -5,7 +5,7 @@ allprojects {
     apply(plugin = "java-library")
 
     group = "io.github.wasabithumb"
-    version = "0.6.4"
+    version = "1.0.0"
 
     dependencies {
         compileOnly("org.jetbrains:annotations:26.0.1")
@@ -40,7 +40,7 @@ plugins {
     alias(libs.plugins.jvm) apply false
 }
 
-description = "Fully compliant TOML parser and serializer for Java"
+description = "Fully compliant TOML library for Java"
 
 repositories {
     mavenCentral()
