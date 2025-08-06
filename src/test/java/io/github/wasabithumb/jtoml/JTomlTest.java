@@ -2,6 +2,7 @@ package io.github.wasabithumb.jtoml;
 
 import io.github.wasabithumb.jtoml.comment.CommentPosition;
 import io.github.wasabithumb.jtoml.document.TomlDocument;
+import io.github.wasabithumb.jtoml.dummy.Named;
 import io.github.wasabithumb.jtoml.dummy.RecordTable;
 import io.github.wasabithumb.jtoml.except.TomlException;
 import io.github.wasabithumb.jtoml.except.TomlValueException;
@@ -68,9 +69,20 @@ class JTomlTest {
     void reflect() {
         PojoTable original = PojoTable.create();
         TomlTable toml = TOML.deserialize(PojoTable.class, original);
+        assertFalse(toml.contains("redHerring"));
         System.out.println(TOML.writeToString(toml));
         PojoTable out = TOML.serialize(PojoTable.class, toml);
         assertEquals(original, out);
+    }
+
+    @Test
+    void finalReflect() {
+        Named original = new Named("foo");
+        TomlTable toml = TOML.deserialize(Named.class, original);
+        System.out.println(TOML.writeToString(toml));
+        Named out = TOML.serialize(Named.class, toml);
+        assertEquals(original, out);
+        assertEquals("foo", out.name());
     }
 
     @Test

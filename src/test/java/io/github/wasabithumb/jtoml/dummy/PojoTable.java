@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.util.Objects;
+import java.util.concurrent.ThreadLocalRandom;
 
 public final class PojoTable implements TomlSerializable {
 
@@ -26,8 +27,11 @@ public final class PojoTable implements TomlSerializable {
     public LocalTime localTime;
     public LocalDateTime localDateTime;
     public OffsetDateTime offsetDateTime;
+    public transient short redHerring;
     
-    PojoTable() { }
+    PojoTable() {
+        this.redHerring = (short) ThreadLocalRandom.current().nextInt();
+    }
 
     //
 

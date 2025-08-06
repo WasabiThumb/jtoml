@@ -9,6 +9,7 @@ import org.jetbrains.annotations.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -81,8 +82,11 @@ final class SerializableTableTypeModel<T extends TomlSerializable> extends Abstr
     }
 
     private void keys0(@NotNull Set<TomlKey> set, @NotNull Class<?> cls) {
-        for (Field f : cls.getDeclaredFields())
+        for (Field f : cls.getDeclaredFields()) {
+            int mod = f.getModifiers();
+            if (Modifier.isStatic(mod) || Modifier.isTransient(mod)) continue;
             set.add(TomlKey.literal(f.getName()));
+        }
         cls = cls.getSuperclass();
         if (cls == null || !TomlSerializable.class.isAssignableFrom(cls)) return;
         this.keys0(set, cls);
@@ -155,6 +159,14 @@ final class SerializableTableTypeModel<T extends TomlSerializable> extends Abstr
             this.instance = instance;
         }
 
+        private void trySetModifiers(@NotNull Field field, int modifiers) {
+            try {
+                Field modifiersField = Field.class.getDeclaredField("modifiers");
+                modifiersField.setAccessible(true);
+                modifiersField.setInt(field, modifiers);
+            } catch (ReflectiveOperationException | SecurityException ignored) { }
+        }
+
         @Override
         public void set(@NotNull TomlKey key, @NotNull Object value) {
             Field f = this.parent.resolveField(key);
@@ -166,6 +178,11 @@ final class SerializableTableTypeModel<T extends TomlSerializable> extends Abstr
                 suppressed = e;
             }
 
+            final int modifiers = f.getModifiers();
+            boolean isFinal = Modifier.isFinal(modifiers);
+            if (isFinal)
+                this.trySetModifiers(f, modifiers & ~Modifier.FINAL);
+
             try {
                 f.set(this.instance, value);
             } catch (IllegalAccessException e) {
@@ -173,6 +190,9 @@ final class SerializableTableTypeModel<T extends TomlSerializable> extends Abstr
                         "\" on TomlSerializable type " + this.parent.type.getName());
                 if (suppressed != null) ex.addSuppressed(suppressed);
                 throw ex;
+            } finally {
+                if (isFinal)
+                    this.trySetModifiers(f, modifiers);
             }
         }
 
