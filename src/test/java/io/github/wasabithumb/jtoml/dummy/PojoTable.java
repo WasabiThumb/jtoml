@@ -3,12 +3,14 @@ package io.github.wasabithumb.jtoml.dummy;
 import io.github.wasabithumb.jtoml.Faker;
 import io.github.wasabithumb.jtoml.comment.Comment;
 import io.github.wasabithumb.jtoml.serial.TomlSerializable;
+import io.github.wasabithumb.jtoml.serial.reflect.Key;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.util.Objects;
+import java.util.concurrent.ThreadLocalRandom;
 
 public final class PojoTable implements TomlSerializable {
 
@@ -20,14 +22,28 @@ public final class PojoTable implements TomlSerializable {
 
     @Comment.Inline("Some text")
     public String text;
+
     public long integer;
+
     public double decimal;
+
+    @Key("local-date")
     public LocalDate localDate;
+
+    @Key("local-time")
     public LocalTime localTime;
+
+    @Key("local-date-time")
     public LocalDateTime localDateTime;
+
+    @Key("offset-date-time")
     public OffsetDateTime offsetDateTime;
+
+    public transient short redHerring;
     
-    PojoTable() { }
+    PojoTable() {
+        this.redHerring = (short) ThreadLocalRandom.current().nextInt();
+    }
 
     //
 
