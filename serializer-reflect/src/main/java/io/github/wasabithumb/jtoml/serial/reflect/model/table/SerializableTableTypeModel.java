@@ -9,6 +9,7 @@ import org.jetbrains.annotations.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -81,8 +82,11 @@ final class SerializableTableTypeModel<T extends TomlSerializable> extends Abstr
     }
 
     private void keys0(@NotNull Set<TomlKey> set, @NotNull Class<?> cls) {
-        for (Field f : cls.getDeclaredFields())
+        for (Field f : cls.getDeclaredFields()) {
+            int mod = f.getModifiers();
+            if (Modifier.isStatic(mod) || Modifier.isTransient(mod)) continue;
             set.add(TomlKey.literal(f.getName()));
+        }
         cls = cls.getSuperclass();
         if (cls == null || !TomlSerializable.class.isAssignableFrom(cls)) return;
         this.keys0(set, cls);
