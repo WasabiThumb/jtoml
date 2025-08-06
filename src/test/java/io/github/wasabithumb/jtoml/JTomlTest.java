@@ -69,8 +69,10 @@ class JTomlTest {
     void reflect() {
         PojoTable original = PojoTable.create();
         TomlTable toml = TOML.deserialize(PojoTable.class, original);
-        assertFalse(toml.contains("redHerring"));
         System.out.println(TOML.writeToString(toml));
+        assertFalse(toml.contains("redHerring"));
+        assertTrue(toml.contains("local-date"));
+        assertFalse(toml.contains("localDate"));
         PojoTable out = TOML.serialize(PojoTable.class, toml);
         assertEquals(original, out);
     }
@@ -90,6 +92,9 @@ class JTomlTest {
         RecordTable original = RecordTable.create();
         TomlTable toml = TOML.deserialize(RecordTable.class, original);
         System.out.println(TOML.writeToString(toml));
+        assertFalse(toml.contains("redHerring"));
+        assertTrue(toml.contains("local-date"));
+        assertFalse(toml.contains("localDate"));
         RecordTable out = TOML.serialize(RecordTable.class, toml);
         assertEquals(original, out);
     }

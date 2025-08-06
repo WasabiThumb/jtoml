@@ -2,6 +2,7 @@ package io.github.wasabithumb.jtoml.serial.reflect.model.table;
 
 import io.github.wasabithumb.jtoml.comment.Comments;
 import io.github.wasabithumb.jtoml.key.TomlKey;
+import io.github.wasabithumb.jtoml.serial.reflect.Key;
 import io.github.wasabithumb.jtoml.util.ParameterizedClass;
 import io.github.wasabithumb.recsup.RecordClass;
 import io.github.wasabithumb.recsup.RecordComponent;
@@ -18,12 +19,31 @@ import java.util.*;
 @ApiStatus.Internal
 final class RecordTableTypeModel<T> extends AbstractTableTypeModel<T> {
 
+    private static @NotNull Map<TomlKey, RecordComponent> buildComponentMap(@NotNull RecordClass<?> cls) {
+        Map<TomlKey, RecordComponent> ret = new HashMap<>();
+        for (RecordComponent rc : cls.getRecordComponents()) {
+            String name = rc.getName();
+            Key annotation = rc.getAccessor().getAnnotation(Key.class);
+            if (annotation != null) name = annotation.value();
+            TomlKey key = TomlKey.literal(name);
+            RecordComponent existing = ret.get(key);
+            if (existing != null) {
+                throw new IllegalStateException("Record component (" + rc.getName() + ") defined with key " + key +
+                        " shadows existing component (" + existing.getName() + ") defined with same key");
+            }
+            ret.put(key, rc);
+        }
+        return Collections.unmodifiableMap(ret);
+    }
+
+    //
+
     private final RecordClass<T> clazz;
-    private final RecordComponent[] components;
+    private final Map<TomlKey, RecordComponent> components;
 
     RecordTableTypeModel(@NotNull Class<T> clazz) {
         this.clazz = RecordSupport.asRecord(clazz);
-        this.components = this.clazz.getRecordComponents();
+        this.components = buildComponentMap(this.clazz);
     }
 
     //
@@ -40,26 +60,18 @@ final class RecordTableTypeModel<T> extends AbstractTableTypeModel<T> {
 
     @Override
     public @NotNull @Unmodifiable Collection<TomlKey> keys(@NotNull T instance) {
-        List<TomlKey> ret = new ArrayList<>(this.components.length);
-        for (RecordComponent c : this.components) {
-            ret.add(TomlKey.literal(c.getName()));
-        }
-        return Collections.unmodifiableList(ret);
+        return this.components.keySet();
     }
 
     private @NotNull RecordComponent lookupComponent(@NotNull TomlKey key) {
         if (key.size() != 1)
             throw new IllegalArgumentException("Invalid key size (expected 1, got " + key.size() + ")");
 
-        String k0 = key.get(0);
+        RecordComponent rc = this.components.get(key);
+        if (rc != null) return rc;
 
-        for (RecordComponent rc : this.components) {
-            if (k0.equals(rc.getName())) {
-                return rc;
-            }
-        }
-
-        throw new IllegalArgumentException("Record " + this.clazz.handle().getName() + " has no component named " + k0);
+        throw new IllegalArgumentException("Record " + this.clazz.handle().getName() +
+                " has no component with key " + key.get(0));
     }
 
     @Override
@@ -103,7 +115,7 @@ final class RecordTableTypeModel<T> extends AbstractTableTypeModel<T> {
 
         private Builder(@NotNull RecordTableTypeModel<O> parent) {
             this.parent = parent;
-            this.values = new Object[parent.components.length];
+            this.values = new Object[parent.components.size()];
         }
 
         //
