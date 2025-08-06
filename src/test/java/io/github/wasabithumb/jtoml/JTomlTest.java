@@ -69,6 +69,7 @@ class JTomlTest {
     void reflect() {
         PojoTable original = PojoTable.create();
         TomlTable toml = TOML.deserialize(PojoTable.class, original);
+        assertFalse(toml.contains("redHerring"));
         System.out.println(TOML.writeToString(toml));
         PojoTable out = TOML.serialize(PojoTable.class, toml);
         assertEquals(original, out);
