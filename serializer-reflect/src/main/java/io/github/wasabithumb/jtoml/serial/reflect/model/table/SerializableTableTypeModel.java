@@ -159,6 +159,14 @@ final class SerializableTableTypeModel<T extends TomlSerializable> extends Abstr
             this.instance = instance;
         }
 
+        private void trySetModifiers(@NotNull Field field, int modifiers) {
+            try {
+                Field modifiersField = Field.class.getDeclaredField("modifiers");
+                modifiersField.setAccessible(true);
+                modifiersField.setInt(field, modifiers);
+            } catch (ReflectiveOperationException | SecurityException ignored) { }
+        }
+
         @Override
         public void set(@NotNull TomlKey key, @NotNull Object value) {
             Field f = this.parent.resolveField(key);
@@ -170,6 +178,11 @@ final class SerializableTableTypeModel<T extends TomlSerializable> extends Abstr
                 suppressed = e;
             }
 
+            final int modifiers = f.getModifiers();
+            boolean isFinal = Modifier.isFinal(modifiers);
+            if (isFinal)
+                this.trySetModifiers(f, modifiers & ~Modifier.FINAL);
+
             try {
                 f.set(this.instance, value);
             } catch (IllegalAccessException e) {
@@ -177,6 +190,9 @@ final class SerializableTableTypeModel<T extends TomlSerializable> extends Abstr
                         "\" on TomlSerializable type " + this.parent.type.getName());
                 if (suppressed != null) ex.addSuppressed(suppressed);
                 throw ex;
+            } finally {
+                if (isFinal)
+                    this.trySetModifiers(f, modifiers);
             }
         }
 

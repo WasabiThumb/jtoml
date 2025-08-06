@@ -40,14 +40,20 @@ public final class Faker {
                 f.setAccessible(true);
             } catch (Exception ignored) { }
 
-            int mod = f.getModifiers();
-            if (Modifier.isFinal(mod) || Modifier.isTransient(mod)) continue;
+            final int mod = f.getModifiers();
+            if (Modifier.isStatic(mod) || Modifier.isTransient(mod)) continue;
+            boolean isFinal = Modifier.isFinal(mod);
+            if (isFinal)
+                trySetModifiers(f, mod & ~Modifier.FINAL);
 
             Object value = create(f.getType());
             try {
                 f.set(object, value);
             } catch (Exception e) {
                 throw new IllegalStateException("Failed to set field \"" + f.getName() + "\" on POJO");
+            } finally {
+                if (isFinal)
+                    trySetModifiers(f, mod);
             }
         }
     }
@@ -189,5 +195,14 @@ public final class Faker {
             throw new AssertionError("Failed to read resource @ " + path);
         }
     }
+
+    private static void trySetModifiers(@NotNull Field field, int modifiers) {
+        try {
+            Field modifiersField = Field.class.getDeclaredField("modifiers");
+            modifiersField.setAccessible(true);
+            modifiersField.setInt(field, modifiers);
+        } catch (ReflectiveOperationException | SecurityException ignored) { }
+    }
+
 
 }
