@@ -13,7 +13,7 @@ public abstract class JTomlService {
 
     private static JTomlService SERVICE = null;
 
-    public static synchronized @NotNull JTomlService get() {
+    static synchronized @NotNull JTomlService get() {
         JTomlService ret = SERVICE;
         if (ret == null) {
             ret = load();
