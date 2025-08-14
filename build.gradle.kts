@@ -37,6 +37,7 @@ allprojects {
 plugins {
     id("java-library")
     alias(libs.plugins.publish)
+    alias(libs.plugins.modularity)
     alias(libs.plugins.jvm) apply false
 }
 

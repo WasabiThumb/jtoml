@@ -2,6 +2,7 @@ import com.vanniktech.maven.publish.SonatypeHost
 
 plugins {
     alias(libs.plugins.publish)
+    alias(libs.plugins.modularity)
 }
 
 description = "Reflection integration for JToml"

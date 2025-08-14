@@ -9,7 +9,7 @@ import java.util.Iterator;
 import java.util.ServiceLoader;
 
 @ApiStatus.Internal
-abstract class JTomlService {
+public abstract class JTomlService {
 
     private static JTomlService SERVICE = null;
 

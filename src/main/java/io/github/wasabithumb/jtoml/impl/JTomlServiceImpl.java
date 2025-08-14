@@ -1,5 +1,7 @@
-package io.github.wasabithumb.jtoml;
+package io.github.wasabithumb.jtoml.impl;
 
+import io.github.wasabithumb.jtoml.JToml;
+import io.github.wasabithumb.jtoml.JTomlService;
 import io.github.wasabithumb.jtoml.option.JTomlOptions;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;

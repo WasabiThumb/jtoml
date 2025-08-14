@@ -1,5 +1,6 @@
-package io.github.wasabithumb.jtoml;
+package io.github.wasabithumb.jtoml.impl;
 
+import io.github.wasabithumb.jtoml.JToml;
 import io.github.wasabithumb.jtoml.document.TomlDocument;
 import io.github.wasabithumb.jtoml.document.TomlDocumentImpl;
 import io.github.wasabithumb.jtoml.except.TomlException;
