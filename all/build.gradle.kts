@@ -16,9 +16,6 @@ java {
     registerFeature("configurate") {
         usingSourceSet(sourceSets.main.get())
     }
-    registerFeature("recsup") {
-        usingSourceSet(sourceSets.main.get())
-    }
     registerFeature("gson") {
         usingSourceSet(sourceSets.main.get())
     }
@@ -33,7 +30,7 @@ dependencies {
     "configurateApi"("org.spongepowered:configurate-core")
 
     // Dependencies for serializer-reflect
-    "recsupImplementation"(libs.recsup)
+    implementation(libs.recsup)
 
     // Dependencies for serializer-gson
     "gsonApi"(libs.gson)
