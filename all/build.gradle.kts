@@ -15,9 +15,16 @@ java {
     registerFeature("configurate") {
         usingSourceSet(sourceSets.main.get())
     }
+    registerFeature("recsup") {
+        usingSourceSet(sourceSets.main.get())
+    }
     registerFeature("gson") {
         usingSourceSet(sourceSets.main.get())
     }
+
+    modularity.inferModulePath = false
+    withJavadocJar()
+    withSourcesJar()
 }
 
 dependencies {
@@ -25,31 +32,46 @@ dependencies {
     "configurateApi"(platform(libs.configurate.bom))
     "configurateApi"("org.spongepowered:configurate-core")
 
+    // Dependencies for serializer-reflect
+    "recsupImplementation"(libs.recsup)
+
     // Dependencies for serializer-gson
     "gsonApi"(libs.gson)
 }
 
-// Trying to generate javadocs for the module-info is
-// cursed and will break
+val peers = listOf(
+    project(":"),
+    project(":api"),
+    project(":internals"),
+    project(":configurate"),
+    project(":kotlin"),
+    project(":serializer-gson"),
+    project(":serializer-reflect")
+)
+
 tasks.javadoc {
+    // Trying to generate javadocs for the module-info is
+    // cursed and will break
     exclude("**/module-info.java")
+
+    // Generate javadocs for module sources
+    peers.forEach { peer ->
+        source(peer.sourceSets.main.get().allJava)
+    }
 }
 
-// Shade in all other modules
 tasks.processResources {
-    val sources = listOf(
-        project(":"),
-        project(":api"),
-        project(":internals"),
-        project(":configurate"),
-        project(":kotlin"),
-        project(":serializer-gson"),
-        project(":serializer-reflect")
-    )
-
-    sources.forEach { src ->
+    // Shade module classes
+    peers.forEach { src ->
         dependsOn(src.tasks.assemble)
         from(src.layout.buildDirectory.dir("classes/java/main"))
+    }
+}
+
+tasks.named<Jar>("sourcesJar") {
+    // Include module sources
+    peers.forEach { peer ->
+        from(peer.sourceSets.main.get().allJava)
     }
 }
 
