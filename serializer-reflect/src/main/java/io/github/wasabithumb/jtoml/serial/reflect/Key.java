@@ -14,7 +14,7 @@ import java.lang.annotation.*;
 @ApiStatus.AvailableSince("1.1.0")
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD, ElementType.TYPE})
+@Target({ElementType.FIELD, ElementType.METHOD})
 public @interface Key {
     @NotNull String value();
 }

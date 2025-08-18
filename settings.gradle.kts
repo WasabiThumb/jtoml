@@ -4,6 +4,7 @@ plugins {
 
 rootProject.name = "jtoml"
 include(
+    ":all",
     ":api",
     ":internals",
    ":internals:test-utils",
