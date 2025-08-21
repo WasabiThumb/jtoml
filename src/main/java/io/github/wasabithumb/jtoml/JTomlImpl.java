@@ -112,13 +112,13 @@ final class JTomlImpl implements JToml {
     //
 
     @Override
-    public <T> @NotNull T serialize(@NotNull Class<T> type, @NotNull TomlTable table) throws IllegalArgumentException {
+    public <T> @NotNull T fromToml(@NotNull Class<T> type, @NotNull TomlTable table) throws IllegalArgumentException {
         int count = 0;
         for (TomlSerializerService service : SERIALIZERS) {
             count++;
             if (service.canSerializeTo(type)) {
                 TomlSerializer<?, T> s = service.getSerializer(this, type);
-                return s.serialize(table);
+                return s.fromToml(table);
             }
         }
         throw new IllegalArgumentException(
@@ -128,13 +128,13 @@ final class JTomlImpl implements JToml {
     }
 
     @Override
-    public @NotNull <T> TomlTable deserialize(@NotNull Class<T> type, @NotNull T data) throws IllegalArgumentException {
+    public @NotNull <T> TomlTable toToml(@NotNull Class<T> type, @NotNull T data) throws IllegalArgumentException {
         int count = 0;
         for (TomlSerializerService service : SERIALIZERS) {
             count++;
             if (service.canDeserializeFrom(type)) {
                 TomlSerializer<T, ?> d = service.getDeserializer(this, type);
-                return d.deserialize(data);
+                return d.toToml(data);
             }
         }
         throw new IllegalArgumentException(
