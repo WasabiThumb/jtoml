@@ -36,6 +36,17 @@ public final class TomlDocumentImpl implements TomlDocument {
     // START Super
 
     @Override
+    public int flags() {
+        return this.backing.flags();
+    }
+
+    @Override
+    public @NotNull TomlDocument flags(int flags) {
+        this.backing.flags(flags);
+        return this;
+    }
+
+    @Override
     public @NotNull Comments comments() {
         return this.backing.comments();
     }

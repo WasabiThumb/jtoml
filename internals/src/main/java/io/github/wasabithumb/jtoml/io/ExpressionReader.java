@@ -8,8 +8,8 @@ import io.github.wasabithumb.jtoml.io.source.BufferedCharSource;
 import io.github.wasabithumb.jtoml.key.TomlKey;
 import io.github.wasabithumb.jtoml.option.JTomlOption;
 import io.github.wasabithumb.jtoml.option.JTomlOptions;
-import io.github.wasabithumb.jtoml.value.FlaggedTomlValue;
 import io.github.wasabithumb.jtoml.value.TomlValue;
+import io.github.wasabithumb.jtoml.value.TomlValueFlags;
 import io.github.wasabithumb.jtoml.value.UnsafePrimitives;
 import io.github.wasabithumb.jtoml.value.array.TomlArray;
 import io.github.wasabithumb.jtoml.value.primitive.TomlPrimitive;
@@ -956,14 +956,12 @@ public class ExpressionReader implements Closeable {
                 TomlKey partialKey = key.slice(0, z);
                 TomlValue existing = ret.get(partialKey);
                 if (existing == null) continue;
-                if (FlaggedTomlValue.isConstant(existing))
+                if (TomlValueFlags.isConstant(existing))
                     this.in.raise(key + " conflicts with previously defined key " + partialKey + " in inline table");
             }
             if (!this.in.skipWhitespace()) this.in.raise("Expected value, got EOF");
             TomlValue value = this.readValue();
-            FlaggedTomlValue flaggedValue = FlaggedTomlValue.wrap(value);
-            flaggedValue.setConstant(true);
-            ret.put(key, flaggedValue);
+            ret.put(key, TomlValueFlags.setConstant(value, true));
             expectComma = true;
         }
     }

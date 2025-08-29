@@ -39,6 +39,23 @@ public interface TomlValue {
     //
 
     /**
+     * Reports the flags stored on this value.
+     * Flags are opaque to consumers but have internal meaning
+     * required for spec-compliant reading.
+     */
+    @ApiStatus.Internal
+    int flags();
+
+    /**
+     * Sets the flags stored on this value.
+     * Flags are opaque to consumers but have internal meaning
+     * required for spec-compliant reading.
+     */
+    @ApiStatus.Internal
+    @Contract("_ -> this")
+    @NotNull TomlValue flags(int flags);
+
+    /**
      * Accesses the comments stored on this value
      */
     @ApiStatus.AvailableSince("0.6.0")

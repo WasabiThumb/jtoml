@@ -36,10 +36,12 @@ final class TomlArrayImpl implements TomlArray {
 
     private final List<TomlValue> backing;
     private final Comments comments;
+    private byte flags;
 
     private TomlArrayImpl(int initialCapacity, @NotNull Comments comments) {
         this.backing = new ArrayList<>(initialCapacity);
         this.comments = comments;
+        this.flags = 0;
     }
 
     TomlArrayImpl(int initialCapacity) {
@@ -51,6 +53,18 @@ final class TomlArrayImpl implements TomlArray {
     }
 
     //
+
+
+    @Override
+    public int flags() {
+        return this.flags & 0xFF;
+    }
+
+    @Override
+    public @NotNull TomlArray flags(int flags) {
+        this.flags = (byte) flags;
+        return this;
+    }
 
     @Override
     public @NotNull Comments comments() {

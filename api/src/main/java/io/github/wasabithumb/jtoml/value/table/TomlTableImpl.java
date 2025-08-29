@@ -21,10 +21,12 @@ final class TomlTableImpl implements TomlTable {
 
     private final TomlTableBranch root;
     private final Comments comments;
+    private byte flags;
 
     private TomlTableImpl(@NotNull TomlTableBranch root, @NotNull Comments comments) {
         this.root = root;
         this.comments = comments;
+        this.flags = 0;
     }
 
     private TomlTableImpl(@NotNull TomlTableBranch root) {
@@ -36,6 +38,18 @@ final class TomlTableImpl implements TomlTable {
     }
 
     //
+
+
+    @Override
+    public int flags() {
+        return this.flags & 0xFF;
+    }
+
+    @Override
+    public @NotNull TomlTable flags(int flags) {
+        this.flags = (byte) flags;
+        return this;
+    }
 
     @Override
     public @NotNull Comments comments() {
