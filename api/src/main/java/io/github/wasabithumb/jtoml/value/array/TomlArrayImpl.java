@@ -36,7 +36,7 @@ final class TomlArrayImpl implements TomlArray {
 
     private final List<TomlValue> backing;
     private final Comments comments;
-    private byte flags;
+    private transient byte flags;
 
     private TomlArrayImpl(int initialCapacity, @NotNull Comments comments) {
         this.backing = new ArrayList<>(initialCapacity);

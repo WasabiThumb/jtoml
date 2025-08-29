@@ -80,7 +80,7 @@ abstract class AbstractTomlPrimitive<T extends Serializable> implements TomlPrim
     //
 
     protected final Comments comments;
-    protected byte flags;
+    protected transient byte flags;
 
     protected AbstractTomlPrimitive(@NotNull Comments comments) {
         this.comments = comments;

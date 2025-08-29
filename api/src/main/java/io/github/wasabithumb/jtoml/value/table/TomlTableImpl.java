@@ -21,7 +21,7 @@ final class TomlTableImpl implements TomlTable {
 
     private final TomlTableBranch root;
     private final Comments comments;
-    private byte flags;
+    private transient byte flags;
 
     private TomlTableImpl(@NotNull TomlTableBranch root, @NotNull Comments comments) {
         this.root = root;
