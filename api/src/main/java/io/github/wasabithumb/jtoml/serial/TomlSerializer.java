@@ -47,9 +47,27 @@ public interface TomlSerializer<I, O> {
     @ApiStatus.OverrideOnly
     @NotNull Class<O> outType();
 
+    /**
+     * @deprecated Use {@link #fromToml(TomlTable)}
+     */
+    @Deprecated
     @NotNull O serialize(@NotNull TomlTable table);
 
+    @ApiStatus.AvailableSince("1.2.1")
+    default @NotNull O fromToml(@NotNull TomlTable table) {
+        return this.serialize(table);
+    }
+
+    /**
+     * @deprecated Use {@link #toToml(Object)}
+     */
+    @Deprecated
     @NotNull TomlTable deserialize(@NotNull I data);
+
+    @ApiStatus.AvailableSince("1.2.1")
+    default @NotNull TomlTable toToml(@NotNull I data) {
+        return this.deserialize(data);
+    }
 
     //
 

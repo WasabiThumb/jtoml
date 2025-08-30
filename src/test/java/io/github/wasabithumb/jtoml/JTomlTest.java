@@ -68,21 +68,21 @@ class JTomlTest {
     @Test
     void reflect() {
         PojoTable original = PojoTable.create();
-        TomlTable toml = TOML.deserialize(PojoTable.class, original);
+        TomlTable toml = TOML.toToml(PojoTable.class, original);
         System.out.println(TOML.writeToString(toml));
         assertFalse(toml.contains("redHerring"));
         assertTrue(toml.contains("local-date"));
         assertFalse(toml.contains("localDate"));
-        PojoTable out = TOML.serialize(PojoTable.class, toml);
+        PojoTable out = TOML.fromToml(PojoTable.class, toml);
         assertEquals(original, out);
     }
 
     @Test
     void finalReflect() {
         Named original = new Named("foo");
-        TomlTable toml = TOML.deserialize(Named.class, original);
+        TomlTable toml = TOML.toToml(Named.class, original);
         System.out.println(TOML.writeToString(toml));
-        Named out = TOML.serialize(Named.class, toml);
+        Named out = TOML.fromToml(Named.class, toml);
         assertEquals(original, out);
         assertEquals("foo", out.name());
     }
@@ -90,12 +90,12 @@ class JTomlTest {
     @Test
     void recordReflect() {
         RecordTable original = RecordTable.create();
-        TomlTable toml = TOML.deserialize(RecordTable.class, original);
+        TomlTable toml = TOML.toToml(RecordTable.class, original);
         System.out.println(TOML.writeToString(toml));
         assertFalse(toml.contains("redHerring"));
         assertTrue(toml.contains("local-date"));
         assertFalse(toml.contains("localDate"));
-        RecordTable out = TOML.serialize(RecordTable.class, toml);
+        RecordTable out = TOML.fromToml(RecordTable.class, toml);
         assertEquals(original, out);
     }
 
@@ -103,7 +103,7 @@ class JTomlTest {
     void badDateTime() {
         PojoTable table = PojoTable.create();
         table.localDate = LocalDate.of(-1, 7, 16); // year -1
-        assertThrows(TomlValueException.class, () -> TOML.deserialize(PojoTable.class, table));
+        assertThrows(TomlValueException.class, () -> TOML.toToml(PojoTable.class, table));
     }
 
     @Test

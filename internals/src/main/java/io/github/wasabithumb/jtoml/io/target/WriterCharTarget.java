@@ -36,6 +36,21 @@ public final class WriterCharTarget extends FilterWriter implements CharTarget {
     }
 
     @Override
+    public void put(@NotNull CharSequence cs) throws TomlException {
+        try {
+            if (cs instanceof String) {
+                this.out.write((String) cs);
+            } else {
+                for (int i = 0; i < cs.length(); i++) {
+                    this.out.write(cs.charAt(i));
+                }
+            }
+        } catch (IOException e) {
+            TomlIOException.rethrow(e);
+        }
+    }
+
+    @Override
     public void flush() throws TomlIOException {
         try {
             super.flush();

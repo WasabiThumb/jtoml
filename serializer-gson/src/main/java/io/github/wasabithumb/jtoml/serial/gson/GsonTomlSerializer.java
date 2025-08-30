@@ -36,7 +36,7 @@ public final class GsonTomlSerializer implements TomlSerializer.Symmetric<JsonOb
     }
 
     @Override
-    public @NotNull JsonObject serialize(@NotNull TomlTable table) {
+    public @NotNull JsonObject fromToml(@NotNull TomlTable table) {
         JsonObject ret = new JsonObject();
         TomlValue value;
         for (TomlKey key : table.keys(false)) {
@@ -48,7 +48,7 @@ public final class GsonTomlSerializer implements TomlSerializer.Symmetric<JsonOb
     }
 
     @Override
-    public @NotNull TomlTable deserialize(@NotNull JsonObject data) {
+    public @NotNull TomlTable toToml(@NotNull JsonObject data) {
         TomlTable ret = TomlTable.create();
         String key;
         JsonElement value;
@@ -60,11 +60,21 @@ public final class GsonTomlSerializer implements TomlSerializer.Symmetric<JsonOb
         return ret;
     }
 
+    @Override
+    public @NotNull JsonObject serialize(@NotNull TomlTable table) {
+        return this.fromToml(table);
+    }
+
+    @Override
+    public @NotNull TomlTable deserialize(@NotNull JsonObject data) {
+        return this.toToml(data);
+    }
+
     //
 
     private @NotNull JsonElement serializeValue(@NotNull TomlValue value) {
         if (value.isTable()) {
-            return this.serialize(value.asTable());
+            return this.fromToml(value.asTable());
         } else if (value.isArray()) {
             TomlArray tomlArray = value.asArray();
             JsonArray array = new JsonArray(tomlArray.size());
@@ -96,7 +106,7 @@ public final class GsonTomlSerializer implements TomlSerializer.Symmetric<JsonOb
             for (JsonElement el : jsonArray) array.add(this.deserializeElement(el));
             return array;
         } else if (value.isJsonObject()) {
-            return this.deserialize(value.getAsJsonObject());
+            return this.toToml(value.getAsJsonObject());
         } else {
             return this.deserializePrimitive(value.getAsJsonPrimitive());
         }

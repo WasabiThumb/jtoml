@@ -23,13 +23,23 @@ public final class PlainTextTomlSerializer implements TomlSerializer.Symmetric<S
     }
 
     @Override
-    public @NotNull String serialize(@NotNull TomlTable table) {
+    public @NotNull String fromToml(@NotNull TomlTable table) {
         return this.instance.writeToString(table);
     }
 
     @Override
-    public @NotNull TomlTable deserialize(@NotNull String data) {
+    public @NotNull TomlTable toToml(@NotNull String data) {
         return this.instance.readFromString(data);
+    }
+
+    @Override
+    public @NotNull String serialize(@NotNull TomlTable table) {
+        return this.fromToml(table);
+    }
+
+    @Override
+    public @NotNull TomlTable deserialize(@NotNull String data) {
+        return this.toToml(data);
     }
 
 }

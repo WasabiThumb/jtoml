@@ -79,13 +79,13 @@ object KToml : JToml {
     }
 
     @Throws(TomlException::class)
-    override fun <T : Any> serialize(type: Class<T>, table: TomlTable): T {
-        return this.instance.serialize(type, table)
+    override fun <T : Any> fromToml(type: Class<T>, table: TomlTable): T {
+        return this.instance.fromToml(type, table)
     }
 
     @Throws(TomlException::class)
-    override fun <T : Any> deserialize(type: Class<T>, data: T): TomlTable {
-        return this.instance.deserialize(type, data)
+    override fun <T : Any> toToml(type: Class<T>, data: T): TomlTable {
+        return this.instance.toToml(type, data)
     }
 
 }
@@ -93,9 +93,30 @@ object KToml : JToml {
 // Serialization
 
 /**
+ * Converts the given TOML table to the given type,
+ * if an appropriate serializer is present in the classpath
+ * @since 1.2.1
+ */
+@Throws(TomlException::class, IllegalArgumentException::class)
+fun <T: Any> JToml.fromToml(type: KClass<T>, table: TomlTable): T {
+    return this.fromToml(type.java, table)
+}
+
+/**
+ * Converts the given object to a TOML table,
+ * if an appropriate deserializer is present in the classpath
+ * @since 1.2.1
+ */
+@Throws(TomlException::class, IllegalArgumentException::class)
+fun <T: Any> JToml.toToml(type: KClass<T>, data: T): TomlTable {
+    return this.toToml(type.java, data)
+}
+
+/**
  * Serializes the given TOML table to the given type,
  * if an appropriate serializer is present in the classpath
  */
+@Deprecated("Replaced by fromToml")
 @Throws(TomlException::class, IllegalArgumentException::class)
 fun <T: Any> JToml.serialize(type: KClass<T>, table: TomlTable): T {
     return this.serialize(type.java, table)
@@ -105,6 +126,7 @@ fun <T: Any> JToml.serialize(type: KClass<T>, table: TomlTable): T {
  * Deserializes a TOML table from the given type,
  * if an appropriate deserializer is present in the classpath
  */
+@Deprecated("Replaced by toToml")
 @Throws(TomlException::class, IllegalArgumentException::class)
 fun <T: Any> JToml.deserialize(type: KClass<T>, data: T): TomlTable {
     return this.deserialize(type.java, data)
