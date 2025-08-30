@@ -172,8 +172,22 @@ public interface JToml {
      * @param type The type to serialize to
      * @param table The table to serialize
      * @throws IllegalArgumentException No serializer is registered for the given type
+     * @deprecated Use {@link #fromToml(Class, TomlTable)}
      */
-    <T> @NotNull T serialize(@NotNull Class<T> type, @NotNull TomlTable table) throws IllegalArgumentException;
+    @Deprecated
+    default <T> @NotNull T serialize(@NotNull Class<T> type, @NotNull TomlTable table) throws IllegalArgumentException {
+        return this.fromToml(type, table);
+    }
+
+    /**
+     * Converts the given TOML table to the given type,
+     * if an appropriate serializer is present in the classpath.
+     * A list of serializers can be found {@link io.github.wasabithumb.jtoml.serial.TomlSerializer here}.
+     * @param type The type to convert to
+     * @param table The table to convert
+     * @throws IllegalArgumentException No serializer is registered for the given type
+     */
+    <T> @NotNull T fromToml(@NotNull Class<T> type, @NotNull TomlTable table) throws IllegalArgumentException;
 
     /**
      * Deserializes a given TOML table from the given type,
@@ -182,7 +196,22 @@ public interface JToml {
      * @param type The type to deserialize from
      * @param data The data to deserialize into a TOML table
      * @throws IllegalArgumentException No deserializer is registered for the given type
+     * @deprecated Use {@link #toToml(Class, Object)}
      */
-    <T> @NotNull TomlTable deserialize(@NotNull Class<T> type, @NotNull T data) throws IllegalArgumentException;
+    @Deprecated
+    default <T> @NotNull TomlTable deserialize(@NotNull Class<T> type, @NotNull T data) throws IllegalArgumentException {
+        return this.toToml(type, data);
+    }
+
+    /**
+     * Converts the given type to a TOML table,
+     * if an appropriate deserializer is present in the classpath.
+     * A list of serializers can be found {@link io.github.wasabithumb.jtoml.serial.TomlSerializer here}.
+     * @param type The type to convert from
+     * @param data The data to convert into a TOML table
+     * @throws IllegalArgumentException No deserializer is registered for the given type
+     */
+    <T> @NotNull TomlTable toToml(@NotNull Class<T> type, @NotNull T data) throws IllegalArgumentException;
+
 
 }

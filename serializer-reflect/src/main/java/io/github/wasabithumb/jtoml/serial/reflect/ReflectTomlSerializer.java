@@ -31,7 +31,7 @@ final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<T> {
     }
 
     @Override
-    public @NotNull T serialize(@NotNull TomlTable table) {
+    public @NotNull T fromToml(@NotNull TomlTable table) {
         return this.serializeTable(
                 this.model,
                 table
@@ -39,7 +39,7 @@ final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<T> {
     }
 
     @Override
-    public @NotNull TomlTable deserialize(@NotNull T data) {
+    public @NotNull TomlTable toToml(@NotNull T data) {
         ReferenceHolder parents = new ReferenceHolder();
         parents.add(this);
         return this.deserializeTable(
@@ -47,6 +47,16 @@ final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<T> {
                 this.model,
                 data
         );
+    }
+
+    @Override
+    public @NotNull T serialize(@NotNull TomlTable table) {
+        return this.fromToml(table);
+    }
+
+    @Override
+    public @NotNull TomlTable deserialize(@NotNull T data) {
+        return this.toToml(data);
     }
 
     //
