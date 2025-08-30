@@ -11,8 +11,8 @@ import io.github.wasabithumb.jtoml.io.source.BufferedCharSource;
 import io.github.wasabithumb.jtoml.key.TomlKey;
 import io.github.wasabithumb.jtoml.option.JTomlOption;
 import io.github.wasabithumb.jtoml.option.JTomlOptions;
-import io.github.wasabithumb.jtoml.value.FlaggedTomlValue;
 import io.github.wasabithumb.jtoml.value.TomlValue;
+import io.github.wasabithumb.jtoml.value.TomlValueFlags;
 import io.github.wasabithumb.jtoml.value.array.TomlArray;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import org.jetbrains.annotations.NotNull;
@@ -107,7 +107,7 @@ public final class TableReader extends ExpressionReader {
                 } else if (head.isArray()) {
                     TomlArray arr = head.asArray();
                     int len = arr.size();
-                    if (len == 0 || !(next = arr.get(len - 1)).isTable() || FlaggedTomlValue.isConstant(next)) {
+                    if (len == 0 || !(next = arr.get(len - 1)).isTable() || TomlValueFlags.isConstant(next)) {
                         next = TomlTable.create();
                         arr.add(next);
                     }
@@ -122,7 +122,7 @@ public final class TableReader extends ExpressionReader {
                             key.slice(0, i + 1) + "\"");
                 }
 
-                if (this.extGuard && FlaggedTomlValue.isConstant(next)) {
+                if (this.extGuard && TomlValueFlags.isConstant(next)) {
                     throw new TomlExtensionException("Defining table \"" + key + "\" would extend constant value \"" +
                             key.slice(0, i + 1) + "\"");
                 }
@@ -136,7 +136,7 @@ public final class TableReader extends ExpressionReader {
                 TomlArray arr = head.asArray();
                 int len = arr.size();
                 TomlValue last;
-                if (len == 0 || !(last = arr.get(len - 1)).isTable() || FlaggedTomlValue.isConstant(last)) {
+                if (len == 0 || !(last = arr.get(len - 1)).isTable() || TomlValueFlags.isConstant(last)) {
                     table = TomlTable.create();
                     arr.add(table);
                 } else {
@@ -149,16 +149,16 @@ public final class TableReader extends ExpressionReader {
 
             TomlKey name = TomlKey.literal(key.get(ks - 1));
             TomlTable newTable = TomlTable.create();
+            TomlValue existing = table.get(name);
 
             if (e.isArray()) {
-                TomlValue existing = table.get(name);
                 TomlArray array;
                 if (existing != null) {
                     if (!existing.isArray()) {
                         throw new TomlClobberException("Defining table array \"" + key +
                                 "\" would override existing non-array");
                     }
-                    if (this.extGuard && FlaggedTomlValue.isConstant(existing)) {
+                    if (this.extGuard && TomlValueFlags.isConstant(existing)) {
                         throw new TomlExtensionException("Defining table array \"" + key +
                                 "\" extends existing constant array");
                     }
@@ -169,28 +169,22 @@ public final class TableReader extends ExpressionReader {
                 }
                 array.add(newTable);
             } else {
-                TomlValue existing = table.get(name);
                 if (existing != null) {
                     if (!existing.isTable()) {
                         throw new TomlClobberException("Defining table \"" + key +
                                 "\" would override existing non-table");
-                    } else if (this.extGuard && FlaggedTomlValue.isConstant(existing)) {
+                    } else if (this.extGuard && TomlValueFlags.isConstant(existing)) {
                         throw new TomlExtensionException("Defining table \"" + key +
                                 "\" extends existing constant table");
-                    } else if (FlaggedTomlValue.isNonReusable(existing)) {
+                    } else if (TomlValueFlags.isNonReusable(existing)) {
                         throw new TomlExtensionException("Reuse of explicitly defined table \"" + key + "\"");
                     }
                     newTable = existing.asTable();
-                    table.remove(name);
-
-                    FlaggedTomlValue flagged = FlaggedTomlValue.wrap(existing);
-                    flagged.setNonReusable(true);
-                    table.put(name, flagged);
+                    TomlValueFlags.setNonReusable(newTable, true);
                 } else {
-                    FlaggedTomlValue flagged = FlaggedTomlValue.wrap(newTable);
-                    flagged.setNonReusable(true);
-                    flagged.setNonKeyExtendable(true);
-                    table.put(name, flagged);
+                    TomlValueFlags.setNonReusable(newTable, true);
+                    TomlValueFlags.setNonKeyExtendable(newTable, true);
+                    table.put(name, newTable);
                 }
             }
 
@@ -211,18 +205,16 @@ public final class TableReader extends ExpressionReader {
                 TomlValue next = target.get(part);
                 if (next == null) {
                     TomlTable sub = TomlTable.create();
-                    FlaggedTomlValue flagged = FlaggedTomlValue.wrap(sub);
-                    flagged.setNonReusable(true);
-                    target.put(part, flagged);
+                    target.put(part, TomlValueFlags.setNonReusable(sub, true));
                     target = sub;
                     continue;
                 }
                 if (next.isTable()) {
-                    if (this.extGuard && FlaggedTomlValue.isConstant(next)) {
+                    if (this.extGuard && TomlValueFlags.isConstant(next)) {
                         throw new TomlExtensionException("Defining value \"" + this.fullKey(key) +
                                 "\" would extend constant table \"" + this.fullKey(key.slice(0, i + 1)) + "\"");
                     }
-                    if (this.extGuard && FlaggedTomlValue.isNonKeyExtendable(next)) {
+                    if (this.extGuard && TomlValueFlags.isNonKeyExtendable(next)) {
                         throw new TomlExtensionException("Cannot extend table \"" + this.fullKey(key.slice(0, i + 1)) +
                                 "\" (defining key " + this.fullKey(key) + ")");
                     }
@@ -238,11 +230,7 @@ public final class TableReader extends ExpressionReader {
                 throw new TomlClobberException("Attempt to re-define \"" + this.fullKey(key) + "\"");
 
             // Mark arrays & inline tables defined this way as constant
-            if (!value.isPrimitive()) {
-                FlaggedTomlValue flaggedValue = FlaggedTomlValue.wrap(value);
-                flaggedValue.setConstant(true);
-                value = flaggedValue;
-            }
+            if (!value.isPrimitive()) TomlValueFlags.setConstant(value, true);
             target.put(name, value);
             return value;
         }
