@@ -187,6 +187,7 @@ public interface JToml {
      * @param table The table to convert
      * @throws IllegalArgumentException No serializer is registered for the given type
      */
+    @ApiStatus.AvailableSince("1.2.1")
     <T> @NotNull T fromToml(@NotNull Class<T> type, @NotNull TomlTable table) throws IllegalArgumentException;
 
     /**
@@ -211,6 +212,7 @@ public interface JToml {
      * @param data The data to convert into a TOML table
      * @throws IllegalArgumentException No deserializer is registered for the given type
      */
+    @ApiStatus.AvailableSince("1.2.1")
     <T> @NotNull TomlTable toToml(@NotNull Class<T> type, @NotNull T data) throws IllegalArgumentException;
 
 

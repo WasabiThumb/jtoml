@@ -95,6 +95,7 @@ object KToml : JToml {
 /**
  * Converts the given TOML table to the given type,
  * if an appropriate serializer is present in the classpath
+ * @since 1.2.1
  */
 @Throws(TomlException::class, IllegalArgumentException::class)
 fun <T: Any> JToml.fromToml(type: KClass<T>, table: TomlTable): T {
@@ -104,6 +105,7 @@ fun <T: Any> JToml.fromToml(type: KClass<T>, table: TomlTable): T {
 /**
  * Converts the given object to a TOML table,
  * if an appropriate deserializer is present in the classpath
+ * @since 1.2.1
  */
 @Throws(TomlException::class, IllegalArgumentException::class)
 fun <T: Any> JToml.toToml(type: KClass<T>, data: T): TomlTable {

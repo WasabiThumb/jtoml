@@ -53,6 +53,7 @@ public interface TomlSerializer<I, O> {
     @Deprecated
     @NotNull O serialize(@NotNull TomlTable table);
 
+    @ApiStatus.AvailableSince("1.2.1")
     default @NotNull O fromToml(@NotNull TomlTable table) {
         return this.serialize(table);
     }
@@ -63,6 +64,7 @@ public interface TomlSerializer<I, O> {
     @Deprecated
     @NotNull TomlTable deserialize(@NotNull I data);
 
+    @ApiStatus.AvailableSince("1.2.1")
     default @NotNull TomlTable toToml(@NotNull I data) {
         return this.deserialize(data);
     }
