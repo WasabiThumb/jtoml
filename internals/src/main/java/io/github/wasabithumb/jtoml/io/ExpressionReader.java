@@ -426,7 +426,7 @@ public class ExpressionReader implements Closeable {
                     break;
                 }
                 try {
-                    n = Math.multiplyExact(n, 10);
+                    n = Math.multiplyExact(n, 10L);
                     n = Math.addExact(n, negative ? (-v) : v);
                 } catch (ArithmeticException e) {
                     this.in.raise("Integer is too large", e);
@@ -493,7 +493,7 @@ public class ExpressionReader implements Closeable {
             if (leadsWithZero) this.in.raise("Illegal leading zero in float");
             head++;
             try {
-                ip = Math.multiplyExact(ip, 10);
+                ip = Math.multiplyExact(ip, 10L);
                 ip = Math.addExact(ip, (c - '0'));
             } catch (ArithmeticException e) {
                 this.in.raise("Integer part is too large", e);
@@ -550,7 +550,7 @@ public class ExpressionReader implements Closeable {
                 first = false;
                 if (c < '0' || c > '9') break;
                 try {
-                    exp = Math.multiplyExact(exp, 10);
+                    exp = Math.multiplyExact(exp, 10L);
                     exp = Math.addExact(exp, exponentNegative ? ('0' - c) : (c - '0'));
                 } catch (ArithmeticException e) {
                     this.in.raise("Exponent is too large", e);

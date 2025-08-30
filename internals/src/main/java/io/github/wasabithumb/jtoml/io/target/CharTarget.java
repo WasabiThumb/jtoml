@@ -11,9 +11,7 @@ public interface CharTarget extends Closeable {
 
     void put(char c) throws TomlException;
 
-    default void put(@NotNull CharSequence cs) throws TomlException {
-        for (int i=0; i < cs.length(); i++) this.put(cs.charAt(i));
-    }
+    void put(@NotNull CharSequence cs) throws TomlException;
 
     @Override
     void close() throws TomlException;
