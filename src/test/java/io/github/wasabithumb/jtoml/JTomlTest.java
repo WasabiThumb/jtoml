@@ -1,6 +1,8 @@
 package io.github.wasabithumb.jtoml;
 
+import io.github.wasabithumb.jtoml.comment.Comment;
 import io.github.wasabithumb.jtoml.comment.CommentPosition;
+import io.github.wasabithumb.jtoml.comment.Comments;
 import io.github.wasabithumb.jtoml.document.TomlDocument;
 import io.github.wasabithumb.jtoml.dummy.Named;
 import io.github.wasabithumb.jtoml.dummy.RecordTable;
@@ -132,6 +134,37 @@ class JTomlTest {
         final String actual = assertDoesNotThrow(() -> TOML.writeToString(table));
 
         assertEquals(expected, actual);
+    }
+
+    @Test
+    void comments() {
+        // https://github.com/WasabiThumb/jtoml/issues/44
+        final String src = """
+                # a
+                [a]
+                
+                # b
+                [b]
+                """;
+
+        TomlDocument doc = JToml.jToml()
+                .readFromString(src);
+
+        TomlValue a = doc.get("a");
+        assertNotNull(a);
+        Comments ac = a.comments();
+        assertEquals(1, ac.count());
+        List<Comment> acPre = ac.get(CommentPosition.PRE);
+        assertEquals(1, acPre.size());
+        assertEquals("a", acPre.get(0).content());
+
+        TomlValue b = doc.get("b");
+        assertNotNull(b);
+        Comments bc = b.comments();
+        assertEquals(1, bc.count());
+        List<Comment> bcPre = bc.get(CommentPosition.PRE);
+        assertEquals(1, bcPre.size());
+        assertEquals("b", bcPre.get(0).content());
     }
 
     //
