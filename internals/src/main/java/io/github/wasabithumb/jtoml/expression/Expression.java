@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 public interface Expression {
 
     static @NotNull EmptyExpression empty() {
-        return EmptyExpression.INSTANCE;
+        return new EmptyExpression();
     }
 
     static @NotNull KeyValueExpression keyValue(@NotNull TomlKey key, @NotNull TomlValue value) {
