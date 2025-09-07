@@ -6,7 +6,7 @@ import io.github.wasabithumb.jtoml.option.prop.LineSeparator;
 import io.leangen.geantyref.TypeToken;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.spongepowered.configurate.BasicConfigurationNode;
+import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.loader.ConfigurationLoader;
@@ -39,7 +39,7 @@ class TomlConfigurationLoaderTest {
     @Test
     void testSimpleLoading() throws ConfigurateException {
         final URL url = this.getClass().getResource("/example.toml");
-        final ConfigurationLoader<BasicConfigurationNode> loader = TomlConfigurationLoader.builder()
+        final ConfigurationLoader<CommentedConfigurationNode> loader = TomlConfigurationLoader.builder()
                 .url(url).build();
         final ConfigurationNode node = loader.load();
         assertEquals("unicorn", node.node("test", "op-level").raw());
@@ -54,7 +54,7 @@ class TomlConfigurationLoaderTest {
 
     @Test
     void testReadWithTabs() throws ConfigurateException {
-        final ConfigurationNode expected = BasicConfigurationNode.root(n -> {
+        final ConfigurationNode expected = CommentedConfigurationNode.root(n -> {
             n.node("document").act(d -> {
                 d.node("we").raw("support tabs");
                 d.node("and").raw("literal tabs\tin strings");
@@ -66,7 +66,7 @@ class TomlConfigurationLoaderTest {
         });
 
         final URL url = this.getClass().getResource("/tab-example.toml");
-        final ConfigurationLoader<BasicConfigurationNode> loader = TomlConfigurationLoader.builder()
+        final ConfigurationLoader<CommentedConfigurationNode> loader = TomlConfigurationLoader.builder()
                 .url(url).build();
         final ConfigurationNode node = loader.load();
         assertEquals(expected, node);
@@ -75,7 +75,7 @@ class TomlConfigurationLoaderTest {
     @Test
     void testWriteBasicFile(final @TempDir Path tempDir) throws ConfigurateException, IOException {
         final Path target = tempDir.resolve("write-basic.toml");
-        final ConfigurationNode node = BasicConfigurationNode.root(n -> {
+        final ConfigurationNode node = CommentedConfigurationNode.root(n -> {
             n.node("mapping", "first").set("hello");
             n.node("mapping", "second").set("world");
 
@@ -100,12 +100,12 @@ class TomlConfigurationLoaderTest {
     @Test
     void nativeTypesRoundTrip(final @TempDir Path tempDir) throws IOException {
         final Path target = tempDir.resolve("native-types.toml");
-        final ConfigurationLoader<BasicConfigurationNode> loader = TomlConfigurationLoader.builder()
+        final ConfigurationLoader<CommentedConfigurationNode> loader = TomlConfigurationLoader.builder()
                 .path(target)
                 .set(JTomlOption.LINE_SEPARATOR, LineSeparator.LF)
                 .build();
 
-        final BasicConfigurationNode node = loader.load();
+        final CommentedConfigurationNode node = loader.load();
         final NativeTypesTestConfig data = Faker.create(NativeTypesTestConfig.class);
         node.set(data);
         loader.save(node);
