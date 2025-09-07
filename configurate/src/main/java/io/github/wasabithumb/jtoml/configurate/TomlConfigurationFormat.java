@@ -2,7 +2,7 @@ package io.github.wasabithumb.jtoml.configurate;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.framework.qual.DefaultQualifier;
-import org.spongepowered.configurate.BasicConfigurationNode;
+import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.loader.AbstractConfigurationFormat;
 import org.spongepowered.configurate.loader.ConfigurationFormat;
 import org.spongepowered.configurate.util.UnmodifiableCollections;
@@ -17,7 +17,7 @@ import java.util.Set;
  */
 @DefaultQualifier(NonNull.class)
 public final class TomlConfigurationFormat extends AbstractConfigurationFormat<
-        BasicConfigurationNode,
+        CommentedConfigurationNode,
         TomlConfigurationLoader,
         TomlConfigurationLoader.Builder
         > {

@@ -1,6 +1,8 @@
 package io.github.wasabithumb.jtoml.configurate;
 
 import io.github.wasabithumb.jtoml.JToml;
+import io.github.wasabithumb.jtoml.comment.Comment;
+import io.github.wasabithumb.jtoml.comment.Comments;
 import io.github.wasabithumb.jtoml.document.TomlDocument;
 import io.github.wasabithumb.jtoml.except.TomlException;
 import io.github.wasabithumb.jtoml.except.TomlIOException;
@@ -17,10 +19,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
 import org.jetbrains.annotations.Contract;
-import org.spongepowered.configurate.BasicConfigurationNode;
-import org.spongepowered.configurate.ConfigurateException;
-import org.spongepowered.configurate.ConfigurationNode;
-import org.spongepowered.configurate.ConfigurationOptions;
+import org.spongepowered.configurate.*;
 import org.spongepowered.configurate.loader.AbstractConfigurationLoader;
 import org.spongepowered.configurate.loader.CommentHandler;
 import org.spongepowered.configurate.loader.CommentHandlers;
@@ -40,13 +39,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A loader for TOML-formatted configurations, using the JToml library for
  * parsing and generation.
  */
 @DefaultQualifier(NonNull.class)
-public final class TomlConfigurationLoader extends AbstractConfigurationLoader<BasicConfigurationNode> {
+public final class TomlConfigurationLoader extends AbstractConfigurationLoader<CommentedConfigurationNode> {
 
     private static final Set<Class<?>> NATIVE_TYPES = UnmodifiableCollections.toSet(
             String.class, Boolean.class, Integer.class, Float.class, OffsetDateTime.class, LocalDateTime.class,
@@ -89,7 +89,7 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<B
     }
 
     @Override
-    protected void loadInternal(final BasicConfigurationNode node, final BufferedReader reader) throws ParsingException {
+    protected void loadInternal(final CommentedConfigurationNode node, final BufferedReader reader) throws ParsingException {
         try {
             final TomlDocument tomlDocument = this.jtoml.read(reader);
             populateNode(node, tomlDocument);
@@ -112,25 +112,22 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<B
         }
     }
 
-    private static void populateNode(final ConfigurationNode node, final TomlTable tomlTable) {
-        for (final TomlKey key : tomlTable.keys(false)) {
-            final @Nullable TomlValue value = tomlTable.get(key);
-            if (value == null) {
-                continue;
-            }
-            final ConfigurationNode child = node.node(key.get(0));
-            populateNode(child, value);
-        }
-    }
-
-    private static void populateNode(final ConfigurationNode node, final TomlValue value) {
+    private static void populateNode(final CommentedConfigurationNode node, final TomlValue value) {
         if (value.isTable()) {
             node.raw(new HashMap<>());
-            populateNode(node, value.asTable());
+            final TomlTable tomlTable = value.asTable();
+            for (final TomlKey key : tomlTable.keys(false)) {
+                final @Nullable TomlValue tomlChild = tomlTable.get(key);
+                if (tomlChild == null) {
+                    continue;
+                }
+                final CommentedConfigurationNode child = node.node(key.get(0));
+                populateNode(child, tomlChild);
+            }
         } else if (value.isArray()) {
             node.raw(new ArrayList<>());
             for (final TomlValue arrayValue : value.asArray()) {
-                final ConfigurationNode child = node.appendListNode();
+                final CommentedConfigurationNode child = node.appendListNode();
                 populateNode(child, arrayValue);
             }
         } else if (value.isPrimitive()) {
@@ -162,12 +159,22 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<B
                     break;
             }
         }
+
+        final Comments tomlComments = value.comments();
+        if (tomlComments.count() != 0) {
+            node.comment(tomlComments.all()
+                    .stream()
+                    .map(Comment::content)
+                    .collect(Collectors.joining("\n"))
+            );
+        }
     }
 
     @Override
     protected void saveInternal(final ConfigurationNode node, final Writer writer) throws ConfigurateException {
         final TomlTable document = TomlTable.create();
         populateTable(document, node);
+        extractComments(node, document);
         try {
             this.jtoml.write(writer, document);
         } catch (final TomlException ex) {
@@ -186,6 +193,7 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<B
                 continue;
             }
             final TomlValue v = makeValue(child);
+            extractComments(child, v);
             final TomlKey tomlKey = TomlKey.literal(String.valueOf(key));
             table.put(tomlKey, v);
         }
@@ -231,9 +239,21 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<B
         }
     }
 
+    private static void extractComments(final ConfigurationNode node, final TomlValue value) {
+        if (node instanceof CommentedConfigurationNode) {
+            final @Nullable String comment = ((CommentedConfigurationNode) node).comment();
+            if (comment == null) return;
+
+            final Comments comments = value.comments();
+            for (String line : comment.split("\n")) {
+                comments.addPre(line);
+            }
+        }
+    }
+
     @Override
-    public BasicConfigurationNode createNode(final ConfigurationOptions options) {
-        return BasicConfigurationNode.root(options.nativeTypes(NATIVE_TYPES));
+    public CommentedConfigurationNode createNode(final ConfigurationOptions options) {
+        return CommentedConfigurationNode.root(options.nativeTypes(NATIVE_TYPES));
     }
 
     /**
