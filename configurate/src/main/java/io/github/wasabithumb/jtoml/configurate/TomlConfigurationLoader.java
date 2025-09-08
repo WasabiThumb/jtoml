@@ -3,6 +3,7 @@ package io.github.wasabithumb.jtoml.configurate;
 import io.github.wasabithumb.jtoml.JToml;
 import io.github.wasabithumb.jtoml.comment.Comment;
 import io.github.wasabithumb.jtoml.comment.Comments;
+import io.github.wasabithumb.jtoml.configurate.hint.CommentForm;
 import io.github.wasabithumb.jtoml.document.TomlDocument;
 import io.github.wasabithumb.jtoml.except.TomlException;
 import io.github.wasabithumb.jtoml.except.TomlIOException;
@@ -18,6 +19,7 @@ import net.kyori.option.OptionSchema;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.checkerframework.framework.qual.DefaultQualifier;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.spongepowered.configurate.*;
 import org.spongepowered.configurate.loader.AbstractConfigurationLoader;
@@ -51,6 +53,7 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<C
     private static final Set<Class<?>> NATIVE_TYPES = UnmodifiableCollections.toSet(
             String.class, Boolean.class, Integer.class, Float.class, OffsetDateTime.class, LocalDateTime.class,
             LocalDate.class, LocalTime.class, Number.class);
+
     private static final TypeSerializerCollection TOML_SERIALIZERS = TypeSerializerCollection.defaults().childBuilder()
             .register(OffsetDateTime.class, new NativeTypeSerializer<>())
             .register(LocalDateTime.class, new NativeTypeSerializer<>())
@@ -64,6 +67,12 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<C
     static final ConfigurationOptions DEFAULT_OPTIONS = ConfigurationOptions.defaults()
             .nativeTypes(NATIVE_TYPES)
             .serializers(TOML_SERIALIZERS);
+
+    @ApiStatus.Internal
+    public static final RepresentationHint<CommentForm> COMMENT_FORM = RepresentationHint.of(
+            "configurate:toml/comment-form",
+            CommentForm.class
+    );
 
     /**
      * Creates a new {@link TomlConfigurationLoader.Builder}.
@@ -167,6 +176,7 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<C
                     .map(Comment::content)
                     .collect(Collectors.joining("\n"))
             );
+            node.hint(COMMENT_FORM, new CommentForm(tomlComments));
         }
     }
 
@@ -245,8 +255,23 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<C
             if (comment == null) return;
 
             final Comments comments = value.comments();
-            for (String line : comment.split("\n")) {
-                comments.addPre(line);
+            final String[] lines = comment.split("\n");
+
+            final @Nullable CommentForm form = node.hint(COMMENT_FORM);
+            if (form != null) {
+                for (int i = 0; i < lines.length; i++) {
+                    if (i < form.pre()) {
+                        comments.addPre(lines[i]);
+                    } else if (i == form.pre() && form.inline()) {
+                        comments.addInline(lines[i]);
+                    } else {
+                        comments.addPost(lines[i]);
+                    }
+                }
+            } else {
+                for (String line : lines) {
+                    comments.addPre(line);
+                }
             }
         }
     }
