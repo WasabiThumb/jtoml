@@ -69,10 +69,12 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<C
             .serializers(TOML_SERIALIZERS);
 
     @ApiStatus.Internal
-    public static final RepresentationHint<CommentForm> COMMENT_FORM = RepresentationHint.of(
-            "configurate:toml/comment-form",
-            CommentForm.class
-    );
+    public static final RepresentationHint<CommentForm> COMMENT_FORM = RepresentationHint.<CommentForm>builder()
+            .identifier("configurate:toml/comment-form")
+            .valueType(CommentForm.class)
+            .defaultValue(CommentForm.DEFAULT)
+            .inheritable(false)
+            .build();
 
     /**
      * Creates a new {@link TomlConfigurationLoader.Builder}.
@@ -258,21 +260,8 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<C
             final String[] lines = comment.split("\n");
 
             final @Nullable CommentForm form = node.hint(COMMENT_FORM);
-            if (form != null) {
-                for (int i = 0; i < lines.length; i++) {
-                    if (i < form.pre()) {
-                        comments.addPre(lines[i]);
-                    } else if (i == form.pre() && form.inline()) {
-                        comments.addInline(lines[i]);
-                    } else {
-                        comments.addPost(lines[i]);
-                    }
-                }
-            } else {
-                for (String line : lines) {
-                    comments.addPre(line);
-                }
-            }
+            assert form != null;
+            form.apply(lines, comments);
         }
     }
 

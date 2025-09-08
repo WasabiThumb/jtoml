@@ -10,22 +10,36 @@ import java.util.Objects;
 @ApiStatus.Internal
 public final class CommentForm {
 
+    public static final CommentForm DEFAULT = new CommentForm(Integer.MAX_VALUE, false);
+
+    //
+
     private final int pre;
     private final boolean inline;
 
+    private CommentForm(int pre, boolean inline) {
+        this.pre = pre;
+        this.inline = inline;
+    }
+
     public CommentForm(@NotNull Comments comments) {
-        this.pre = comments.get(CommentPosition.PRE).size();
-        this.inline = comments.getInline() != null;
+        this(comments.get(CommentPosition.PRE).size(), comments.getInline() != null);
     }
 
     //
 
-    public int pre() {
-        return this.pre;
-    }
-
-    public boolean inline() {
-        return this.inline;
+    public void apply(@NotNull String @NotNull [] src, @NotNull Comments dest) {
+        String line;
+        for (int i = 0; i < src.length; i++) {
+            line = src[i];
+            if (i < this.pre) {
+                dest.addPre(line);
+            } else if (i == this.pre && this.inline) {
+                dest.addInline(line);
+            } else {
+                dest.addPost(line);
+            }
+        }
     }
 
     @Override
