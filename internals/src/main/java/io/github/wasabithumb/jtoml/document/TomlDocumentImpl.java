@@ -14,10 +14,12 @@ import java.util.Set;
 @ApiStatus.Internal
 public final class TomlDocumentImpl implements TomlDocument {
 
+    private final long creationTime;
     private final TomlTable backing;
     private boolean orderMarked = false;
 
     public TomlDocumentImpl(@NotNull TomlTable backing) {
+        this.creationTime = System.nanoTime();
         this.backing = backing;
     }
 
@@ -34,6 +36,11 @@ public final class TomlDocumentImpl implements TomlDocument {
     // END Metadata
 
     // START Super
+
+    @Override
+    public long creationTime() {
+        return this.creationTime;
+    }
 
     @Override
     public int flags() {

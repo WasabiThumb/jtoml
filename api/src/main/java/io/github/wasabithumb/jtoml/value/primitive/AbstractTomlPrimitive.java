@@ -79,16 +79,22 @@ abstract class AbstractTomlPrimitive<T extends Serializable> implements TomlPrim
 
     //
 
+    protected final long creationTime;
     protected final Comments comments;
     protected transient byte flags;
 
     protected AbstractTomlPrimitive(@NotNull Comments comments) {
+        this.creationTime = System.nanoTime();
         this.comments = comments;
         this.flags = (byte) 0;
     }
 
     //
 
+    @Override
+    public long creationTime() {
+        return this.creationTime;
+    }
 
     @Override
     public int flags() {

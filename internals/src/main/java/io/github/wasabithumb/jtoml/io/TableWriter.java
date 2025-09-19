@@ -13,13 +13,12 @@ import io.github.wasabithumb.jtoml.value.TomlValue;
 import io.github.wasabithumb.jtoml.value.array.TomlArray;
 import io.github.wasabithumb.jtoml.value.primitive.TomlPrimitive;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Closeable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public final class TableWriter implements Closeable {
 
@@ -143,68 +142,52 @@ public final class TableWriter implements Closeable {
             @NotNull TomlTable table,
             boolean andHeader
     ) throws TomlException {
-        Set<TomlKey> set = table.keys(false);
-        int count = set.size();
+        List<TypedKey> keys = this.deconstruct(table);
 
-        // Bin 0: Primitives
-        // Bin 1: Arrays
-        // Bin 2: Arrays of Tables
-        // Bin 3: Tables
-        List<TomlKey> b0 = new ArrayList<>(count);
-        List<TomlKey> b1 = new ArrayList<>(count);
-        List<TomlKey> b2 = new ArrayList<>(count);
-        List<TomlKey> b3 = new ArrayList<>(count);
-        for (TomlKey tk : set) {
-            TomlValue tv = table.get(tk);
-            assert tv != null;
-            if (tv.isTable()) {
-                b3.add(tk);
-            } else if (tv.isArray()) {
-                if (this.isArrayOfTables(tv.asArray())) {
-                    b2.add(tk);
-                } else {
-                    b1.add(tk);
+        if (andHeader) {
+            boolean unconditional = false;
+            for (TypedKey typedKey : keys) {
+                if (typedKey.type == ValueType.PRIMITIVE ||
+                    typedKey.type == ValueType.ARRAY ||
+                    typedKey.type == ValueType.INLINE_TABLE
+                ) {
+                    unconditional = true;
+                    break;
                 }
-            } else {
-                b0.add(tk);
             }
+            this.writeTableHeader(prefix, table, false, unconditional);
         }
 
-        if (andHeader)
-            this.writeTableHeader(prefix, table, false, !b0.isEmpty() || !b1.isEmpty());
+        for (TypedKey typedKey : keys) {
+            TomlKey key = typedKey.key;
+            TomlValue value = table.get(key);
+            assert value != null;
 
-        TomlValue nextValue;
-
-        for (TomlKey nextKey : b0) {
-            nextValue = table.get(nextKey);
-            assert nextValue != null;
-            this.writePrimitive(nextKey, nextValue.asPrimitive());
-        }
-
-        for (TomlKey nextKey : b1) {
-            nextValue = table.get(nextKey);
-            assert nextValue != null;
-            this.writeArray(nextKey, nextValue.asArray());
-        }
-
-        for (TomlKey nextKey : b2) {
-            nextValue = table.get(nextKey);
-            assert nextValue != null;
-            nextKey = TomlKey.join(prefix, nextKey);
-            TomlArray arr = nextValue.asArray();
-            TomlTable child;
-            for (int z=0; z < arr.size(); z++) {
-                child = arr.get(z).asTable();
-                this.writeTableHeader(nextKey, child, true, true);
-                this.writeTableBody(nextKey, child, false);
+            switch (typedKey.type) {
+                case PRIMITIVE:
+                    this.writePrimitive(key, value.asPrimitive());
+                    break;
+                case ARRAY:
+                    this.writeArray(key, value.asArray());
+                    break;
+                case ARRAY_OF_TABLES:
+                    key = TomlKey.join(prefix, key);
+                    TomlArray arr = value.asArray();
+                    TomlTable child;
+                    for (int z=0; z < arr.size(); z++) {
+                        child = arr.get(z).asTable();
+                        this.writeTableHeader(key, child, true, true);
+                        this.writeTableBody(key, child, false);
+                    }
+                    break;
+                case TABLE:
+                    key = TomlKey.join(prefix, key);
+                    this.writeTableBody(key, value.asTable(), true);
+                    break;
+                case INLINE_TABLE:
+                    this.writeInlineTable(key, value.asTable());
+                    break;
             }
-        }
-
-        for (TomlKey nextKey : b3) {
-            nextValue = table.get(nextKey);
-            assert nextValue != null;
-            nextKey = TomlKey.join(prefix, nextKey);
-            this.writeTableBody(nextKey, nextValue.asTable(), true);
         }
     }
 
@@ -410,6 +393,13 @@ public final class TableWriter implements Closeable {
         this.out.put(']');
     }
 
+    private void writeInlineTable(@NotNull TomlKey key, @NotNull TomlTable value) throws TomlException {
+        final Comments comments = value.comments();
+        this.openStatement(key, comments);
+        this.writeInlineTableValue(value);
+        this.closeStatement(comments);
+    }
+
     private void writeInlineTableValue(@NotNull TomlTable table) throws TomlException {
         final PaddingPolicy padding = this.options.get(JTomlOption.PADDING);
         this.out.put('{');
@@ -451,25 +441,144 @@ public final class TableWriter implements Closeable {
         }
     }
 
-    private boolean isArrayOfTables(@NotNull TomlArray array) throws TomlException {
-        final int size = array.size();
-        if (size == 0) {
-            // Subjective decision: x = [] looks better than [[x]]
-            return false;
+    private @NotNull List<TypedKey> deconstruct(@NotNull TomlTable table) {
+        SortMethod sort = this.options.get(JTomlOption.SORTING);
+        switch (sort) {
+            case STRATIFIED:
+                return this.deconstructStratified(table);
+            case LEXICOGRAPHICAL:
+                return this.deconstructLexOrTime(table, false);
+            case TIME:
+                return this.deconstructLexOrTime(table, true);
+            default:
+                throw new AssertionError("Unreachable code");
+        }
+    }
+
+    private @NotNull List<TypedKey> deconstructStratified(@NotNull TomlTable table) {
+        final Set<TomlKey> all = table.keys(false);
+        final int count = all.size();
+
+        Map<ValueType, List<TomlKey>> map = new EnumMap<>(ValueType.class);
+        for (TomlKey k : all) {
+            TomlValue tv = table.get(k);
+            assert tv != null;
+            List<TomlKey> list = map.computeIfAbsent(
+                    this.valueTypeOf(tv),
+                    (ValueType ignored) -> new LinkedList<>()
+            );
+            list.add(k);
         }
 
-        for (int i=0; i < size; i++) {
-            if (!array.get(i).isTable()) {
-                return false;
+        List<TypedKey> ret = new ArrayList<>(count);
+        for (ValueType vt : ValueType.STRATA) {
+            List<TomlKey> l = map.get(vt);
+            if (l == null) continue;
+            for (TomlKey k : l) {
+                ret.add(new TypedKey(vt, k));
             }
         }
 
-        return true;
+        return ret;
+    }
+
+    private @NotNull List<TypedKey> deconstructLexOrTime(@NotNull TomlTable table, boolean time) {
+        final Set<TomlKey> all = table.keys(false);
+        final int count = all.size();
+
+        TypedKey[] buf = new TypedKey[count];
+        int head = 0;
+        for (TomlKey k : all) {
+            TomlValue tv = table.get(k);
+            assert tv != null;
+            buf[head++] = new TypedKey(this.valueTypeOf(tv), k);
+        }
+
+        if (time) {
+            Arrays.sort(
+                    buf,
+                    0, head,
+                    (TypedKey k0, TypedKey k1) -> {
+                        TomlValue v0 = table.get(k0.key);
+                        TomlValue v1 = table.get(k1.key);
+                        assert v0 != null && v1 != null;
+                        return Long.compare(v0.creationTime(), v1.creationTime());
+                    }
+            );
+        }
+
+        rectifyKeyTypes(buf, head);
+        return Arrays.asList(buf).subList(0, head);
+    }
+
+    @Contract(mutates = "param1")
+    private void rectifyKeyTypes(@NotNull TypedKey @NotNull [] keys, int end) {
+        boolean allowRich = true;
+        for (int i = (end - 1); i >= 0; i--) {
+            TypedKey tk = keys[i];
+            if (allowRich) {
+                if (tk.type == ValueType.PRIMITIVE || tk.type == ValueType.ARRAY)
+                    allowRich = false;
+            } else if (tk.type == ValueType.ARRAY_OF_TABLES) {
+                keys[i] = new TypedKey(ValueType.ARRAY, tk.key);
+            } else if (tk.type == ValueType.TABLE) {
+                keys[i] = new TypedKey(ValueType.INLINE_TABLE, tk.key);
+            }
+        }
+    }
+
+    private @NotNull ValueType valueTypeOf(@NotNull TomlValue value) {
+        if (value.isTable()) {
+            return ValueType.TABLE;
+        } else if (value.isArray()) {
+            TomlArray a = value.asArray();
+            int n = a.size();
+            if (n == 0) return ValueType.ARRAY;
+            for (int i=0; i < n; i++) {
+                if (!a.get(i).isTable())
+                    return ValueType.ARRAY;
+            }
+            return ValueType.ARRAY_OF_TABLES;
+        } else {
+            return ValueType.PRIMITIVE;
+        }
     }
 
     @Override
     public void close() throws TomlException {
         this.out.close();
+    }
+
+    //
+
+    private enum ValueType {
+        PRIMITIVE,
+        ARRAY,
+        ARRAY_OF_TABLES,
+        TABLE,
+        INLINE_TABLE;
+
+        static final ValueType[] STRATA = new ValueType[] {
+                PRIMITIVE,
+                ARRAY,
+                ARRAY_OF_TABLES,
+                TABLE
+        };
+    }
+
+    private static final class TypedKey {
+
+        private final ValueType type;
+        private final TomlKey key;
+
+        TypedKey(
+                @NotNull ValueType type,
+                @NotNull TomlKey key
+        ) {
+            this.type = type;
+            this.key = key;
+        }
+
     }
 
 }

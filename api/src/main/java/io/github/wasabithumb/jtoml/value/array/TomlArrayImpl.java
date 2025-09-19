@@ -34,11 +34,13 @@ final class TomlArrayImpl implements TomlArray {
 
     //
 
+    private final long creationTime;
     private final List<TomlValue> backing;
     private final Comments comments;
     private transient byte flags;
 
     private TomlArrayImpl(int initialCapacity, @NotNull Comments comments) {
+        this.creationTime = System.nanoTime();
         this.backing = new ArrayList<>(initialCapacity);
         this.comments = comments;
         this.flags = 0;
@@ -54,6 +56,10 @@ final class TomlArrayImpl implements TomlArray {
 
     //
 
+    @Override
+    public long creationTime() {
+        return this.creationTime;
+    }
 
     @Override
     public int flags() {
