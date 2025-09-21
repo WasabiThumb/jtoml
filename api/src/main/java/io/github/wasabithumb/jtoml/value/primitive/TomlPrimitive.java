@@ -213,6 +213,18 @@ public interface TomlPrimitive extends TomlValue {
         }
     }
 
+    /**
+     * Parses a float string into a
+     * {@link TomlPrimitive} with type {@link TomlPrimitiveType#FLOAT FLOAT}.
+     * @throws NullPointerException Provided string is null
+     * @throws IllegalArgumentException Provided string is not a valid float
+     */
+    @Contract("null -> fail; _ -> new")
+    static @NotNull TomlPrimitive parseFloat(String string) throws IllegalArgumentException {
+        if (string == null) throw new NullPointerException("Cannot parse null as float");
+        return FloatTomlPrimitive.parse(string);
+    }
+
     //
 
     /**

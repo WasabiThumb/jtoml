@@ -76,6 +76,12 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<C
             .inheritable(false)
             .build();
 
+    @ApiStatus.Internal
+    public static final RepresentationHint<String> FLOAT_FORM = RepresentationHint.of(
+            "configurate:toml/float-form",
+            String.class
+    );
+
     /**
      * Creates a new {@link TomlConfigurationLoader.Builder}.
      *
@@ -155,6 +161,7 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<C
                     break;
                 case FLOAT:
                     node.raw(primitive.asDouble());
+                    node.hint(FLOAT_FORM, primitive.asString());
                     break;
                 case OFFSET_DATE_TIME:
                     node.raw(primitive.asOffsetDateTime());
@@ -235,6 +242,8 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<C
             } else if (value instanceof Integer || value instanceof Long) {
                 return TomlPrimitive.of(((Number) value).longValue());
             } else if (value instanceof Float || value instanceof Double) {
+                final @Nullable String form = child.hint(FLOAT_FORM);
+                if (form != null) return TomlPrimitive.parseFloat(form);
                 return TomlPrimitive.of(((Number) value).doubleValue());
             } else if (value instanceof Number) {
                 return TomlPrimitive.of(((Number) value).longValue());
