@@ -103,6 +103,7 @@ public interface JTomlOption<T> {
      * Determines how keys are sorted within a table
      * when writing.
      */
+    @ApiStatus.AvailableSince("1.3.0")
     JTomlOption<SortMethod> SORTING = of("SORTING", SortMethod.class, SortMethod.STRATIFIED);
 
     //

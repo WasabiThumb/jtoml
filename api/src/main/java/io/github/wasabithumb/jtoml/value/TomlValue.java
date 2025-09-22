@@ -42,6 +42,7 @@ public interface TomlValue {
      * Reports the time that this object was created
      * as reported by {@link System#nanoTime()}.
      */
+    @ApiStatus.AvailableSince("1.3.0")
     long creationTime();
 
     /**

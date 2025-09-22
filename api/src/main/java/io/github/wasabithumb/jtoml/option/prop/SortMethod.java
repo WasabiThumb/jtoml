@@ -1,5 +1,7 @@
 package io.github.wasabithumb.jtoml.option.prop;
 
+import org.jetbrains.annotations.ApiStatus;
+
 /**
  * Determines how keys within a table
  * are sorted when writing.
@@ -7,6 +9,7 @@ package io.github.wasabithumb.jtoml.option.prop;
  * @see #LEXICOGRAPHICAL
  * @see #TIME
  */
+@ApiStatus.AvailableSince("1.3.0")
 public enum SortMethod {
     /**
      * Groups keys by value type: first primitives,

@@ -3,6 +3,7 @@ package io.github.wasabithumb.jtoml.value.primitive;
 import io.github.wasabithumb.jtoml.comment.Comments;
 import io.github.wasabithumb.jtoml.except.TomlValueException;
 import io.github.wasabithumb.jtoml.value.TomlValue;
+import org.intellij.lang.annotations.Pattern;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -216,11 +217,16 @@ public interface TomlPrimitive extends TomlValue {
     /**
      * Parses a float string into a
      * {@link TomlPrimitive} with type {@link TomlPrimitiveType#FLOAT FLOAT}.
+     * The format accepted by this method is that which is defined by the
+     * TOML language specification.
      * @throws NullPointerException Provided string is null
      * @throws IllegalArgumentException Provided string is not a valid float
      */
+    @ApiStatus.AvailableSince("1.3.0")
     @Contract("null -> fail; _ -> new")
-    static @NotNull TomlPrimitive parseFloat(String string) throws IllegalArgumentException {
+    static @NotNull TomlPrimitive parseFloat(
+            @Pattern("^([-+]?(?:inf|nan))|([-+]?)([1-9]\\d*)(?:\\.(\\d+))?(?:e([-+]?\\d+))?$") String string
+    ) throws IllegalArgumentException {
         if (string == null) throw new NullPointerException("Cannot parse null as float");
         return FloatTomlPrimitive.parse(string);
     }
