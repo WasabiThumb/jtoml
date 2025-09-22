@@ -99,6 +99,12 @@ public interface JTomlOption<T> {
     @ApiStatus.AvailableSince("0.6.0")
     JTomlOption<ArrayStrategy> ARRAY_STRATEGY = of("ARRAY_STRATEGY", ArrayStrategy.class, ArrayStrategy.DYNAMIC);
 
+    /**
+     * Determines how keys are sorted within a table
+     * when writing.
+     */
+    JTomlOption<SortMethod> SORTING = of("SORTING", SortMethod.class, SortMethod.STRATIFIED);
+
     //
 
     /**

@@ -19,11 +19,13 @@ final class TomlTableImpl implements TomlTable {
 
     //
 
+    private final long creationTime;
     private final TomlTableBranch root;
     private final Comments comments;
     private transient byte flags;
 
     private TomlTableImpl(@NotNull TomlTableBranch root, @NotNull Comments comments) {
+        this.creationTime = System.nanoTime();
         this.root = root;
         this.comments = comments;
         this.flags = 0;
@@ -38,7 +40,11 @@ final class TomlTableImpl implements TomlTable {
     }
 
     //
-
+    
+    @Override
+    public long creationTime() {
+        return this.creationTime;
+    }
 
     @Override
     public int flags() {

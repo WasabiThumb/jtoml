@@ -39,6 +39,12 @@ public interface TomlValue {
     //
 
     /**
+     * Reports the time that this object was created
+     * as reported by {@link System#nanoTime()}.
+     */
+    long creationTime();
+
+    /**
      * Reports the flags stored on this value.
      * Flags are opaque to consumers but have internal meaning
      * required for spec-compliant reading.
