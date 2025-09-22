@@ -6,9 +6,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.text.NumberFormat;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @ApiStatus.Internal
 final class FloatTomlPrimitive extends AbstractTomlPrimitive<Double> {
+
+    private static final Pattern PARSE_PATTERN =
+            Pattern.compile("^([-+]?(?:inf|nan))|([-+]?)([1-9]\\d*)(?:\\.(\\d+))?(?:e([-+]?\\d+))?$");
 
     private static final ThreadLocal<NumberFormat> NUMBER_FORMAT = ThreadLocal.withInitial(() -> {
         NumberFormat df = NumberFormat.getInstance(Locale.ROOT);
@@ -26,6 +31,53 @@ final class FloatTomlPrimitive extends AbstractTomlPrimitive<Double> {
         return NUMBER_FORMAT.get().format(value);
     }
 
+    static @NotNull FloatTomlPrimitive parse(@NotNull String string) throws IllegalArgumentException {
+        Matcher m = PARSE_PATTERN.matcher(string);
+        if (!m.matches()) throw new IllegalArgumentException("Invalid float string: " + string);
+
+        String special = m.group(1);
+        if (special != null && !special.isEmpty()) {
+            switch (special) {
+                case "-inf":
+                    return new FloatTomlPrimitive(Double.NEGATIVE_INFINITY, special);
+                case "+inf":
+                case "inf":
+                    return new FloatTomlPrimitive(Double.POSITIVE_INFINITY, special);
+                default:
+                    return new FloatTomlPrimitive(Double.NaN, special);
+            }
+        }
+
+        boolean negative = false;
+        String signText = m.group(2);
+        if (signText != null && !signText.isEmpty()) {
+            negative = signText.charAt(0) == '-';
+        }
+
+        long intPart = Long.parseLong(m.group(3));
+        double frac = 0d;
+        String fracText = m.group(4);
+        if (fracText != null && !fracText.isEmpty()) {
+            frac = Double.parseDouble("0." + fracText);
+        }
+
+        long exp = 0L;
+        String expText = m.group(5);
+        if (expText != null && !expText.isEmpty()) {
+            exp = Long.parseLong(expText);
+        }
+
+        double ret;
+        if (exp != 0L) {
+            double scale = Math.pow(10, exp);
+            ret = (scale * intPart) + (scale * frac);
+        } else {
+            ret = ((double) intPart) + frac;
+        }
+        if (negative) ret = -ret;
+        return new FloatTomlPrimitive(ret, string);
+    }
+
     //
 
     private final double value;
@@ -37,7 +89,6 @@ final class FloatTomlPrimitive extends AbstractTomlPrimitive<Double> {
         this.chars = chars;
     }
 
-    /** Called by {@code UnsafePrimitives} in {@code jtoml-internals} */
     public FloatTomlPrimitive(double value, @NotNull String chars) {
         this(Comments.empty(), value, chars);
     }
