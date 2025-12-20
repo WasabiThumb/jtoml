@@ -1,5 +1,6 @@
 package io.github.wasabithumb.jtoml.io;
 
+import io.github.wasabithumb.jtoml.JToml;
 import io.github.wasabithumb.jtoml.comment.Comments;
 import io.github.wasabithumb.jtoml.except.TomlException;
 import io.github.wasabithumb.jtoml.except.parse.TomlDateTimeException;
@@ -579,13 +580,18 @@ public class ExpressionReader implements Closeable {
 
     private @NotNull TomlPrimitive parseDateTime(@NotNull CharSequence str) throws TomlException, DateTimeException {
         final int len = str.length();
-        if (len < 8) {
-            this.in.raise("Datetime sequence is too short");
+        boolean truncated = false;
+
+        if (len < 5) {
+            truncated = true;
+        } else if (str.charAt(2) == ':') { // Local Time
+            return TomlPrimitive.of(this.parsePartialTime(str, 0, len), this.options.get(JTomlOption.TIME_ZONE));
+        } else if (len < 8) {
+            truncated = true;
         }
 
-        if (str.charAt(2) == ':') { // Local Time
-            return TomlPrimitive.of(this.parsePartialTime(str, 0, len), this.options.get(JTomlOption.TIME_ZONE));
-        }
+        if (truncated)
+            this.in.raise("Datetime sequence is too short");
 
         if (len < 10 || str.charAt(4) != '-' || str.charAt(7) != '-')
             this.in.raise("Invalid date");
@@ -646,16 +652,23 @@ public class ExpressionReader implements Closeable {
     }
 
     private @NotNull LocalTime parsePartialTime(@NotNull CharSequence str, int off, int len) throws TomlException {
-        if (len < 8) this.in.raise("Partial time sequence is too short");
-        if (str.charAt(off + 2) != ':' || str.charAt(off + 5) != ':') this.in.raise("Missing time separator(s)");
+        // v1.1.0 - support datetimes without seconds
+        boolean ignoreSeconds = false;
+        if (len == 5 && this.options.get(JTomlOption.COMPLIANCE).isAtLeast(1, 1)) {
+            ignoreSeconds = true;
+        } else {
+            if (len < 8) this.in.raise("Partial time sequence is too short");
+            if (str.charAt(off + 5) != ':') this.in.raise("Missing time separator after minutes");
+        }
+        if (str.charAt(off + 2) != ':') this.in.raise("Missing time separator after hours");
 
         final int hour = this.parseNDigits(str, off, 2);
         final int minute = this.parseNDigits(str, off + 3, 2);
-        final int second = this.parseNDigits(str, off + 6, 2);
+        final int second = ignoreSeconds ? 0 : this.parseNDigits(str, off + 6, 2);
 
         if (hour < 0 || hour > 23) this.in.raise("Hour out of range (got " + hour + ")");
         if (minute < 0 || minute > 59) this.in.raise("Minute out of range (got " + minute + ")");
-        if (second < 0 || second > 59) this.in.raise("Minute out of range (got " + second + ")");
+        if (second < 0 || second > 59) this.in.raise("Second out of range (got " + second + ")");
 
         int nanos = 0;
         if (len > 8) {
@@ -818,6 +831,7 @@ public class ExpressionReader implements Closeable {
         int c = this.in.next();
         if (c == -1) this.in.raise("Truncated escape sequence");
         int uc = 4;
+        boolean valid = true;
 
         switch (c) {
             case '"':  dest.append('"'); break;
@@ -827,8 +841,14 @@ public class ExpressionReader implements Closeable {
             case 'n':  dest.append('\n'); break;
             case 'r':  dest.append('\r'); break;
             case 't':  dest.append('\t'); break;
+            case 'x':
+                // v1.1.0 - support \x
+                if (!this.options.get(JTomlOption.COMPLIANCE).isAtLeast(1, 1)) {
+                    this.raiseInvalidEscapeSequence();
+                }
+                uc = 2;
             case 'U':
-                uc = 8;
+                if (uc == 4) uc = 8;
             case 'u':
                 int v = 0;
                 int n;
@@ -851,9 +871,21 @@ public class ExpressionReader implements Closeable {
                     dest.append((char) v);
                 }
                 break;
+            case 'e':
+                // v1.1.0 - support \e as an escape sequence for ESC
+                if (!this.options.get(JTomlOption.COMPLIANCE).isAtLeast(1, 1)) {
+                    this.raiseInvalidEscapeSequence();
+                }
+                dest.append('\u001b');
+                break;
             default:
-                this.in.raise("Invalid escape sequence character");
+                this.raiseInvalidEscapeSequence();
         }
+    }
+
+    @Contract("-> fail")
+    private void raiseInvalidEscapeSequence() throws TomlException {
+        this.in.raise("Invalid escape sequence character");
     }
 
     private @NotNull TomlPrimitive readLiteralString() throws TomlException {
@@ -937,17 +969,26 @@ public class ExpressionReader implements Closeable {
     private @NotNull TomlTable readInlineTable() throws TomlException {
         TomlTable ret = TomlTable.create();
         boolean expectComma = false;
+        int ctrl;
         char c;
 
         while (true) {
-            if (!this.in.skipWhitespace()) this.in.raise("Unclosed inline table");
-            c = this.in.nextChar();
+            ctrl = this.readInlineTableControl();
+            if (ctrl == -1) this.in.raise("Unclosed inline table");
+            c = (char) ctrl;
             if (c == '}') return ret;
             if (expectComma) {
                 if (c != ',') this.in.raise("Expected inline table separator or closing char");
-                if (!this.in.skipWhitespace()) this.in.raise("Unclosed inline table");
-                c = this.in.nextChar();
-                if (c == '}') this.in.raise("Disallowed trailing comma in inline table");
+                ctrl = this.readInlineTableControl();
+                if (ctrl == -1) this.in.raise("Unclosed inline table");
+                if (ctrl == '}') {
+                    // v1.1.0 - allow trailing commas
+                    if (this.options.get(JTomlOption.COMPLIANCE).isAtLeast(1, 1)) {
+                        return ret;
+                    }
+                    this.in.raise("Disallowed trailing comma in inline table");
+                }
+                c = (char) ctrl;
             }
             StringBuilder sb = new StringBuilder();
             sb.append(c);
@@ -959,8 +1000,9 @@ public class ExpressionReader implements Closeable {
                 if (TomlValueFlags.isConstant(existing))
                     this.in.raise(key + " conflicts with previously defined key " + partialKey + " in inline table");
             }
-            if (!this.in.skipWhitespace()) this.in.raise("Expected value, got EOF");
-            TomlValue value = this.readValue();
+            ctrl = this.readInlineTableControl();
+            if (ctrl == -1) this.in.raise("Expected value, got EOF");
+            TomlValue value = this.readValue(ctrl);
             ret.put(key, TomlValueFlags.setConstant(value, true));
             expectComma = true;
         }
@@ -1043,6 +1085,26 @@ public class ExpressionReader implements Closeable {
                 if (readComments)
                     commentBuffer.append((char) next);
             }
+        }
+    }
+
+    /** Skip specific to inline tables */
+    private int readInlineTableControl() throws TomlException {
+        if (this.options.get(JTomlOption.COMPLIANCE).isAtLeast(1, 1)) {
+            // v1.1.0 - support newlines in inline tables
+            char c;
+            while (this.in.skipWhitespace()) {
+                c = this.in.nextChar();
+                if (c == '\r') {
+                    c = this.in.nextChar();
+                    if (c != '\n') this.in.raise("Expected LF after CR within inline table");
+                    continue;
+                }
+                if (c != '\n') return c;
+            }
+            return -1;
+        } else {
+            return this.in.skipWhitespace() ? this.in.nextChar() : -1;
         }
     }
 

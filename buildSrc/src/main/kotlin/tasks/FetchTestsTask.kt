@@ -48,7 +48,7 @@ abstract class FetchTestsTask : DefaultTask() {
         }
 
         val currentSha = runGit(repo, "rev-parse", "HEAD").first()
-        val targetTag = runGit(repo, "tag", "--sort=v:refname").last()
+        val targetTag = runGit(repo, "tag", "--sort=v:refname").last { it.startsWith("v1") }
         val targetSha = runGit(repo, "rev-list", "-n", "1", targetTag).first()
 
         if (currentSha == targetSha) {

@@ -1,11 +1,9 @@
 [versions]
-junit = "5.7.1"
 gson = "2.13.1"
 configurate = "4.2.0"
 recsup = "0.1.1"
 
 [libraries]
-junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 configurate-bom = { group = "org.spongepowered", name = "configurate-bom", version.ref = "configurate" }
 recsup = { group = "io.github.wasabithumb", name = "recsup", version.ref = "recsup" }
