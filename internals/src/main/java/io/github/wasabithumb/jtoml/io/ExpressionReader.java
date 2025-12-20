@@ -1,5 +1,6 @@
 package io.github.wasabithumb.jtoml.io;
 
+import io.github.wasabithumb.jtoml.JToml;
 import io.github.wasabithumb.jtoml.comment.Comments;
 import io.github.wasabithumb.jtoml.except.TomlException;
 import io.github.wasabithumb.jtoml.except.parse.TomlDateTimeException;
@@ -651,6 +652,7 @@ public class ExpressionReader implements Closeable {
     }
 
     private @NotNull LocalTime parsePartialTime(@NotNull CharSequence str, int off, int len) throws TomlException {
+        // v1.1.0 - support datetimes without seconds
         boolean ignoreSeconds = false;
         if (len == 5 && this.options.get(JTomlOption.COMPLIANCE).isAtLeast(1, 1)) {
             ignoreSeconds = true;
@@ -967,17 +969,26 @@ public class ExpressionReader implements Closeable {
     private @NotNull TomlTable readInlineTable() throws TomlException {
         TomlTable ret = TomlTable.create();
         boolean expectComma = false;
+        int ctrl;
         char c;
 
         while (true) {
-            if (!this.in.skipWhitespace()) this.in.raise("Unclosed inline table");
-            c = this.in.nextChar();
+            ctrl = this.readInlineTableControl();
+            if (ctrl == -1) this.in.raise("Unclosed inline table");
+            c = (char) ctrl;
             if (c == '}') return ret;
             if (expectComma) {
                 if (c != ',') this.in.raise("Expected inline table separator or closing char");
-                if (!this.in.skipWhitespace()) this.in.raise("Unclosed inline table");
-                c = this.in.nextChar();
-                if (c == '}') this.in.raise("Disallowed trailing comma in inline table");
+                ctrl = this.readInlineTableControl();
+                if (ctrl == -1) this.in.raise("Unclosed inline table");
+                if (ctrl == '}') {
+                    // v1.1.0 - allow trailing commas
+                    if (this.options.get(JTomlOption.COMPLIANCE).isAtLeast(1, 1)) {
+                        return ret;
+                    }
+                    this.in.raise("Disallowed trailing comma in inline table");
+                }
+                c = (char) ctrl;
             }
             StringBuilder sb = new StringBuilder();
             sb.append(c);
@@ -989,8 +1000,9 @@ public class ExpressionReader implements Closeable {
                 if (TomlValueFlags.isConstant(existing))
                     this.in.raise(key + " conflicts with previously defined key " + partialKey + " in inline table");
             }
-            if (!this.in.skipWhitespace()) this.in.raise("Expected value, got EOF");
-            TomlValue value = this.readValue();
+            ctrl = this.readInlineTableControl();
+            if (ctrl == -1) this.in.raise("Expected value, got EOF");
+            TomlValue value = this.readValue(ctrl);
             ret.put(key, TomlValueFlags.setConstant(value, true));
             expectComma = true;
         }
@@ -1073,6 +1085,26 @@ public class ExpressionReader implements Closeable {
                 if (readComments)
                     commentBuffer.append((char) next);
             }
+        }
+    }
+
+    /** Skip specific to inline tables */
+    private int readInlineTableControl() throws TomlException {
+        if (this.options.get(JTomlOption.COMPLIANCE).isAtLeast(1, 1)) {
+            // v1.1.0 - support newlines in inline tables
+            char c;
+            while (this.in.skipWhitespace()) {
+                c = this.in.nextChar();
+                if (c == '\r') {
+                    c = this.in.nextChar();
+                    if (c != '\n') this.in.raise("Expected LF after CR within inline table");
+                    continue;
+                }
+                if (c != '\n') return c;
+            }
+            return -1;
+        } else {
+            return this.in.skipWhitespace() ? -1 : this.in.nextChar();
         }
     }
 
