@@ -106,6 +106,13 @@ public interface JTomlOption<T> {
     @ApiStatus.AvailableSince("1.3.0")
     JTomlOption<SortMethod> SORTING = of("SORTING", SortMethod.class, SortMethod.STRATIFIED);
 
+    /**
+     * Determines the version of the TOML spec
+     * to adhere to. Defaults to
+     * {@link SpecVersion#latest() the latest supported version}.
+     */
+    JTomlOption<SpecVersion> COMPLIANCE = of("COMPLIANCE", SpecVersion.class, SpecVersion.latest());
+
     //
 
     /**
