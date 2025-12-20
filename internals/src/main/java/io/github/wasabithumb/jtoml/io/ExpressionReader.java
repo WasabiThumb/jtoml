@@ -579,13 +579,18 @@ public class ExpressionReader implements Closeable {
 
     private @NotNull TomlPrimitive parseDateTime(@NotNull CharSequence str) throws TomlException, DateTimeException {
         final int len = str.length();
-        if (len < 8) {
-            this.in.raise("Datetime sequence is too short");
+        boolean truncated = false;
+
+        if (len < 5) {
+            truncated = true;
+        } else if (str.charAt(2) == ':') { // Local Time
+            return TomlPrimitive.of(this.parsePartialTime(str, 0, len), this.options.get(JTomlOption.TIME_ZONE));
+        } else if (len < 8) {
+            truncated = true;
         }
 
-        if (str.charAt(2) == ':') { // Local Time
-            return TomlPrimitive.of(this.parsePartialTime(str, 0, len), this.options.get(JTomlOption.TIME_ZONE));
-        }
+        if (truncated)
+            this.in.raise("Datetime sequence is too short");
 
         if (len < 10 || str.charAt(4) != '-' || str.charAt(7) != '-')
             this.in.raise("Invalid date");
@@ -646,16 +651,22 @@ public class ExpressionReader implements Closeable {
     }
 
     private @NotNull LocalTime parsePartialTime(@NotNull CharSequence str, int off, int len) throws TomlException {
-        if (len < 8) this.in.raise("Partial time sequence is too short");
-        if (str.charAt(off + 2) != ':' || str.charAt(off + 5) != ':') this.in.raise("Missing time separator(s)");
+        boolean ignoreSeconds = false;
+        if (len == 5 && this.options.get(JTomlOption.COMPLIANCE).isAtLeast(1, 1)) {
+            ignoreSeconds = true;
+        } else {
+            if (len < 8) this.in.raise("Partial time sequence is too short");
+            if (str.charAt(off + 5) != ':') this.in.raise("Missing time separator after minutes");
+        }
+        if (str.charAt(off + 2) != ':') this.in.raise("Missing time separator after hours");
 
         final int hour = this.parseNDigits(str, off, 2);
         final int minute = this.parseNDigits(str, off + 3, 2);
-        final int second = this.parseNDigits(str, off + 6, 2);
+        final int second = ignoreSeconds ? 0 : this.parseNDigits(str, off + 6, 2);
 
         if (hour < 0 || hour > 23) this.in.raise("Hour out of range (got " + hour + ")");
         if (minute < 0 || minute > 59) this.in.raise("Minute out of range (got " + minute + ")");
-        if (second < 0 || second > 59) this.in.raise("Minute out of range (got " + second + ")");
+        if (second < 0 || second > 59) this.in.raise("Second out of range (got " + second + ")");
 
         int nanos = 0;
         if (len > 8) {
