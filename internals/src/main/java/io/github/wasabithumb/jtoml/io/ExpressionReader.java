@@ -1104,7 +1104,7 @@ public class ExpressionReader implements Closeable {
             }
             return -1;
         } else {
-            return this.in.skipWhitespace() ? -1 : this.in.nextChar();
+            return this.in.skipWhitespace() ? this.in.nextChar() : -1;
         }
     }
 
