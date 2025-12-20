@@ -1,28 +1,31 @@
 # JToml
 **[Wiki](https://github.com/WasabiThumb/jtoml/wiki) • [Javadocs](https://javadoc.io/doc/io.github.wasabithumb/jtoml-api)**
 
-The ultimate [TOML](https://toml.io/en/v1.1.0) library for Java 8+.
-Goals are feature completeness and a permissive yet type-safe API.
-JToml supports the latest version of the TOML spec (``v1.1.0``).
-TOML is a first-class citizen; no casts, no wonky date-time handling,
-no dependencies. Working with keys is fluid and unambiguous with
-methods for parsing, slicing and joining.
+A modular [TOML](https://toml.io/en/v1.1.0) library for Java 8 and above. JToml aims to
+be the ultimate solution for all things TOML, fully recreating its type system with a
+**robust yet permissive API inspired by Gson**.
 
-## Feature Matrix
-|                                                             | [WasabiThumb/jtoml](https://github.com/WasabiThumb/jtoml) | [tomlj/tomlj](https://github.com/tomlj/tomlj) | [mwanji/toml4j](https://github.com/mwanji/toml4j) | [asafh/jtoml](https://github.com/asafh/jtoml) |
-|:------------------------------------------------------------|:---------------------------------------------------------:|:---------------------------------------------:|:-------------------------------------------------:|:---------------------------------------------:|
-| Key join & split                                            |                             ✅                             |                       ❌                       |                         ❌                         |                       ❌                       |
-| ``v1.1.0`` compliance                                       |                             ✅                             |                       ✅                       |                         ❌                         |                       ❌                       |
-| Positional errors                                           |                             ✅                             |                       ✅                       |                         ✅                         |                       ✅                       |
-| Error recovery                                              |                             ❌                             |                       ✅                       |                         ✅                         |                       ❌                       |
-| Configurable read rules                                     |                             ✅                             |                       ✅                       |                         ❌                         |                       ❌                       |
-| Configurable write rules                                    |                             ✅                             |                       ❌                       |                         ✅                         |                       ❌                       |
-| Enum-based type inspection                                  |                             ✅                             |                       ✅                       |                         ❌                         |                       ❌                       |
-| Safe type coercion                                          |                             ✅                             |                       ❌                       |                         ❌                         |                       ❌                       |
-| Reflect serialization                                       |                             ✅                             |                       ❌                       |                         ✅                         |                       ✅                       |
-| JSON serialization                                          |                             ✅                             |                       ✅                       |                         ✅                         |                       ❌                       |
-| Zero dependencies                                           |                             ✅                             |                       ❌                       |                         ❌                         |                       ✅                       |
-| Passes [test suite](https://github.com/toml-lang/toml-test) |                             ✅                             |                       ❌                       |                         ❌                         |                       ❌                       |
+## Comparison
+|                                                                                                 | Up To Date¹ | Test Coverage² | Reflection³ | Json⁴ | Comments⁵ |
+|------------------------------------------------------------------------------------------------:|:-----------:|:--------------:|:-----------:|:-----:|:---------:|
+|                                   [``WasabiThumb/jtoml``](https://github.com/WasabiThumb/jtoml) |      ✅      |       ✅        |      ✅      |   ✅   |     ✅     |
+| [``FasterXML/jackson-dataformats-text``](https://github.com/FasterXML/jackson-dataformats-text) |      ❌      |       ❌        |      ✅      |   ✅   |     ❌     |
+|                                           [``mwanji/toml4j``](https://github.com/mwanji/toml4j) |      ❌      |       ❌        |      ✅      |   ✅   |     ❌     |
+|             [``TheElectronWill/night-config``](https://github.com/TheElectronWill/night-config) |      ❌      |       ❌        |      ❌      |   ✅   |     ✅     |
+|                                               [``tomlj/tomlj``](https://github.com/tomlj/tomlj) |      ❌      |       ❌        |      ❌      |   ✅   |     ❌     |
+
+
+
+> ¹ Supports the latest version of the specification- ``v1.1.0`` as of writing.
+>
+> ² Passes all tests in the [official test suite](https://github.com/toml-lang/toml-test).
+>
+> ³ May be used to convert TOML to/from user-defined Java objects in some way.
+>
+> ⁴ May be used to convert TOML to/from a JSON representation in some way.
+>
+> ⁵ Supports TOML [comments](https://toml.io/en/v1.1.0#comment) to some extent.
+
 
 ## Star History
 
