@@ -818,6 +818,7 @@ public class ExpressionReader implements Closeable {
         int c = this.in.next();
         if (c == -1) this.in.raise("Truncated escape sequence");
         int uc = 4;
+        boolean valid = true;
 
         switch (c) {
             case '"':  dest.append('"'); break;
@@ -827,8 +828,14 @@ public class ExpressionReader implements Closeable {
             case 'n':  dest.append('\n'); break;
             case 'r':  dest.append('\r'); break;
             case 't':  dest.append('\t'); break;
+            case 'x':
+                // v1.1.0 - support \x
+                if (!this.options.get(JTomlOption.COMPLIANCE).isAtLeast(1, 1)) {
+                    this.raiseInvalidEscapeSequence();
+                }
+                uc = 2;
             case 'U':
-                uc = 8;
+                if (uc == 4) uc = 8;
             case 'u':
                 int v = 0;
                 int n;
@@ -853,13 +860,19 @@ public class ExpressionReader implements Closeable {
                 break;
             case 'e':
                 // v1.1.0 - support \e as an escape sequence for ESC
-                if (this.options.get(JTomlOption.COMPLIANCE).isAtLeast(1, 1)) {
-                    dest.append('\u001b');
-                    break;
+                if (!this.options.get(JTomlOption.COMPLIANCE).isAtLeast(1, 1)) {
+                    this.raiseInvalidEscapeSequence();
                 }
+                dest.append('\u001b');
+                break;
             default:
-                this.in.raise("Invalid escape sequence character");
+                this.raiseInvalidEscapeSequence();
         }
+    }
+
+    @Contract("-> fail")
+    private void raiseInvalidEscapeSequence() throws TomlException {
+        this.in.raise("Invalid escape sequence character");
     }
 
     private @NotNull TomlPrimitive readLiteralString() throws TomlException {
