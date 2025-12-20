@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
  * @see #V1_0_0
  * @see #V1_1_0
  */
+@ApiStatus.AvailableSince("1.4.0")
 public enum SpecVersion {
     /**
      * Version <a href="https://toml.io/en/v1.0.0">1.0.0</a>

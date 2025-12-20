@@ -111,6 +111,7 @@ public interface JTomlOption<T> {
      * to adhere to. Defaults to
      * {@link SpecVersion#latest() the latest supported version}.
      */
+    @ApiStatus.AvailableSince("1.4.0")
     JTomlOption<SpecVersion> COMPLIANCE = of("COMPLIANCE", SpecVersion.class, SpecVersion.latest());
 
     //
