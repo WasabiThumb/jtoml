@@ -13,7 +13,7 @@ public final class TestSpecs extends ArrayList<TestSpec> {
         Set<String> tomlFiles = new HashSet<>();
         Set<String> jsonFiles = new HashSet<>();
 
-        try (InputStream is = TestSpec.class.getResourceAsStream("/tests/files-toml-1.0.0")) {
+        try (InputStream is = TestSpec.class.getResourceAsStream("/tests/files-toml-1.1.0")) {
             if (is == null) throw new IOException("Failed to locate tests index");
             try (InputStreamReader isr = new InputStreamReader(is, StandardCharsets.UTF_8);
                  BufferedReader br = new BufferedReader(isr)

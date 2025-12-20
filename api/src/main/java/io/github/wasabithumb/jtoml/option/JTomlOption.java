@@ -33,10 +33,10 @@ public interface JTomlOption<T> {
     JTomlOption<PaddingPolicy> PADDING = of("PADDING", PaddingPolicy.class, PaddingPolicy.STANDARD);
 
     /**
-     * Zone offset to use when reading a <a href="https://toml.io/en/v1.0.0#local-date-time">Local Date-Time</a>
+     * Zone offset to use when reading a <a href="https://toml.io/en/v1.1.0#local-date-time">Local Date-Time</a>
      * as an {@link java.time.OffsetDateTime OffsetDateTime}
      * and when writing a {@link java.time.LocalDateTime LocalDateTime} as an
-     * <a href="https://toml.io/en/v1.0.0#offset-date-time">Offset Date-Time</a>
+     * <a href="https://toml.io/en/v1.1.0#offset-date-time">Offset Date-Time</a>
      */
     JTomlOption<ZoneOffset> TIME_ZONE = of("TIME_ZONE", ZoneOffset.class, ZoneOffset.UTC);
 
@@ -105,6 +105,14 @@ public interface JTomlOption<T> {
      */
     @ApiStatus.AvailableSince("1.3.0")
     JTomlOption<SortMethod> SORTING = of("SORTING", SortMethod.class, SortMethod.STRATIFIED);
+
+    /**
+     * Determines the version of the TOML spec
+     * to adhere to. Defaults to
+     * {@link SpecVersion#latest() the latest supported version}.
+     */
+    @ApiStatus.AvailableSince("1.4.0")
+    JTomlOption<SpecVersion> COMPLIANCE = of("COMPLIANCE", SpecVersion.class, SpecVersion.latest());
 
     //
 
