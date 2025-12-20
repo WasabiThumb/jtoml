@@ -33,10 +33,10 @@ public interface JTomlOption<T> {
     JTomlOption<PaddingPolicy> PADDING = of("PADDING", PaddingPolicy.class, PaddingPolicy.STANDARD);
 
     /**
-     * Zone offset to use when reading a <a href="https://toml.io/en/v1.0.0#local-date-time">Local Date-Time</a>
+     * Zone offset to use when reading a <a href="https://toml.io/en/v1.1.0#local-date-time">Local Date-Time</a>
      * as an {@link java.time.OffsetDateTime OffsetDateTime}
      * and when writing a {@link java.time.LocalDateTime LocalDateTime} as an
-     * <a href="https://toml.io/en/v1.0.0#offset-date-time">Offset Date-Time</a>
+     * <a href="https://toml.io/en/v1.1.0#offset-date-time">Offset Date-Time</a>
      */
     JTomlOption<ZoneOffset> TIME_ZONE = of("TIME_ZONE", ZoneOffset.class, ZoneOffset.UTC);
 

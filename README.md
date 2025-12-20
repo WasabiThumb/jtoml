@@ -1,9 +1,9 @@
 # JToml
 **[Wiki](https://github.com/WasabiThumb/jtoml/wiki) • [Javadocs](https://javadoc.io/doc/io.github.wasabithumb/jtoml-api)**
 
-The ultimate [TOML](https://toml.io/en/v1.0.0) library for Java 8+.
+The ultimate [TOML](https://toml.io/en/v1.1.0) library for Java 8+.
 Goals are feature completeness and a permissive yet type-safe API.
-JToml supports the latest version of the TOML spec (``v1.0.0``).
+JToml supports the latest version of the TOML spec (``v1.1.0``).
 TOML is a first-class citizen; no casts, no wonky date-time handling,
 no dependencies. Working with keys is fluid and unambiguous with
 methods for parsing, slicing and joining.
@@ -12,7 +12,7 @@ methods for parsing, slicing and joining.
 |                                                             | [WasabiThumb/jtoml](https://github.com/WasabiThumb/jtoml) | [tomlj/tomlj](https://github.com/tomlj/tomlj) | [mwanji/toml4j](https://github.com/mwanji/toml4j) | [asafh/jtoml](https://github.com/asafh/jtoml) |
 |:------------------------------------------------------------|:---------------------------------------------------------:|:---------------------------------------------:|:-------------------------------------------------:|:---------------------------------------------:|
 | Key join & split                                            |                             ✅                             |                       ❌                       |                         ❌                         |                       ❌                       |
-| ``v1.0.0`` compliance                                       |                             ✅                             |                       ✅                       |                         ❌                         |                       ❌                       |
+| ``v1.1.0`` compliance                                       |                             ✅                             |                       ✅                       |                         ❌                         |                       ❌                       |
 | Positional errors                                           |                             ✅                             |                       ✅                       |                         ✅                         |                       ✅                       |
 | Error recovery                                              |                             ❌                             |                       ✅                       |                         ✅                         |                       ❌                       |
 | Configurable read rules                                     |                             ✅                             |                       ✅                       |                         ❌                         |                       ❌                       |
