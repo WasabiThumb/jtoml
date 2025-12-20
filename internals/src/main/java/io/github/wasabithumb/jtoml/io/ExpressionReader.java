@@ -851,6 +851,12 @@ public class ExpressionReader implements Closeable {
                     dest.append((char) v);
                 }
                 break;
+            case 'e':
+                // v1.1.0 - support \e as an escape sequence for ESC
+                if (this.options.get(JTomlOption.COMPLIANCE).isAtLeast(1, 1)) {
+                    dest.append('\u001b');
+                    break;
+                }
             default:
                 this.in.raise("Invalid escape sequence character");
         }

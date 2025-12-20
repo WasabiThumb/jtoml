@@ -1,5 +1,6 @@
 package io.github.wasabithumb.jtoml.option.prop;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -39,6 +40,7 @@ public enum SpecVersion {
 
     //
 
+    @ApiStatus.Experimental
     public boolean isAtLeast(int major, int minor) {
         if (major > 1) return false;
         return minor <= this.minor;
