@@ -129,12 +129,21 @@ final class JTomlImpl implements JToml {
 
     @Override
     public @NotNull <T> TomlTable toToml(@NotNull Class<T> type, @NotNull T data) throws IllegalArgumentException {
+        return this.toTomlUnsafe(type, data);
+    }
+
+    @Override
+    public @NotNull TomlTable toToml(@NotNull Object data) throws IllegalArgumentException {
+        return this.toTomlUnsafe(data.getClass(), data);
+    }
+
+    private <T> @NotNull TomlTable toTomlUnsafe(@NotNull Class<T> type, @NotNull Object data) throws IllegalArgumentException {
         int count = 0;
         for (TomlSerializerService service : SERIALIZERS) {
             count++;
             if (service.canDeserializeFrom(type)) {
                 TomlSerializer<T, ?> d = service.getDeserializer(this, type);
-                return d.toToml(data);
+                return d.toToml(type.cast(data));
             }
         }
         throw new IllegalArgumentException(
