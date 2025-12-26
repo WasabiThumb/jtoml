@@ -5,15 +5,16 @@ import io.github.wasabithumb.jtoml.comment.CommentPosition;
 import io.github.wasabithumb.jtoml.comment.Comments;
 import io.github.wasabithumb.jtoml.document.TomlDocument;
 import io.github.wasabithumb.jtoml.dummy.Named;
+import io.github.wasabithumb.jtoml.dummy.NamedTriplet;
 import io.github.wasabithumb.jtoml.dummy.RecordTable;
 import io.github.wasabithumb.jtoml.except.TomlException;
 import io.github.wasabithumb.jtoml.except.TomlValueException;
 import io.github.wasabithumb.jtoml.except.parse.TomlParseException;
 import io.github.wasabithumb.jtoml.key.TomlKey;
 import io.github.wasabithumb.jtoml.dummy.PojoTable;
-import io.github.wasabithumb.jtoml.option.JTomlOption;
-import io.github.wasabithumb.jtoml.option.JTomlOptions;
-import io.github.wasabithumb.jtoml.option.prop.SpecVersion;
+import io.github.wasabithumb.jtoml.serial.reflect.ReflectTomlSerializer;
+import io.github.wasabithumb.jtoml.serial.reflect.adapter.TypeAdapter;
+import io.github.wasabithumb.jtoml.serial.reflect.adapter.TypeAdapters;
 import io.github.wasabithumb.jtoml.test.TestSpec;
 import io.github.wasabithumb.jtoml.test.TestSpecs;
 import io.github.wasabithumb.jtoml.value.TomlValue;
@@ -102,6 +103,36 @@ class JTomlTest {
         assertFalse(toml.contains("localDate"));
         RecordTable out = TOML.fromToml(RecordTable.class, toml);
         assertEquals(original, out);
+    }
+
+    @Test
+    void explicitReflect() {
+        TypeAdapter<Named> namedAdapter = TypeAdapter.of(
+                Named.class,
+                (TomlValue value) -> new Named(value.asPrimitive().asString()),
+                (Named named) -> TomlPrimitive.of(named.name())
+        );
+        ReflectTomlSerializer<NamedTriplet> serializer = new ReflectTomlSerializer<>(
+                NamedTriplet.class,
+                TypeAdapters.builder()
+                        .add(TypeAdapters.standard())
+                        .add(namedAdapter)
+                        .build()
+        );
+
+
+        NamedTriplet source = new NamedTriplet(
+                new Named("jeff"),
+                new Named("joe"),
+                new Named("janet")
+        );
+        TomlTable table = serializer.toToml(source);
+
+        assertTrue(table.contains("second"));
+        assertEquals(TomlPrimitive.of("joe"), table.get("second"));
+
+        NamedTriplet out = serializer.fromToml(table);
+        assertEquals(source, out);
     }
 
     @Test

@@ -43,13 +43,12 @@ final class SerializableTableTypeModel<T extends TomlSerializable> extends Abstr
         Key annotation = f.getAnnotation(Key.class);
         if (annotation != null) name = annotation.value();
         TomlKey key = TomlKey.literal(name);
-        Field existing = map.get(key);
+        Field existing = map.put(key, f);
         if (existing != null) {
             throw new IllegalStateException("Serializable field (" + f.getName() + ") with key " + key +
                     " shadows field (" + existing.getName() + ") with same key declared in class " +
                     existing.getDeclaringClass().getName());
         }
-        map.put(key, f);
     }
 
     //

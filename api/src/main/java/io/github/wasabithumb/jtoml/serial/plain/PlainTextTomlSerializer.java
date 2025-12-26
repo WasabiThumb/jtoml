@@ -3,14 +3,27 @@ package io.github.wasabithumb.jtoml.serial.plain;
 import io.github.wasabithumb.jtoml.JToml;
 import io.github.wasabithumb.jtoml.serial.TomlSerializer;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-@ApiStatus.Internal
+/**
+ * A bare-bones serializer which uses a
+ * {@link JToml} instance to convert
+ * a TOML table to/from a {@link String}.
+ * The {@link #fromToml(TomlTable) fromToml} method is
+ * identical to {@link JToml#writeToString(TomlTable) writeToString}
+ * and the {@link #toToml(String) toToml} method is
+ * identical to {@link JToml#readFromString(String) readFromString}.
+ */
 public final class PlainTextTomlSerializer implements TomlSerializer.Symmetric<String> {
 
     private final JToml instance;
 
+    /**
+     * Creates a new plain text serializer,
+     * deferring to the given {@link JToml} instance's
+     * {@link JToml#readFromString(String) readFromString} and {@link JToml#writeToString(TomlTable) writeToString}
+     * methods.
+     */
     public PlainTextTomlSerializer(@NotNull JToml instance) {
         this.instance = instance;
     }

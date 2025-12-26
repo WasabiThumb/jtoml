@@ -1,20 +1,22 @@
 package io.github.wasabithumb.jtoml.serial.reflect.adapter;
 
-import io.github.wasabithumb.jtoml.value.primitive.TomlPrimitive;
+import io.github.wasabithumb.jtoml.value.TomlValue;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
 
-final class BasicTypeAdapter<T> implements TypeAdapter<T> {
+@ApiStatus.Internal
+final class TypeAdapterImpl<T> implements TypeAdapter<T> {
 
     private final Class<T> typeClass;
-    private final Function<TomlPrimitive, T> toJava;
-    private final Function<T, TomlPrimitive> toToml;
+    private final Function<TomlValue, T> toJava;
+    private final Function<T, TomlValue> toToml;
 
-    BasicTypeAdapter(
+    TypeAdapterImpl(
             @NotNull Class<T> typeClass,
-            @NotNull Function<TomlPrimitive, T> toJava,
-            @NotNull Function<T, TomlPrimitive> toToml
+            @NotNull Function<TomlValue, T> toJava,
+            @NotNull Function<T, TomlValue> toToml
     ) {
         this.typeClass = typeClass;
         this.toJava = toJava;
@@ -29,12 +31,12 @@ final class BasicTypeAdapter<T> implements TypeAdapter<T> {
     }
 
     @Override
-    public @NotNull T toJava(@NotNull TomlPrimitive toml) {
+    public @NotNull T toJava(@NotNull TomlValue toml) {
         return this.toJava.apply(toml);
     }
 
     @Override
-    public @NotNull TomlPrimitive toToml(@NotNull T java) {
+    public @NotNull TomlValue toToml(@NotNull T java) {
         return this.toToml.apply(java);
     }
 
