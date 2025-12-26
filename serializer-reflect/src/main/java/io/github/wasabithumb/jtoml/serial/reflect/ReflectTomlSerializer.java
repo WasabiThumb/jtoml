@@ -151,11 +151,11 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
             @NotNull TypeModel<E> model,
             @NotNull TomlValue value
     ) {
+        TypeAdapter<E> adapter = this.adapters.get(model.type());
+        if (adapter != null) return adapter.toJava(value.asPrimitive());
         if (model.isArray()) return this.serializeArray(model.asArray(), value.asArray());
         if (model.isTable()) return this.serializeTable(model.asTable(), value.asTable());
-
-        TypeAdapter<E> adapter = this.adapters.getAssert(model.type());
-        return adapter.toJava(value.asPrimitive());
+        throw new IllegalArgumentException("No adapter for type " + model.type().getName());
     }
 
     private <E> @NotNull E serializeArray(
@@ -212,11 +212,12 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
         if (!parents.add(value))
             throw new IllegalArgumentException("Cannot deserialize recursive data (" + value + " refers to itself)");
 
+        TypeAdapter<E> adapter = this.adapters.get(model.type());
+        if (adapter != null) return adapter.toToml(value);
         if (model.isArray()) return this.deserializeArray(parents, model.asArray(), value);
         if (model.isTable()) return this.deserializeTable(parents, model.asTable(), value);
 
-        TypeAdapter<E> adapter = this.adapters.getAssert(model.type());
-        return adapter.toToml(value);
+        throw new IllegalArgumentException("No adapter for type " + model.type().getName());
     }
 
     private <E> @NotNull TomlArray deserializeArray(

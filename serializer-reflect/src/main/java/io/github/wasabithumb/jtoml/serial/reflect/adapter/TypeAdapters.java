@@ -44,13 +44,6 @@ public interface TypeAdapters extends Collection<TypeAdapter<?>> {
     @ApiStatus.Internal
     <T> @Nullable TypeAdapter<T> get(@NotNull Class<T> type);
 
-    @ApiStatus.Internal
-    default <T> @NotNull TypeAdapter<T> getAssert(@NotNull Class<T> type) throws IllegalArgumentException {
-        TypeAdapter<T> adapter = this.get(type);
-        if (adapter == null) throw new IllegalArgumentException("No adapter for type " + type.getName());
-        return adapter;
-    }
-
     //
 
     /**
