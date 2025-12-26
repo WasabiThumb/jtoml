@@ -15,6 +15,7 @@ import io.github.wasabithumb.jtoml.value.array.TomlArray;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import io.github.wasabithumb.recsup.RecordSupport;
 import org.intellij.lang.annotations.MagicConstant;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,6 +28,7 @@ import java.lang.reflect.Modifier;
  * @see #fromToml(TomlTable)
  * @see #toToml(Object)
  */
+@ApiStatus.AvailableSince("1.4.1")
 public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<T> {
 
     static final int C_SERIALIZE   = 1;

@@ -13,6 +13,7 @@ import java.util.Collection;
  * @see #builder()
  * @see #standard()
  */
+@ApiStatus.AvailableSince("1.4.1")
 @ApiStatus.NonExtendable
 public interface TypeAdapters extends Collection<TypeAdapter<?>> {
 

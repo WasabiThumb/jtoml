@@ -221,6 +221,7 @@ public interface JToml {
      * @param data The object to convert
      * @throws IllegalArgumentException No known deserializer can handle objects of the given type
      */
+    @ApiStatus.AvailableSince("1.4.1")
     @NotNull TomlTable toToml(@NotNull Object data) throws IllegalArgumentException;
 
 }

@@ -30,6 +30,7 @@ import java.util.function.Function;
  * @see #LOCAL_DATE
  * @see #LOCAL_TIME
  */
+@ApiStatus.AvailableSince("1.4.1")
 public interface TypeAdapter<T> {
 
     /**
