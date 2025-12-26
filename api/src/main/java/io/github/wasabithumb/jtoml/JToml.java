@@ -215,5 +215,13 @@ public interface JToml {
     @ApiStatus.AvailableSince("1.2.1")
     <T> @NotNull TomlTable toToml(@NotNull Class<T> type, @NotNull T data) throws IllegalArgumentException;
 
+    /**
+     * Converts the given object to a TOML table.
+     * Defers to {@link #toToml(Class, Object)} internally.
+     * @param data The object to convert
+     * @throws IllegalArgumentException No known deserializer can handle objects of the given type
+     */
+    @ApiStatus.AvailableSince("1.4.1")
+    @NotNull TomlTable toToml(@NotNull Object data) throws IllegalArgumentException;
 
 }

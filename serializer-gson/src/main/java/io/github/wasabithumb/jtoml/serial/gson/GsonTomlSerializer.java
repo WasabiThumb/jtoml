@@ -15,10 +15,21 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
+/**
+ * Serializer leveraging the Gson API to convert
+ * TOML tables to/from JSON objects.
+ * @see #instance()
+ * @see #fromToml(TomlTable)
+ * @see #toToml(JsonObject)
+ */
 public final class GsonTomlSerializer implements TomlSerializer.Symmetric<JsonObject> {
 
     private static final GsonTomlSerializer DEFAULT_INSTANCE = new GsonTomlSerializer();
 
+    /**
+     * Provides the global singleton
+     * instance of {@link GsonTomlSerializer}.
+     */
     @Contract(pure = true)
     public static @NotNull GsonTomlSerializer instance() {
         return DEFAULT_INSTANCE;

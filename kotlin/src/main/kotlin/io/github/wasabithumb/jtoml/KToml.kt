@@ -88,6 +88,11 @@ object KToml : JToml {
         return this.instance.toToml(type, data)
     }
 
+    @Throws(TomlException::class)
+    override fun toToml(data: Any): TomlTable {
+        return this.instance.toToml(data)
+    }
+
 }
 
 // Serialization
