@@ -63,6 +63,7 @@ public interface JToml {
      * Reports the library version of JToml in use
      * in the form of {@code MAJOR.MINOR.PATCH} or {@code MAJOR.MINOR.PATCH-COMMIT}.
      */
+    @ApiStatus.AvailableSince("1.4.2")
     @NotNull String version();
 
     /**
