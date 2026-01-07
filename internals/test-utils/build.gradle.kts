@@ -14,7 +14,6 @@ indra.javaVersions {
     target(8)
     minimumToolchain(17)
     strictVersions(true)
-    testWith(17)
 }
 
 dependencies {

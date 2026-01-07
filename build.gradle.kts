@@ -1,4 +1,3 @@
-import com.vanniktech.maven.publish.SonatypeHost
 import tasks.FetchTestsTask
 
 allprojects {
@@ -14,8 +13,9 @@ plugins {
     id("java-library")
     alias(libs.plugins.indra.core)
     alias(libs.plugins.indra.licenser)
+    alias(libs.plugins.indra.publishing)
+    alias(libs.plugins.indra.sonatype)
     alias(libs.plugins.indra.git) apply false
-    alias(libs.plugins.publish)
     alias(libs.plugins.jvm) apply false
 }
 
@@ -25,11 +25,25 @@ repositories {
     mavenCentral()
 }
 
-indra.javaVersions {
-    target(8)
-    minimumToolchain(17)
-    strictVersions(true)
-    testWith(17)
+indra {
+    github("WasabiThumb", "jtoml")
+    apache2License()
+    javaVersions {
+        target(8)
+        minimumToolchain(17)
+        strictVersions(true)
+    }
+}
+
+indraSpotlessLicenser {
+    licenseHeaderFile(rootProject.file("license_header.txt"))
+    newLine(true)
+}
+
+sourceSets.test {
+    multirelease {
+        alternateVersions(17)
+    }
 }
 
 dependencies {
@@ -41,6 +55,11 @@ dependencies {
     testImplementation(project(":serializer-reflect"))
     testImplementation("com.google.code.gson:gson:2.13.1")
     testImplementation(project(":internals:test-utils"))
+
+    // JUnit 5
+    testImplementation(platform("org.junit:junit-bom:5.14.2"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.register<FetchTestsTask>("fetchTests") {
@@ -54,6 +73,7 @@ tasks.processTestResources {
 
 //
 
+/*
 mavenPublishing {
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
     signAllPublications()
@@ -83,3 +103,4 @@ mavenPublishing {
         }
     }
 }
+*/

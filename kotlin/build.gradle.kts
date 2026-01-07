@@ -1,9 +1,8 @@
-import com.vanniktech.maven.publish.SonatypeHost
 
 plugins {
     alias(libs.plugins.indra.core)
     alias(libs.plugins.indra.licenser)
-    alias(libs.plugins.publish)
+    alias(libs.plugins.indra.publishing)
     alias(libs.plugins.jvm)
 }
 
@@ -13,8 +12,20 @@ repositories {
     mavenCentral()
 }
 
-indra.javaVersions {
-    target(8)
+indra {
+    github("WasabiThumb", "jtoml")
+    apache2License()
+    javaVersions {
+        target(8)
+    }
+    configurePublications {
+        artifactId = "jtoml-kotlin"
+    }
+}
+
+indraSpotlessLicenser {
+    licenseHeaderFile(rootProject.file("license_header.txt"))
+    newLine(true)
 }
 
 dependencies {
@@ -25,36 +36,4 @@ dependencies {
 
 kotlin {
     jvmToolchain(8)
-}
-
-//
-
-mavenPublishing {
-    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
-    signAllPublications()
-    coordinates("${project.group}", "jtoml-kotlin", "${project.version}")
-    pom {
-        name.set("JToml Kotlin")
-        description.set(project.description!!)
-        inceptionYear.set("2025")
-        url.set("https://github.com/WasabiThumb/jtoml")
-        licenses {
-            license {
-                name.set("The Apache License, Version 2.0")
-                url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-                distribution.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-            }
-        }
-        developers {
-            developer {
-                id.set("wasabithumb")
-                name.set("Xavier Pedraza")
-                url.set("https://github.com/WasabiThumb/")
-            }
-        }
-        scm {
-            url.set("https://github.com/WasabiThumb/jtoml/")
-            connection.set("scm:git:git://github.com/WasabiThumb/jtoml.git")
-        }
-    }
 }

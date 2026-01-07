@@ -16,9 +16,4 @@ module io.github.wasabithumb.jtoml {
     exports io.github.wasabithumb.jtoml.value.primitive;
     exports io.github.wasabithumb.jtoml.value.table;
     exports io.github.wasabithumb.jtoml.configurate;
-
-    requires static org.jetbrains.annotations;
-    requires static com.google.gson;
-    requires static org.spongepowered.configurate;
-    uses org.spongepowered.configurate.loader.ConfigurationFormat;
 }

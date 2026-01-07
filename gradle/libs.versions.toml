@@ -13,7 +13,8 @@ annotations = { group = "org.jetbrains", name = "annotations", version.ref = "an
 
 [plugins]
 jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.1.21" }
-publish = { id = "com.vanniktech.maven.publish", version = "0.32.0" }
 indra-core = { id = "net.kyori.indra", version.ref = "indra" }
 indra-licenser = { id = "net.kyori.indra.licenser.spotless", version.ref = "indra" }
 indra-git = { id = "net.kyori.indra.git", version.ref = "indra" }
+indra-publishing = { id = "net.kyori.indra.publishing", version.ref = "indra" }
+indra-sonatype = { id = "net.kyori.indra.publishing.sonatype", version.ref = "indra" }
