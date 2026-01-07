@@ -2,12 +2,18 @@
 gson = "2.13.1"
 configurate = "4.2.0"
 recsup = "0.1.1"
+annotations = "26.0.1"
+indra = "4.0.0"
 
 [libraries]
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 configurate-bom = { group = "org.spongepowered", name = "configurate-bom", version.ref = "configurate" }
 recsup = { group = "io.github.wasabithumb", name = "recsup", version.ref = "recsup" }
+annotations = { group = "org.jetbrains", name = "annotations", version.ref = "annotations" }
 
 [plugins]
 jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.1.21" }
 publish = { id = "com.vanniktech.maven.publish", version = "0.32.0" }
+indra-core = { id = "net.kyori.indra", version.ref = "indra" }
+indra-licenser = { id = "net.kyori.indra.licenser.spotless", version.ref = "indra" }
+indra-git = { id = "net.kyori.indra.git", version.ref = "indra" }

@@ -2,14 +2,30 @@ import com.vanniktech.maven.publish.SonatypeHost
 import java.io.*
 
 plugins {
+    alias(libs.plugins.indra.core)
     alias(libs.plugins.publish)
-    id("org.glavo.compile-module-info-plugin") version "2.0"
 }
 
 description = "All of JToml as a single module"
 
 repositories {
     mavenCentral()
+}
+
+indra.javaVersions {
+    target(8)
+    minimumToolchain(17)
+    strictVersions(true)
+    testWith(17)
+}
+
+sourceSets {
+    main {
+        multirelease {
+            alternateVersions(9)
+            moduleName("io.github.wasabithumb.jtoml")
+        }
+    }
 }
 
 java {
@@ -19,7 +35,6 @@ java {
     registerFeature("gson") {
         usingSourceSet(sourceSets.main.get())
     }
-
     modularity.inferModulePath = false
     withSourcesJar()
 }

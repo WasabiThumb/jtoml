@@ -1,6 +1,8 @@
 import com.vanniktech.maven.publish.SonatypeHost
 
 plugins {
+    alias(libs.plugins.indra.core)
+    alias(libs.plugins.indra.licenser)
     alias(libs.plugins.publish)
 }
 
@@ -8,6 +10,17 @@ description = "API components for JToml"
 
 repositories {
     mavenCentral()
+}
+
+indra.javaVersions {
+    target(8)
+    minimumToolchain(17)
+    strictVersions(true)
+    testWith(17)
+}
+
+dependencies {
+    compileOnly(libs.annotations)
 }
 
 //

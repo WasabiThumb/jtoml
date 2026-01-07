@@ -1,6 +1,9 @@
 import com.vanniktech.maven.publish.SonatypeHost
 
 plugins {
+    alias(libs.plugins.indra.core)
+    alias(libs.plugins.indra.licenser)
+    alias(libs.plugins.indra.git)
     alias(libs.plugins.publish)
 }
 
@@ -10,8 +13,21 @@ repositories {
     mavenCentral()
 }
 
+indra.javaVersions {
+    target(8)
+    minimumToolchain(17)
+    strictVersions(true)
+    testWith(17)
+}
+
 dependencies {
+    compileOnly(libs.annotations)
     implementation(project(":api"))
+}
+
+tasks.jar {
+    // Add Git-Commit and Git-Branch to manifest
+    indraGit.applyVcsInformationToManifest(manifest)
 }
 
 //

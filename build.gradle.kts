@@ -6,36 +6,15 @@ allprojects {
 
     group = "io.github.wasabithumb"
     version = "1.4.1"
-
-    dependencies {
-        compileOnly("org.jetbrains:annotations:26.0.1")
-    }
-
-    java {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-        toolchain.languageVersion.set(JavaLanguageVersion.of(17))
-    }
-
-    tasks.compileJava {
-        options.encoding = "UTF-8"
-    }
-
-    tasks.compileTestJava {
-        sourceCompatibility = "17"
-        targetCompatibility = "17"
-    }
-
-    tasks.javadoc {
-        options.encoding = Charsets.UTF_8.name()
-        (options as CoreJavadocOptions).addBooleanOption("Xdoclint:none", true)
-    }
 }
 
 //
 
 plugins {
     id("java-library")
+    alias(libs.plugins.indra.core)
+    alias(libs.plugins.indra.licenser)
+    alias(libs.plugins.indra.git) apply false
     alias(libs.plugins.publish)
     alias(libs.plugins.jvm) apply false
 }
@@ -46,7 +25,15 @@ repositories {
     mavenCentral()
 }
 
+indra.javaVersions {
+    target(8)
+    minimumToolchain(17)
+    strictVersions(true)
+    testWith(17)
+}
+
 dependencies {
+    compileOnly(libs.annotations)
     api(project(":api"))
     implementation(project(":internals"))
 
@@ -54,15 +41,6 @@ dependencies {
     testImplementation(project(":serializer-reflect"))
     testImplementation("com.google.code.gson:gson:2.13.1")
     testImplementation(project(":internals:test-utils"))
-
-    // JUnit 6
-    testImplementation(platform("org.junit:junit-bom:6.0.1"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-}
-
-tasks.test {
-    useJUnitPlatform()
 }
 
 tasks.register<FetchTestsTask>("fetchTests") {

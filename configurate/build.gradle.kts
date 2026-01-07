@@ -1,6 +1,8 @@
 import com.vanniktech.maven.publish.SonatypeHost
 
 plugins {
+    alias(libs.plugins.indra.core)
+    alias(libs.plugins.indra.licenser)
     alias(libs.plugins.publish)
 }
 
@@ -10,22 +12,20 @@ repositories {
     mavenCentral()
 }
 
+indra.javaVersions {
+    target(8)
+    minimumToolchain(17)
+    strictVersions(true)
+    testWith(17)
+}
+
 dependencies {
+    compileOnly(libs.annotations)
     implementation(project(":"))
     api(project(":api"))
     api(platform(libs.configurate.bom))
     api("org.spongepowered:configurate-core")
-
     testImplementation(project(":internals:test-utils"))
-
-    // JUnit 6
-    testImplementation(platform("org.junit:junit-bom:6.0.1"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-}
-
-tasks.test {
-    useJUnitPlatform()
 }
 
 //

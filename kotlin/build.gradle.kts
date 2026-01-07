@@ -1,6 +1,8 @@
 import com.vanniktech.maven.publish.SonatypeHost
 
 plugins {
+    alias(libs.plugins.indra.core)
+    alias(libs.plugins.indra.licenser)
     alias(libs.plugins.publish)
     alias(libs.plugins.jvm)
 }
@@ -11,7 +13,12 @@ repositories {
     mavenCentral()
 }
 
+indra.javaVersions {
+    target(8)
+}
+
 dependencies {
+    compileOnly(libs.annotations)
     api(project(":api"))
     implementation(project(":"))
 }
