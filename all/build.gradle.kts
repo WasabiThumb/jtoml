@@ -1,15 +1,35 @@
-import com.vanniktech.maven.publish.SonatypeHost
 import java.io.*
 
 plugins {
-    alias(libs.plugins.publish)
-    id("org.glavo.compile-module-info-plugin") version "2.0"
+    alias(libs.plugins.indra.core)
+    alias(libs.plugins.indra.publishing)
 }
 
 description = "All of JToml as a single module"
 
 repositories {
     mavenCentral()
+}
+
+indra {
+    github("WasabiThumb", "jtoml")
+    apache2License()
+    javaVersions {
+        target(8)
+        minimumToolchain(17)
+    }
+    configurePublications {
+        artifactId = "jtoml-all"
+    }
+}
+
+sourceSets {
+    main {
+        multirelease {
+            alternateVersions(9)
+            moduleName("io.github.wasabithumb.jtoml")
+        }
+    }
 }
 
 java {
@@ -19,7 +39,6 @@ java {
     registerFeature("gson") {
         usingSourceSet(sourceSets.main.get())
     }
-
     modularity.inferModulePath = false
     withSourcesJar()
 }
@@ -124,37 +143,5 @@ tasks.named<Jar>("sourcesJar") {
     // Include module sources
     peers.forEach { peer ->
         from(peer.sourceSets.main.get().allJava)
-    }
-}
-
-//
-
-mavenPublishing {
-    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
-    signAllPublications()
-    coordinates("${project.group}", "jtoml-all", "${project.version}")
-    pom {
-        name.set("JToml Aggregator")
-        description.set(project.description!!)
-        inceptionYear.set("2025")
-        url.set("https://github.com/WasabiThumb/jtoml")
-        licenses {
-            license {
-                name.set("The Apache License, Version 2.0")
-                url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-                distribution.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-            }
-        }
-        developers {
-            developer {
-                id.set("wasabithumb")
-                name.set("Xavier Pedraza")
-                url.set("https://github.com/WasabiThumb/")
-            }
-        }
-        scm {
-            url.set("https://github.com/WasabiThumb/jtoml/")
-            connection.set("scm:git:git://github.com/WasabiThumb/jtoml.git")
-        }
     }
 }

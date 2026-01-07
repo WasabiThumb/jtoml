@@ -1,3 +1,19 @@
+/*
+ * Copyright 2025 Xavier Pedraza
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.github.wasabithumb.jtoml;
 
 import io.github.wasabithumb.jtoml.document.TomlDocument;
@@ -13,6 +29,7 @@ import io.github.wasabithumb.jtoml.io.source.StringCharSource;
 import io.github.wasabithumb.jtoml.io.target.CharTarget;
 import io.github.wasabithumb.jtoml.io.target.StringCharTarget;
 import io.github.wasabithumb.jtoml.io.target.WriterCharTarget;
+import io.github.wasabithumb.jtoml.meta.JTomlVersionInfo;
 import io.github.wasabithumb.jtoml.option.JTomlOption;
 import io.github.wasabithumb.jtoml.option.JTomlOptions;
 import io.github.wasabithumb.jtoml.option.prop.OrderMarkPolicy;
@@ -46,6 +63,11 @@ final class JTomlImpl implements JToml {
     }
 
     //
+
+    @Override
+    public @NotNull String version() {
+        return JTomlVersionInfo.derivedVersion();
+    }
 
     private @NotNull TomlTable read(@NotNull BufferedCharSource cs) throws TomlException {
         TableReader tr = new TableReader(cs, this.options);

@@ -1,4 +1,3 @@
-import com.vanniktech.maven.publish.SonatypeHost
 import tasks.FetchTestsTask
 
 allprojects {
@@ -6,37 +5,17 @@ allprojects {
 
     group = "io.github.wasabithumb"
     version = "1.4.1"
-
-    dependencies {
-        compileOnly("org.jetbrains:annotations:26.0.1")
-    }
-
-    java {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-        toolchain.languageVersion.set(JavaLanguageVersion.of(17))
-    }
-
-    tasks.compileJava {
-        options.encoding = "UTF-8"
-    }
-
-    tasks.compileTestJava {
-        sourceCompatibility = "17"
-        targetCompatibility = "17"
-    }
-
-    tasks.javadoc {
-        options.encoding = Charsets.UTF_8.name()
-        (options as CoreJavadocOptions).addBooleanOption("Xdoclint:none", true)
-    }
 }
 
 //
 
 plugins {
     id("java-library")
-    alias(libs.plugins.publish)
+    alias(libs.plugins.indra.core)
+    alias(libs.plugins.indra.licenser)
+    alias(libs.plugins.indra.publishing)
+    alias(libs.plugins.indra.sonatype)
+    alias(libs.plugins.indra.git) apply false
     alias(libs.plugins.jvm) apply false
 }
 
@@ -46,7 +25,29 @@ repositories {
     mavenCentral()
 }
 
+indra {
+    github("WasabiThumb", "jtoml")
+    apache2License()
+    javaVersions {
+        target(8)
+        minimumToolchain(17)
+        strictVersions(true)
+    }
+}
+
+indraSpotlessLicenser {
+    licenseHeaderFile(rootProject.file("license_header.txt"))
+    newLine(true)
+}
+
+sourceSets.test {
+    multirelease {
+        alternateVersions(17)
+    }
+}
+
 dependencies {
+    compileOnly(libs.annotations)
     api(project(":api"))
     implementation(project(":internals"))
 
@@ -55,14 +56,10 @@ dependencies {
     testImplementation("com.google.code.gson:gson:2.13.1")
     testImplementation(project(":internals:test-utils"))
 
-    // JUnit 6
-    testImplementation(platform("org.junit:junit-bom:6.0.1"))
+    // JUnit 5
+    testImplementation(platform("org.junit:junit-bom:5.14.2"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-}
-
-tasks.test {
-    useJUnitPlatform()
 }
 
 tasks.register<FetchTestsTask>("fetchTests") {
@@ -72,36 +69,4 @@ tasks.register<FetchTestsTask>("fetchTests") {
 
 tasks.processTestResources {
     dependsOn(tasks.named("fetchTests"))
-}
-
-//
-
-mavenPublishing {
-    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
-    signAllPublications()
-    coordinates("${project.group}", "jtoml", "${project.version}")
-    pom {
-        name.set("JToml")
-        description.set(project.description!!)
-        inceptionYear.set("2025")
-        url.set("https://github.com/WasabiThumb/jtoml")
-        licenses {
-            license {
-                name.set("The Apache License, Version 2.0")
-                url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-                distribution.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-            }
-        }
-        developers {
-            developer {
-                id.set("wasabithumb")
-                name.set("Xavier Pedraza")
-                url.set("https://github.com/WasabiThumb/")
-            }
-        }
-        scm {
-            url.set("https://github.com/WasabiThumb/jtoml/")
-            connection.set("scm:git:git://github.com/WasabiThumb/jtoml.git")
-        }
-    }
 }

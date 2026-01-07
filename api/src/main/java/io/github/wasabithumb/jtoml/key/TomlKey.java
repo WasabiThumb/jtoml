@@ -1,3 +1,19 @@
+/*
+ * Copyright 2025 Xavier Pedraza
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.github.wasabithumb.jtoml.key;
 
 import org.jetbrains.annotations.ApiStatus;
@@ -19,7 +35,7 @@ public interface TomlKey extends Collection<String>, Comparable<TomlKey> {
     /**
      * Parses a string representation of a TOML key.
      * Extraneous whitespace is <strong>NOT</strong> allowed.
-     * <h2>Example</h2>
+     * <h4>Example</h4>
      * <pre>{@code
      * TomlKey.parse("'foo.bar'.\"\\U0001F60E\"")
      *      .toString(); // "foo.bar"."😎"
@@ -108,7 +124,7 @@ public interface TomlKey extends Collection<String>, Comparable<TomlKey> {
      * into a TOML-compatible form, escaping as necessary.
      * Escaping will always be done with basic (double quote) strings,
      * literal (single quote) strings are never chosen.
-     * <h2>Example</h2>
+     * <h4>Example</h4>
      * <pre>{@code
      * TomlKey.literal("lorem ipsum", "dolor", "\"sit amet\"")
      *      .toString() // "lorem ipsum".dolor."\"sit amet\""

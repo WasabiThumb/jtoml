@@ -39,7 +39,7 @@ be the ultimate solution for all things TOML, fully recreating its type system w
 
 ## License
 ```text
-Copyright 2025 Wasabi Codes
+Copyright 2025 Xavier Pedraza
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
