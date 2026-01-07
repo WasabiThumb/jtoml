@@ -38,4 +38,5 @@ dependencies {
 tasks.jar {
     // Add Git-Commit and Git-Branch to manifest
     indraGit.applyVcsInformationToManifest(manifest)
+    manifest.attributes["Library-Version"] = "${rootProject.version}"
 }

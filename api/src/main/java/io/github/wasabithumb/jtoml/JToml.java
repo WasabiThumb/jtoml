@@ -60,6 +60,12 @@ public interface JToml {
     //
 
     /**
+     * Reports the library version of JToml in use
+     * in the form of {@code MAJOR.MINOR.PATCH} or {@code MAJOR.MINOR.PATCH-COMMIT}.
+     */
+    @NotNull String version();
+
+    /**
      * Reads a TOML table from a string
      * @param toml A string containing a TOML document
      * @throws TomlException String is not valid TOML

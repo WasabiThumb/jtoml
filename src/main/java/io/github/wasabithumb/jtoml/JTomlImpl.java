@@ -29,6 +29,7 @@ import io.github.wasabithumb.jtoml.io.source.StringCharSource;
 import io.github.wasabithumb.jtoml.io.target.CharTarget;
 import io.github.wasabithumb.jtoml.io.target.StringCharTarget;
 import io.github.wasabithumb.jtoml.io.target.WriterCharTarget;
+import io.github.wasabithumb.jtoml.meta.JTomlVersionInfo;
 import io.github.wasabithumb.jtoml.option.JTomlOption;
 import io.github.wasabithumb.jtoml.option.JTomlOptions;
 import io.github.wasabithumb.jtoml.option.prop.OrderMarkPolicy;
@@ -62,6 +63,11 @@ final class JTomlImpl implements JToml {
     }
 
     //
+
+    @Override
+    public @NotNull String version() {
+        return JTomlVersionInfo.derivedVersion();
+    }
 
     private @NotNull TomlTable read(@NotNull BufferedCharSource cs) throws TomlException {
         TableReader tr = new TableReader(cs, this.options);

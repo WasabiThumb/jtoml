@@ -64,6 +64,10 @@ object KToml : JToml {
 
     //
 
+    override fun version(): String {
+        return this.instance.version()
+    }
+
     @Throws(TomlException::class)
     override fun readFromString(toml: String): TomlDocument {
         return this.instance.readFromString(toml)
@@ -110,6 +114,11 @@ object KToml : JToml {
     }
 
 }
+
+// Version
+
+val JToml.version: String
+    get() = this.version()
 
 // Serialization
 
