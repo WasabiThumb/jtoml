@@ -20,6 +20,13 @@ indra {
     }
     configurePublications {
         artifactId = "jtoml-kotlin"
+        pom.developers {
+            developer {
+                id = "wasabithumb"
+                name = "Xavier Pedraza"
+                url = "https://github.com/WasabiThumb"
+            }
+        }
     }
 }
 

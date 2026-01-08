@@ -21,6 +21,13 @@ indra {
     }
     configurePublications {
         artifactId = "jtoml-api"
+        pom.developers {
+            developer {
+                id = "wasabithumb"
+                name = "Xavier Pedraza"
+                url = "https://github.com/WasabiThumb"
+            }
+        }
     }
 }
 
@@ -32,4 +39,3 @@ indraSpotlessLicenser {
 dependencies {
     compileOnly(libs.annotations)
 }
-

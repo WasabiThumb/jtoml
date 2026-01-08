@@ -33,6 +33,16 @@ indra {
         minimumToolchain(17)
         strictVersions(true)
     }
+    configurePublications {
+        artifactId = "jtoml"
+        pom.developers {
+            developer {
+                id = "wasabithumb"
+                name = "Xavier Pedraza"
+                url = "https://github.com/WasabiThumb"
+            }
+        }
+    }
 }
 
 indraSpotlessLicenser {

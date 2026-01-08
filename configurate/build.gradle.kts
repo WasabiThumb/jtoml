@@ -21,6 +21,18 @@ indra {
     }
     configurePublications {
         artifactId = "jtoml-configurate"
+        pom.developers {
+            developer {
+                id = "wasabithumb"
+                name = "Xavier Pedraza"
+                url = "https://github.com/WasabiThumb"
+            }
+            developer {
+                id = "jmp"
+                name = "Jason Penilla"
+                url = "https://github.com/jpenilla"
+            }
+        }
     }
 }
 
