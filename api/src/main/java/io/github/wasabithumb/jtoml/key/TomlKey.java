@@ -81,6 +81,26 @@ public interface TomlKey extends Collection<String>, Comparable<TomlKey> {
         return new ArrayTomlKey(cpy);
     }
 
+    /**
+     * Wraps a pre-parsed TOML key (by parts) into a {@link TomlKey} object.
+     * No parsing is performed.
+     * @see #parse(CharSequence)
+     */
+    @ApiStatus.Experimental
+    @Contract("_ -> new")
+    static @NotNull TomlKey literal(@NotNull Collection<? extends CharSequence> parts) {
+        final int len = parts.size();
+        String[] cpy = new String[len];
+
+        Iterator<? extends CharSequence> iter = parts.iterator();
+        for (int i = 0; i < len; i++) {
+            if (!iter.hasNext()) throw new ConcurrentModificationException();
+            cpy[i] = iter.next().toString();
+        }
+
+        return new ArrayTomlKey(cpy);
+    }
+
     //
 
     /**

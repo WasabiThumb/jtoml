@@ -16,6 +16,8 @@
 
 package io.github.wasabithumb.jtoml.option;
 
+import io.github.wasabithumb.jtoml.key.convention.KeyConvention;
+import io.github.wasabithumb.jtoml.key.convention.StandardKeyConvention;
 import io.github.wasabithumb.jtoml.option.prop.*;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
@@ -36,17 +38,29 @@ public interface JTomlOption<T> {
     /**
      * Indentation to apply when writing
      */
-    JTomlOption<IndentationPolicy> INDENTATION = of("INDENTATION", IndentationPolicy.class, IndentationPolicy.STANDARD);
+    JTomlOption<IndentationPolicy> INDENTATION = of(
+            "INDENTATION",
+            IndentationPolicy.class,
+            IndentationPolicy.STANDARD
+    );
 
     /**
      * Spacing to apply when writing
      */
-    JTomlOption<SpacingPolicy> SPACING = of("SPACING", SpacingPolicy.class, SpacingPolicy.STANDARD);
+    JTomlOption<SpacingPolicy> SPACING = of(
+            "SPACING",
+            SpacingPolicy.class,
+            SpacingPolicy.STANDARD
+    );
 
     /**
      * Padding to apply when writing
      */
-    JTomlOption<PaddingPolicy> PADDING = of("PADDING", PaddingPolicy.class, PaddingPolicy.STANDARD);
+    JTomlOption<PaddingPolicy> PADDING = of(
+            "PADDING",
+            PaddingPolicy.class,
+            PaddingPolicy.STANDARD
+    );
 
     /**
      * Zone offset to use when reading a <a href="https://toml.io/en/v1.1.0#local-date-time">Local Date-Time</a>
@@ -54,7 +68,11 @@ public interface JTomlOption<T> {
      * and when writing a {@link java.time.LocalDateTime LocalDateTime} as an
      * <a href="https://toml.io/en/v1.1.0#offset-date-time">Offset Date-Time</a>
      */
-    JTomlOption<ZoneOffset> TIME_ZONE = of("TIME_ZONE", ZoneOffset.class, ZoneOffset.UTC);
+    JTomlOption<ZoneOffset> TIME_ZONE = of(
+            "TIME_ZONE",
+            ZoneOffset.class,
+            ZoneOffset.UTC
+    );
 
     /**
      * Determines if a BOM should be read.
@@ -67,12 +85,20 @@ public interface JTomlOption<T> {
      * </pre>
      * Hence, the default is {@link OrderMarkPolicy#NEVER NEVER}.
      */
-    JTomlOption<OrderMarkPolicy> READ_BOM = of("READ_BOM", OrderMarkPolicy.class, OrderMarkPolicy.NEVER);
+    JTomlOption<OrderMarkPolicy> READ_BOM = of(
+            "READ_BOM",
+            OrderMarkPolicy.class,
+            OrderMarkPolicy.NEVER
+    );
 
     /**
      * Determines if a BOM should be written
      */
-    JTomlOption<OrderMarkPolicy> WRITE_BOM = of("WRITE_BOM", OrderMarkPolicy.class, OrderMarkPolicy.IF_PRESENT);
+    JTomlOption<OrderMarkPolicy> WRITE_BOM = of(
+            "WRITE_BOM",
+            OrderMarkPolicy.class,
+            OrderMarkPolicy.IF_PRESENT
+    );
 
     /**
      * The line separator to use when writing and normalizing,
@@ -80,47 +106,71 @@ public interface JTomlOption<T> {
      * Default is determined by {@link System#lineSeparator()}.
      * Both line endings can always be read, irrespective of the value of this option.
      */
-    JTomlOption<LineSeparator> LINE_SEPARATOR = of("LINE_SEPARATOR", LineSeparator.class, LineSeparator.SYSTEM);
+    JTomlOption<LineSeparator> LINE_SEPARATOR = of(
+            "LINE_SEPARATOR",
+            LineSeparator.class,
+            LineSeparator.SYSTEM
+    );
 
     /**
      * If true, {@link io.github.wasabithumb.jtoml.except.parse.TomlExtensionException static extension} is
      * prohibited. This is required for the parser to be fully TOML-compliant.
      */
-    Bool EXTENSION_GUARD = of("EXTENSION_GUARD", true);
+    Bool EXTENSION_GUARD = of(
+            "EXTENSION_GUARD",
+            true
+    );
 
     /**
      * If true, table headers will be written even if they do not
      * contain any key-values or comments.
      */
     @ApiStatus.AvailableSince("0.2.3")
-    Bool WRITE_EMPTY_TABLES = of("WRITE_EMPTY_TABLES", false);
+    Bool WRITE_EMPTY_TABLES = of(
+            "WRITE_EMPTY_TABLES",
+            false
+    );
 
     /**
      * If true, comments will be stored in the resulting document
      * (rather than ignored) when reading
      */
     @ApiStatus.AvailableSince("0.6.0")
-    Bool READ_COMMENTS = of("READ_COMMENTS", true);
+    Bool READ_COMMENTS = of(
+            "READ_COMMENTS",
+            true
+    );
 
     /**
      * If true, comments defined on values will be written.
      */
     @ApiStatus.AvailableSince("0.6.0")
-    Bool WRITE_COMMENTS = of("WRITE_COMMENTS", true);
+    Bool WRITE_COMMENTS = of(
+            "WRITE_COMMENTS",
+            true
+    );
 
     /**
      * Determines how non-table arrays should be written;
      * specifically when elements should receive a newline
      */
     @ApiStatus.AvailableSince("0.6.0")
-    JTomlOption<ArrayStrategy> ARRAY_STRATEGY = of("ARRAY_STRATEGY", ArrayStrategy.class, ArrayStrategy.DYNAMIC);
+    JTomlOption<ArrayStrategy> ARRAY_STRATEGY = of(
+            "ARRAY_STRATEGY",
+            ArrayStrategy.class,
+            ArrayStrategy.DYNAMIC
+    );
 
     /**
      * Determines how keys are sorted within a table
      * when writing.
      */
     @ApiStatus.AvailableSince("1.3.0")
-    JTomlOption<SortMethod> SORTING = of("SORTING", SortMethod.class, SortMethod.STRATIFIED);
+    JTomlOption<SortMethod> SORTING = of(
+            "SORTING",
+            SortMethod.class,
+            SortMethod.STRATIFIED
+    );
 
     /**
      * Determines the version of the TOML spec
@@ -128,7 +178,26 @@ public interface JTomlOption<T> {
      * {@link SpecVersion#latest() the latest supported version}.
      */
     @ApiStatus.AvailableSince("1.4.0")
-    JTomlOption<SpecVersion> COMPLIANCE = of("COMPLIANCE", SpecVersion.class, SpecVersion.latest());
+    JTomlOption<SpecVersion> COMPLIANCE = of(
+            "COMPLIANCE",
+            SpecVersion.class,
+            SpecVersion.latest()
+    );
+
+    /**
+     * Determines the default {@link KeyConvention} to use
+     * during reflect serialization. This determines how
+     * a field/component declared on a serialized class/record should
+     * be mapped to a TOML key unless otherwise specified
+     * with the {@code @Key} or {@code @Convention} annotations
+     * at the type or member level. Defaults to
+     * {@link StandardKeyConvention#LITERAL LITERAL}.
+     */
+    JTomlOption<KeyConvention> DEFAULT_KEY_CONVENTION = of(
+            "DEFAULT_KEY_CONVENTION",
+            KeyConvention.class,
+            StandardKeyConvention.LITERAL
+    );
 
     //
 

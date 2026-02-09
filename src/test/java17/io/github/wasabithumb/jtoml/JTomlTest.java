@@ -20,14 +20,14 @@ import io.github.wasabithumb.jtoml.comment.Comment;
 import io.github.wasabithumb.jtoml.comment.CommentPosition;
 import io.github.wasabithumb.jtoml.comment.Comments;
 import io.github.wasabithumb.jtoml.document.TomlDocument;
-import io.github.wasabithumb.jtoml.dummy.Named;
-import io.github.wasabithumb.jtoml.dummy.NamedTriplet;
-import io.github.wasabithumb.jtoml.dummy.RecordTable;
+import io.github.wasabithumb.jtoml.dummy.*;
 import io.github.wasabithumb.jtoml.except.TomlException;
 import io.github.wasabithumb.jtoml.except.TomlValueException;
 import io.github.wasabithumb.jtoml.except.parse.TomlParseException;
 import io.github.wasabithumb.jtoml.key.TomlKey;
-import io.github.wasabithumb.jtoml.dummy.PojoTable;
+import io.github.wasabithumb.jtoml.key.convention.StandardKeyConvention;
+import io.github.wasabithumb.jtoml.option.JTomlOption;
+import io.github.wasabithumb.jtoml.option.JTomlOptions;
 import io.github.wasabithumb.jtoml.serial.reflect.ReflectTomlSerializer;
 import io.github.wasabithumb.jtoml.serial.reflect.adapter.TypeAdapter;
 import io.github.wasabithumb.jtoml.serial.reflect.adapter.TypeAdapters;
@@ -118,6 +118,27 @@ class JTomlTest {
         assertTrue(toml.contains("local-date"));
         assertFalse(toml.contains("localDate"));
         RecordTable out = TOML.fromToml(RecordTable.class, toml);
+        assertEquals(original, out);
+    }
+
+    @Test
+    void trickyConvention() {
+        JToml toml = JToml.jToml(JTomlOptions.builder()
+                .set(JTomlOption.DEFAULT_KEY_CONVENTION, StandardKeyConvention.SNAKE)
+                .build());
+
+        TrickyConvention original = TrickyConvention.create();
+        TomlTable table = toml.toToml(original);
+        System.out.println(toml.writeToString(table));
+
+        assertTrue(table.contains("literalInt"));
+        assertTrue(table.contains("lowerint"));
+        assertTrue(table.contains("defaulting_int"));
+        assertTrue(table.contains("kebab-int"));
+        assertTrue(table.contains("split.int"));
+        assertTrue(table.contains("custom"));
+
+        TrickyConvention out = toml.fromToml(TrickyConvention.class, table);
         assertEquals(original, out);
     }
 

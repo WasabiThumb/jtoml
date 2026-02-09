@@ -17,9 +17,8 @@
 package io.github.wasabithumb.jtoml.serial.reflect.model.table;
 
 import io.github.wasabithumb.jtoml.comment.Comments;
-import io.github.wasabithumb.jtoml.key.TomlKey;
+import io.github.wasabithumb.jtoml.key.convention.KeyConvention;
 import io.github.wasabithumb.jtoml.serial.TomlSerializable;
-import io.github.wasabithumb.jtoml.serial.reflect.Key;
 import io.github.wasabithumb.jtoml.util.ParameterizedClass;
 import org.jetbrains.annotations.*;
 
@@ -28,6 +27,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 @ApiStatus.Internal
 final class SerializableTableTypeModel<T extends TomlSerializable> extends AbstractTableTypeModel<T> {
@@ -37,44 +39,58 @@ final class SerializableTableTypeModel<T extends TomlSerializable> extends Abstr
         return new SerializableTableTypeModel<>(cls.asSubclass(TomlSerializable.class));
     }
 
-    private static @NotNull Map<TomlKey, Field> buildFieldMap(@NotNull Class<?> cls) {
-        Map<TomlKey, Field> ret = new HashMap<>();
-        buildFieldMap0(cls, ret);
-        return Collections.unmodifiableMap(ret);
+    private static @NotNull Spliterator<Class<?>> hierarchy(final @NotNull Class<?> base) {
+        final Iterator<Class<?>> src = new Iterator<Class<?>>() {
+            private Class<?> next = base;
+
+            @Override
+            public boolean hasNext() {
+                return this.next != null && TomlSerializable.class.isAssignableFrom(this.next);
+            }
+
+            @Override
+            public Class<?> next() {
+                Class<?> ret = this.next;
+                this.next = ret.getSuperclass();
+                return ret;
+            }
+        };
+        return Spliterators.spliteratorUnknownSize(
+                src,
+                Spliterator.DISTINCT |
+                        Spliterator.ORDERED |
+                        Spliterator.NONNULL |
+                        Spliterator.IMMUTABLE
+        );
     }
 
-    private static void buildFieldMap0(@NotNull Class<?> cls, @NotNull Map<TomlKey, Field> map) {
-        for (Field f : cls.getDeclaredFields()) {
-            int mod = f.getModifiers();
-            if (Modifier.isStatic(mod) || Modifier.isTransient(mod)) continue;
-            buildFieldMap00(f, map);
-        }
-        cls = cls.getSuperclass();
-        if (cls == null || !TomlSerializable.class.isAssignableFrom(cls)) return;
-        buildFieldMap0(cls, map);
+    private static @NotNull Stream<Field> fieldStream(final @NotNull Class<?> clazz) {
+        return StreamSupport.stream(hierarchy(clazz), false)
+                .flatMap((Class<?> cls) -> Stream.of(cls.getDeclaredFields()))
+                .filter((Field f) -> {
+                    if (f.isSynthetic()) return false;
+                    final int mod = f.getModifiers();
+                    return !Modifier.isStatic(mod) && !Modifier.isTransient(mod);
+                });
     }
 
-    private static void buildFieldMap00(@NotNull Field f, @NotNull Map<TomlKey, Field> map) {
-        String name = f.getName();
-        Key annotation = f.getAnnotation(Key.class);
-        if (annotation != null) name = annotation.value();
-        TomlKey key = TomlKey.literal(name);
-        Field existing = map.put(key, f);
-        if (existing != null) {
-            throw new IllegalStateException("Serializable field (" + f.getName() + ") with key " + key +
-                    " shadows field (" + existing.getName() + ") with same key declared in class " +
-                    existing.getDeclaringClass().getName());
+    private static @NotNull Key fieldKey(@NotNull Field field, @NotNull KeyConvention defaultConvention) {
+        return new FieldKey(field, defaultConvention);
+    }
+
+    private static @NotNull Field unwrapFieldKey(@NotNull Key key) {
+        if (key instanceof FieldKey) {
+            return ((FieldKey) key).member;
         }
+        throw new IllegalArgumentException("Key " + key + " is not a FieldKey");
     }
 
     //
 
     private final Class<T> type;
-    private final Map<TomlKey, Field> fieldMap;
 
     private SerializableTableTypeModel(@NotNull Class<T> type) {
         this.type = type;
-        this.fieldMap = buildFieldMap(type);
     }
 
     //
@@ -121,30 +137,29 @@ final class SerializableTableTypeModel<T extends TomlSerializable> extends Abstr
     }
 
     @Override
-    public @NotNull @Unmodifiable Collection<TomlKey> keys(@NotNull T instance) {
-        return this.fieldMap.keySet();
-    }
-
-    private @NotNull Field resolveField(@NotNull TomlKey key) {
-        if (key.size() != 1)
-            throw new IllegalArgumentException("Illegal key size (expected 1, got " + key.size() + ")");
-
-        Field ret = this.fieldMap.get(key);
-        if (ret != null) return ret;
-
-        throw new IllegalArgumentException(
-                "Key \"" + key.get(0) + "\" does not match any fields on TomlSerializable type " + this.type.getName()
-        );
+    public @NotNull Mapper mapper(@NotNull KeyConvention defaultConvention) {
+        return new FixedMapper(this, this.keys(this.type, defaultConvention));
     }
 
     @Override
-    public @NotNull ParameterizedClass<?> elementType(@NotNull TomlKey key) {
-        return ParameterizedClass.of(this.resolveField(key));
+    public @NotNull @Unmodifiable Collection<Key> keys(@NotNull T instance, @NotNull KeyConvention defaultConvention) {
+        return this.keys(instance.getClass(), defaultConvention);
+    }
+
+    private @NotNull @Unmodifiable Collection<Key> keys(@NotNull Class<?> type, @NotNull KeyConvention defaultConvention) {
+        return fieldStream(type)
+                .map((Field f) -> fieldKey(f, defaultConvention))
+                .collect(Collectors.toList());
     }
 
     @Override
-    public @UnknownNullability Object get(@NotNull T instance, @NotNull TomlKey key) {
-        Field f = this.resolveField(key);
+    public @NotNull ParameterizedClass<?> elementType(@NotNull Key key) {
+        return ParameterizedClass.of(unwrapFieldKey(key));
+    }
+
+    @Override
+    public @UnknownNullability Object get(@NotNull T instance, @NotNull Key key) {
+        Field f = unwrapFieldKey(key);
 
         Throwable suppressed = null;
         try {
@@ -165,13 +180,13 @@ final class SerializableTableTypeModel<T extends TomlSerializable> extends Abstr
 
     @Override
     public void applyTableComments(@NotNull Comments comments) {
-        applyAnnotationComments(this.type.getDeclaredAnnotations(), comments);
+        applyAnnotationComments(this.type, comments);
     }
 
     @Override
-    public void applyFieldComments(@NotNull TomlKey key, @NotNull Comments comments) {
-        Field f = this.resolveField(key);
-        applyAnnotationComments(f.getDeclaredAnnotations(), comments);
+    public void applyFieldComments(@NotNull Key key, @NotNull Comments comments) {
+        Field f = unwrapFieldKey(key);
+        applyAnnotationComments(f, comments);
     }
 
     //
@@ -195,8 +210,8 @@ final class SerializableTableTypeModel<T extends TomlSerializable> extends Abstr
         }
 
         @Override
-        public void set(@NotNull TomlKey key, @NotNull Object value) {
-            Field f = this.parent.resolveField(key);
+        public void set(@NotNull Key key, @NotNull Object value) {
+            Field f = unwrapFieldKey(key);
 
             Throwable suppressed = null;
             try {
@@ -226,6 +241,17 @@ final class SerializableTableTypeModel<T extends TomlSerializable> extends Abstr
         @Override
         public @NotNull O build() {
             return this.instance;
+        }
+
+    }
+
+    private static final class FieldKey extends MemberKey<Field> {
+
+        FieldKey(
+                @NotNull Field field,
+                @NotNull KeyConvention defaultConvention
+        ) {
+            super(field, defaultConvention);
         }
 
     }

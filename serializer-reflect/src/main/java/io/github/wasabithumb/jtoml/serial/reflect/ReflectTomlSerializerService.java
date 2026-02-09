@@ -17,6 +17,7 @@
 package io.github.wasabithumb.jtoml.serial.reflect;
 
 import io.github.wasabithumb.jtoml.JToml;
+import io.github.wasabithumb.jtoml.option.JTomlOption;
 import io.github.wasabithumb.jtoml.serial.TomlSerializable;
 import io.github.wasabithumb.jtoml.serial.TomlSerializer;
 import io.github.wasabithumb.jtoml.serial.TomlSerializerService;
@@ -52,6 +53,7 @@ public final class ReflectTomlSerializerService extends TomlSerializerService {
         return new ReflectTomlSerializer<>(
                 outType,
                 TypeAdapters.standard(),
+                instance.options().get(JTomlOption.DEFAULT_KEY_CONVENTION),
                 ReflectTomlSerializer.C_SERIALIZE
         );
     }
@@ -61,6 +63,7 @@ public final class ReflectTomlSerializerService extends TomlSerializerService {
         return new ReflectTomlSerializer<>(
                 inType,
                 TypeAdapters.standard(),
+                instance.options().get(JTomlOption.DEFAULT_KEY_CONVENTION),
                 ReflectTomlSerializer.C_DESERIALIZE
         );
     }

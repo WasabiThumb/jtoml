@@ -68,6 +68,10 @@ object KToml : JToml {
         return this.instance.version()
     }
 
+    override fun options(): JTomlOptions {
+        return this.instance.options()
+    }
+
     @Throws(TomlException::class)
     override fun readFromString(toml: String): TomlDocument {
         return this.instance.readFromString(toml)
@@ -119,6 +123,11 @@ object KToml : JToml {
 
 val JToml.version: String
     get() = this.version()
+
+// Options
+
+val JToml.options: JTomlOptions
+    get() = this.options()
 
 // Serialization
 
