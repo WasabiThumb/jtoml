@@ -50,6 +50,7 @@ import java.util.function.Function;
  * @see #SNAKE
  * @see #SPLIT
  */
+@ApiStatus.AvailableSince("1.5.0")
 public enum StandardKeyConvention implements KeyConvention {
 
     /**

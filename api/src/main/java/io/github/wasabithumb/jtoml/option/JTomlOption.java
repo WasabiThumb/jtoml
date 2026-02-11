@@ -193,6 +193,7 @@ public interface JTomlOption<T> {
      * at the type or member level. Defaults to
      * {@link StandardKeyConvention#LITERAL LITERAL}.
      */
+    @ApiStatus.AvailableSince("1.5.0")
     JTomlOption<KeyConvention> DEFAULT_KEY_CONVENTION = of(
             "DEFAULT_KEY_CONVENTION",
             KeyConvention.class,

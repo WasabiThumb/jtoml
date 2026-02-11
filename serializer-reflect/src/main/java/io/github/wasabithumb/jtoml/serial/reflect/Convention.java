@@ -37,6 +37,7 @@ import java.lang.annotation.*;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.METHOD, ElementType.TYPE})
+@ApiStatus.AvailableSince("1.5.0")
 public @interface Convention {
     @NotNull StandardKeyConvention value();
 

@@ -17,6 +17,7 @@
 package io.github.wasabithumb.jtoml.key.convention;
 
 import io.github.wasabithumb.jtoml.key.TomlKey;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -32,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
  * @see StandardKeyConvention
  */
 @FunctionalInterface
+@ApiStatus.AvailableSince("1.5.0")
 public interface KeyConvention {
 
     /**
