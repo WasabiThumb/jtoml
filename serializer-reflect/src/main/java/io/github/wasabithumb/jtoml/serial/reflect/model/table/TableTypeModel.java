@@ -18,6 +18,7 @@ package io.github.wasabithumb.jtoml.serial.reflect.model.table;
 
 import io.github.wasabithumb.jtoml.comment.Comments;
 import io.github.wasabithumb.jtoml.key.TomlKey;
+import io.github.wasabithumb.jtoml.key.convention.KeyConvention;
 import io.github.wasabithumb.jtoml.serial.TomlSerializable;
 import io.github.wasabithumb.jtoml.serial.reflect.model.TypeModel;
 import io.github.wasabithumb.jtoml.util.ParameterizedClass;
@@ -48,7 +49,7 @@ public interface TableTypeModel<T> extends TypeModel<T> {
 
         // Map<String, ?>
         ParameterizedClass<?> mt = pc.declaredInterface(Map.class);
-        if (mt != null && mt.paramCount() >= 2 && String.class.equals(mt.param(0))) {
+        if (mt != null && mt.paramCount() == 2 && String.class.equals(mt.param(0))) {
             ParameterizedClass<?> vt = ParameterizedClass.of(mt.param(1));
             return (TableTypeModel<O>) StringMapTableTypeModel.create(raw.asSubclass(Map.class), vt);
         }
@@ -61,24 +62,54 @@ public interface TableTypeModel<T> extends TypeModel<T> {
 
     @NotNull Builder<T> create();
 
-    @NotNull @Unmodifiable Collection<TomlKey> keys(@NotNull T instance);
+    @NotNull Mapper mapper(@NotNull KeyConvention defaultConvention);
 
-    @NotNull ParameterizedClass<?> elementType(@NotNull TomlKey key);
+    /**
+     * @apiNote This is often an expensive operation.
+     * The intent is to call this method ONCE to build a map.
+     */
+    @NotNull @Unmodifiable Collection<? extends Key> keys(@NotNull T instance, @NotNull KeyConvention defaultConvention);
 
-    @UnknownNullability Object get(@NotNull T instance, @NotNull TomlKey key);
+    @NotNull ParameterizedClass<?> elementType(@NotNull Key key);
+
+    @UnknownNullability Object get(@NotNull T instance, @NotNull Key key);
 
     default void applyTableComments(@NotNull Comments comments) { }
 
     @Contract(mutates = "param2")
-    default void applyFieldComments(@NotNull TomlKey key, @NotNull Comments comments) { }
+    default void applyFieldComments(@NotNull Key key, @NotNull Comments comments) { }
 
     //
 
     interface Builder<O> {
 
-        void set(@NotNull TomlKey key, @NotNull Object value);
+        void set(@NotNull Key key, @NotNull Object value);
 
         @NotNull O build();
+
+    }
+
+    /**
+     * Exists to allow the original representation
+     * of the key to be retained by implementers
+     */
+    interface Key {
+
+        @NotNull TomlKey asTomlKey();
+
+        default boolean matches(@NotNull TomlKey other) {
+            return this.asTomlKey().equals(other);
+        }
+
+    }
+
+    interface Mapper {
+
+        @Nullable Key fromTomlKey(@NotNull TomlKey key);
+
+        default @Nullable Map<TomlKey, Key> universe() {
+            return null;
+        }
 
     }
 

@@ -69,6 +69,11 @@ final class JTomlImpl implements JToml {
         return JTomlVersionInfo.derivedVersion();
     }
 
+    @Override
+    public @NotNull JTomlOptions options() {
+        return this.options;
+    }
+
     private @NotNull TomlTable read(@NotNull BufferedCharSource cs) throws TomlException {
         TableReader tr = new TableReader(cs, this.options);
         return tr.readTable();

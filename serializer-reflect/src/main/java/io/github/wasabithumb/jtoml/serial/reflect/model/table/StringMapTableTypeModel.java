@@ -17,11 +17,9 @@
 package io.github.wasabithumb.jtoml.serial.reflect.model.table;
 
 import io.github.wasabithumb.jtoml.key.TomlKey;
+import io.github.wasabithumb.jtoml.key.convention.KeyConvention;
 import io.github.wasabithumb.jtoml.util.ParameterizedClass;
-import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.UnknownNullability;
-import org.jetbrains.annotations.Unmodifiable;
+import org.jetbrains.annotations.*;
 
 import java.util.*;
 
@@ -36,6 +34,17 @@ final class StringMapTableTypeModel<T extends Map<String, V>, V> extends Abstrac
         return new StringMapTableTypeModel<>(mapClass, (ParameterizedClass<IV>) valueType);
     }
 
+    private static @NotNull Key stringKey(@NotNull String value) {
+        return new StringKey(value);
+    }
+
+    private static @NotNull String unwrapStringKey(@NotNull Key key) throws IllegalArgumentException {
+        if (key instanceof StringKey) {
+            return ((StringKey) key).value;
+        }
+        throw new IllegalArgumentException("Key " + key + " is not a StringKey");
+    }
+    
     //
 
     private final Class<T> clazz;
@@ -74,24 +83,26 @@ final class StringMapTableTypeModel<T extends Map<String, V>, V> extends Abstrac
     }
 
     @Override
-    public @NotNull @Unmodifiable Collection<TomlKey> keys(@NotNull T instance) {
+    public @NotNull Mapper mapper(@NotNull KeyConvention defaultConvention) {
+        return StringMapper.INSTANCE;
+    }
+
+    @Override
+    public @NotNull @Unmodifiable Collection<Key> keys(@NotNull T instance, @NotNull KeyConvention convention) {
         Set<String> keys = instance.keySet();
-        List<TomlKey> ret = new ArrayList<>(keys.size());
-        for (String key : keys) ret.add(TomlKey.literal(key));
+        List<Key> ret = new ArrayList<>(keys.size());
+        for (String key : keys) ret.add(stringKey(key));
         return Collections.unmodifiableList(ret);
     }
 
     @Override
-    public @NotNull ParameterizedClass<?> elementType(@NotNull TomlKey key) {
+    public @NotNull ParameterizedClass<?> elementType(@NotNull Key ignored) {
         return this.valueType;
     }
 
     @Override
-    public @UnknownNullability Object get(@NotNull T instance, @NotNull TomlKey key) {
-        if (key.size() != 1)
-            throw new IllegalArgumentException("Illegal key size (expected 1, got " + key.size() + ")");
-
-        return instance.get(key.get(0));
+    public @UnknownNullability Object get(@NotNull T instance, @NotNull Key key) {
+        return instance.get(unwrapStringKey(key));
     }
 
     //
@@ -109,16 +120,42 @@ final class StringMapTableTypeModel<T extends Map<String, V>, V> extends Abstrac
         //
 
         @Override
-        public void set(@NotNull TomlKey key, @NotNull Object value) {
-            if (key.size() != 1)
-                throw new IllegalArgumentException("Illegal key size (expected 1, got " + key.size() + ")");
-
-            this.map.put(key.get(0), this.parent.valueType.raw().cast(value));
+        public void set(@NotNull Key key, @NotNull Object value) {
+            this.map.put(unwrapStringKey(key), this.parent.valueType.raw().cast(value));
         }
 
         @Override
         public @NotNull T build() {
             return this.map;
+        }
+
+    }
+
+    private static final class StringKey extends AbstractKey {
+
+        private final String value;
+
+        StringKey(@NotNull String value) {
+            this.value = value;
+        }
+
+        //
+
+        @Override
+        public @NotNull TomlKey asTomlKey() {
+            return TomlKey.literal(this.value);
+        }
+
+    }
+
+    private static final class StringMapper implements Mapper {
+
+        static final StringMapper INSTANCE = new StringMapper();
+
+        @Override
+        public @NotNull Key fromTomlKey(@NotNull TomlKey key) {
+            if (key.size() != 1) throw new IllegalStateException("TOML key should have 1 part when associated with string map (got " + key + ")");
+            return new StringKey(key.get(0));
         }
 
     }
