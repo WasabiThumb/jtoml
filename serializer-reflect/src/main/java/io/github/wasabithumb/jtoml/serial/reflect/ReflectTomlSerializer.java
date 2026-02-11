@@ -244,7 +244,7 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
                 TomlValue value = table.get(entry.getKey());
                 if (value == null) {
                     throw new IllegalArgumentException(
-                            "Table serialized as " + model.type().getName() +
+                            "Table serialized to " + model.type().getName() +
                             " does not contain key " + entry.getKey()
                     );
                 }
@@ -342,7 +342,7 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
             TomlKey tomlKey = key.asTomlKey();
             TomlValue old = ret.put(tomlKey, nextValue);
             if (old != null) {
-                throw new IllegalArgumentException(
+                throw new IllegalStateException(
                         "Serializable type " + model.type().getName() +
                         " defines key (" + tomlKey + ") more than once"
                 );
