@@ -74,9 +74,14 @@ dependencies {
 
 tasks.register<FetchTestsTask>("fetchTests") {
     outputs.upToDateWhen { false }
-    outDir.set(layout.projectDirectory.dir("src/test/resources"))
 }
 
 tasks.processTestResources {
-    dependsOn(tasks.named("fetchTests"))
+    // Cases from official test suite
+    val fetchTests = tasks.named("fetchTests")
+    val tests = fetchTests.map { it.outputs.files.singleFile }
+    dependsOn(fetchTests)
+    into("tests") {
+        from(tests)
+    }
 }

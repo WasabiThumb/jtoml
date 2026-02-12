@@ -1,107 +1,54 @@
 package tasks
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import java.lang.IllegalStateException
-import java.lang.UnsupportedOperationException
 
 import java.nio.file.Files
-import java.nio.file.LinkOption
 import java.nio.file.Path
-import kotlin.io.path.exists
-import kotlin.io.path.name
 
 abstract class FetchTestsTask : DefaultTask() {
 
-    @get:OutputDirectory
-    abstract val outDir: DirectoryProperty
+    private val workDir: Path
+    private val gitMetaDir: Path
+    private val outDir: Path
 
-    private val tempDir: Path by lazy {
-        val dir = this.project.layout.buildDirectory.get()
-            .asFile
-            .toPath()
-            .resolve("tmp")
-            .resolve(this.name)
+    init {
+        val workDir = this.temporaryDir.toPath()
+        val gitMetaDir = workDir.resolve(".git")
+        val outDir = workDir.resolve("tests")
 
-        if (!Files.exists(dir))
-            Files.createDirectories(dir)
-
-        dir
+        this.workDir = workDir
+        this.gitMetaDir = gitMetaDir
+        this.outDir = outDir
+        this.outputs.dir(outDir)
     }
 
     //
 
     @TaskAction
     fun execute() {
-        val dir = this.tempDir
-        val repo = this.tempDir.resolve("toml-test")
-
-        if (!Files.exists(repo)) {
+        if (!Files.exists(this.gitMetaDir)) {
             this.logger.lifecycle("Cloning toml-lang/toml-test")
-            this.runGit(dir, "clone", "https://github.com/toml-lang/toml-test")
+            this.runGit(this.workDir, "init")
+            this.runGit(this.workDir, "remote", "add", "origin", "https://github.com/toml-lang/toml-test")
+            this.runGit(this.workDir, "fetch", "origin")
+            this.runGit(this.workDir, "checkout", "origin/main", "-ft")
         } else {
             // this.logger.lifecycle("Checking for test suite updates")
             // this.runGit(repo, "fetch", "origin")
         }
 
-        val currentSha = runGit(repo, "rev-parse", "HEAD").first()
-        val targetTag = runGit(repo, "tag", "--sort=v:refname").last { it.startsWith("v1") }
-        val targetSha = runGit(repo, "rev-list", "-n", "1", targetTag).first()
+        val currentSha = runGit(this.workDir, "rev-parse", "HEAD").first()
+        val targetTag = runGit(this.workDir, "tag", "--sort=v:refname").last { it.startsWith("v1") }
+        val targetSha = runGit(this.workDir, "rev-list", "-n", "1", targetTag).first()
 
         if (currentSha == targetSha) {
             this.logger.lifecycle("Test suite is up-to-date")
         } else {
             this.logger.lifecycle("Changing test suite version to $targetTag")
-            this.runGit(repo, "checkout", targetSha)
+            this.runGit(this.workDir, "checkout", targetSha)
         }
-
-        val srcDir = repo.resolve("tests")
-        val targetDir = this.outDir.get().asFile.toPath().resolve("tests")
-
-        if (!Files.exists(srcDir)) {
-            throw Error("\"tests\" directory not found in repository")
-        }
-
-        // Either symlink or copy src to target
-        if (Files.exists(targetDir)) this.nuke(targetDir)
-        try {
-            Files.createSymbolicLink(targetDir, srcDir)
-        } catch (e: UnsupportedOperationException) {
-            this.logger.warn("Failed to create symbolic link, making full copy")
-            this.copyDir(srcDir, targetDir)
-        }
-    }
-
-    private fun copyDir(src: Path, target: Path) {
-        if (!Files.exists(target))
-            Files.createDirectories(target)
-
-        Files.list(src).use { stream ->
-            val iter = stream.iterator()
-            while (iter.hasNext()) {
-                val ent = iter.next()
-                if (Files.isSymbolicLink(ent)) {
-                    Files.createSymbolicLink(target.resolve(ent.name), Files.readSymbolicLink(ent))
-                } else if (Files.isDirectory(ent, LinkOption.NOFOLLOW_LINKS)) {
-                    this.copyDir(ent, target.resolve(ent.name))
-                } else {
-                    Files.copy(ent, target.resolve(ent.name))
-                }
-            }
-        }
-    }
-
-    private fun nuke(ent: Path) {
-        if (Files.isDirectory(ent, LinkOption.NOFOLLOW_LINKS)) {
-            Files.list(ent).use { stream ->
-                val iter = stream.iterator()
-                while (iter.hasNext()) this.nuke(iter.next())
-            }
-        }
-        Files.delete(ent)
     }
 
     private fun runGit(dir: Path, vararg args: String): List<String> {
