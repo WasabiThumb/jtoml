@@ -67,6 +67,13 @@ public interface JToml {
     @NotNull String version();
 
     /**
+     * Reports the configured options of this
+     * JToml instance. This is immutable, you cannot
+     * modify the options of a created instance.
+     */
+    @NotNull JTomlOptions options();
+
+    /**
      * Reads a TOML table from a string
      * @param toml A string containing a TOML document
      * @throws TomlException String is not valid TOML

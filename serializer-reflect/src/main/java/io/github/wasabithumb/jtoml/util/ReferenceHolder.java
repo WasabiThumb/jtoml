@@ -21,9 +21,11 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Method;
 
 /**
  * Holds {@link java.lang.ref.WeakReference}s,
@@ -43,28 +45,37 @@ public final class ReferenceHolder {
     private static final double LOAD_FACTOR = 0.75d;
 
     private static final boolean SUPPORTS_REFERS_TO;
-    private static final Method REFERS_TO;
+    private static final MethodHandle REFERS_TO;
     static {
-        Method refersTo = null;
-        boolean supportsRefersTo = false;
+        SUPPORTS_REFERS_TO = (REFERS_TO = findRefRefersTo()) != null;
+    }
+
+    private static @Nullable MethodHandle findRefRefersTo() {
         try {
-            //noinspection JavaReflectionMemberAccess
-            refersTo = Reference.class.getMethod("refersTo", Object.class);
-            supportsRefersTo = true;
-        } catch (ReflectiveOperationException | SecurityException ignored) { }
-        SUPPORTS_REFERS_TO = supportsRefersTo;
-        REFERS_TO = refersTo;
+            return MethodHandles.publicLookup()
+                    .findVirtual(
+                            Reference.class,
+                            "refersTo",
+                            MethodType.methodType(Boolean.TYPE, Object.class)
+                    );
+        } catch (NoSuchMethodException ignored) {
+            return null;
+        } catch (Exception e) {
+            throw new AssertionError("Unable to access Reference#refersTo", e);
+        }
     }
 
     private static boolean refEqual(@NotNull Object value, @NotNull WeakReference<Object> ref) {
-        if (SUPPORTS_REFERS_TO) {
-            try {
-                return (Boolean) REFERS_TO.invoke(ref, value);
-            } catch (ReflectiveOperationException | SecurityException e) {
-                throw new AssertionError(e);
-            }
+        if (!SUPPORTS_REFERS_TO) {
+            return value.equals(ref.get());
         }
-        return value.equals(ref.get());
+        try {
+            return (boolean) REFERS_TO.invokeExact((Reference<Object>) ref, value);
+        } catch (RuntimeException re) {
+            throw re;
+        } catch (Throwable t) {
+            throw new AssertionError("Unable to invoke Reference#refersTo", t);
+        }
     }
 
     @Contract("_ -> new")
@@ -105,7 +116,7 @@ public final class ReferenceHolder {
             while (next != null) {
                 referent = next.value.get();
                 if (referent != null) {
-                    int idx = this.hash(referent, newCapacity);
+                    int idx = hash(referent, newCapacity);
                     Bucket newBucket = new Bucket(next.value, nb[idx]);
                     nb[idx] = newBucket;
                     newSize++;
@@ -120,7 +131,7 @@ public final class ReferenceHolder {
     }
 
     public boolean add(@NotNull Object object) {
-        int hash = this.hash(object, this.capacity);
+        int hash = hash(object, this.capacity);
         final Bucket root = this.buckets[hash];
         Bucket next = root;
         while (next != null) {
@@ -137,7 +148,7 @@ public final class ReferenceHolder {
     }
 
     public boolean contains(@NotNull Object object) {
-        int hash = this.hash(object, this.capacity);
+        int hash = hash(object, this.capacity);
         Bucket next = this.buckets[hash];
         while (next != null) {
             if (refEqual(object, next.value)) return true;
@@ -146,10 +157,8 @@ public final class ReferenceHolder {
         return false;
     }
 
-    private int hash(@NotNull Object object, int mod) {
-        long h = Integer.toUnsignedLong(System.identityHashCode(object));
-        h %= mod;
-        return (int) h;
+    private static int hash(@NotNull Object object, int mod) {
+        return Integer.remainderUnsigned(System.identityHashCode(object), mod);
     }
 
     //

@@ -17,6 +17,8 @@
 package io.github.wasabithumb.jtoml.serial.reflect;
 
 import io.github.wasabithumb.jtoml.key.TomlKey;
+import io.github.wasabithumb.jtoml.key.convention.KeyConvention;
+import io.github.wasabithumb.jtoml.key.convention.StandardKeyConvention;
 import io.github.wasabithumb.jtoml.serial.TomlSerializable;
 import io.github.wasabithumb.jtoml.serial.TomlSerializer;
 import io.github.wasabithumb.jtoml.serial.reflect.adapter.TypeAdapter;
@@ -36,6 +38,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Modifier;
+import java.util.Map;
 
 /**
  * Handles reflection-powered conversion of TOML tables
@@ -81,15 +84,17 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
 
     private final TableTypeModel<T> model;
     private final TypeAdapters adapters;
+    private final KeyConvention defaultConvention;
     private final int capabilities;
 
     /**
      * Create a new serializer for converting objects of the given
      * type to/from a TOML table. The newly created serializer will
-     * use the {@link TypeAdapters#standard() standard set} of adapters.
+     * use the {@link TypeAdapters#standard() standard set} of adapters
+     * and use {@link StandardKeyConvention#LITERAL LITERAL} as the
+     * default key convention.
      * @param type The table-like type to convert to/from.
      * @throws IllegalArgumentException The given type is not serializable.
-     * @see #ReflectTomlSerializer(Class, TypeAdapters)
      */
     public ReflectTomlSerializer(
             @NotNull Class<T> type
@@ -99,22 +104,54 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
 
     /**
      * Create a new serializer for converting objects of the given
-     * type to/from a TOML table.
+     * type to/from a TOML table. The newly created serializer will use
+     * {@link StandardKeyConvention#LITERAL LITERAL} as the default key convention.
      * @param type The table-like type to convert to/from.
      * @param adapters Describes how leaves in the document tree may be converted to/from Java objects.
      * @throws IllegalArgumentException The given type is not serializable.
-     * @see #ReflectTomlSerializer(Class)
      */
     public ReflectTomlSerializer(
             @NotNull Class<T> type,
             @NotNull TypeAdapters adapters
     ) throws IllegalArgumentException {
-        this(type, adapters, C_SERIALIZE | C_DESERIALIZE);
+        this(type, adapters, StandardKeyConvention.LITERAL);
+    }
+
+    /**
+     * Create a new serializer for converting objects of the given
+     * type to/from a TOML table. The newly created serializer will
+     * use the {@link TypeAdapters#standard() standard set} of adapters.
+     * @param type The table-like type to convert to/from.
+     * @param defaultConvention The default {@link KeyConvention key convention} to use.
+     * @throws IllegalArgumentException The given type is not serializable.
+     */
+    public ReflectTomlSerializer(
+            @NotNull Class<T> type,
+            @NotNull KeyConvention defaultConvention
+    ) throws IllegalArgumentException {
+        this(type, TypeAdapters.standard(), defaultConvention);
+    }
+
+    /**
+     * Create a new serializer for converting objects of the given
+     * type to/from a TOML table.
+     * @param type The table-like type to convert to/from.
+     * @param adapters Describes how leaves in the document tree may be converted to/from Java objects.
+     * @param defaultConvention The default {@link KeyConvention key convention} to use.
+     * @throws IllegalArgumentException The given type is not serializable.
+     */
+    public ReflectTomlSerializer(
+            @NotNull Class<T> type,
+            @NotNull TypeAdapters adapters,
+            @NotNull KeyConvention defaultConvention
+    ) throws IllegalArgumentException {
+        this(type, adapters, defaultConvention, C_SERIALIZE | C_DESERIALIZE);
     }
 
     ReflectTomlSerializer(
             @NotNull Class<T> type,
             @NotNull TypeAdapters adapters,
+            @NotNull KeyConvention defaultConvention,
             @MagicConstant(flags = { C_SERIALIZE, C_DESERIALIZE }) int capabilities
     ) {
         checkType(type, capabilities);
@@ -122,6 +159,7 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
         assert model != null;
         this.model = model;
         this.adapters = adapters;
+        this.defaultConvention = defaultConvention;
         this.capabilities = capabilities;
     }
 
@@ -197,15 +235,36 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
             @NotNull TableTypeModel<E> model,
             @NotNull TomlTable table
     ) {
+        TableTypeModel.Mapper mapper = model.mapper(this.defaultConvention);
         TableTypeModel.Builder<E> builder = model.create();
+        Map<TomlKey, TableTypeModel.Key> universe = mapper.universe();
 
-        for (TomlKey tk : table.keys(false)) {
-            TomlValue value = table.get(tk);
-            assert value != null;
+        if (universe != null) {
+            for (Map.Entry<TomlKey, TableTypeModel.Key> entry : universe.entrySet()) {
+                TomlValue value = table.get(entry.getKey());
+                if (value == null) {
+                    throw new IllegalArgumentException(
+                            "Table serialized to " + model.type().getName() +
+                            " does not contain key " + entry.getKey()
+                    );
+                }
 
-            TypeModel<?> valueModel = TypeModel.of(model.elementType(tk));
-            Object object = this.serializeValue(valueModel, value);
-            builder.set(tk, object);
+                TypeModel<?> valueModel = TypeModel.of(model.elementType(entry.getValue()));
+                Object object = this.serializeValue(valueModel, value);
+                builder.set(entry.getValue(), object);
+            }
+        } else {
+            for (TomlKey tk : table.keys(false)) {
+                TomlValue value = table.get(tk);
+                assert value != null;
+
+                TableTypeModel.Key key = mapper.fromTomlKey(tk);
+                if (key == null) continue;
+
+                TypeModel<?> valueModel = TypeModel.of(model.elementType(key));
+                Object object = this.serializeValue(valueModel, value);
+                builder.set(key, object);
+            }
         }
 
         return builder.build();
@@ -271,7 +330,7 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
 
         Object next;
         TomlValue nextValue;
-        for (TomlKey key : model.keys(value)) {
+        for (TableTypeModel.Key key : model.keys(value, this.defaultConvention)) {
             TypeModel<?> valueModel = TypeModel.of(model.elementType(key));
             next = model.get(value, key);
             nextValue = this.deserializeValueUnsafe(
@@ -280,7 +339,14 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
                     next
             );
             model.applyFieldComments(key, nextValue.comments());
-            ret.put(key, nextValue);
+            TomlKey tomlKey = key.asTomlKey();
+            TomlValue old = ret.put(tomlKey, nextValue);
+            if (old != null) {
+                throw new IllegalStateException(
+                        "Serializable type " + model.type().getName() +
+                        " defines key (" + tomlKey + ") more than once"
+                );
+            }
         }
 
         model.applyTableComments(ret.comments());

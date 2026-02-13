@@ -14,26 +14,13 @@
  * limitations under the License.
  */
 
-package io.github.wasabithumb.jtoml.test;
+package io.github.wasabithumb.jtoml.route;
 
-import io.github.wasabithumb.jtoml.value.table.TomlTable;
+import java.lang.annotation.*;
 
-final class InvalidTestSpec extends AbstractTestSpec {
-
-    public InvalidTestSpec(String name) {
-        super(name);
-    }
-
-    //
-
-    @Override
-    public boolean shouldFail() {
-        return true;
-    }
-
-    @Override
-    public void validate(TomlTable table) {
-        throw new UnsupportedOperationException();
-    }
-
+@Documented
+@Target(ElementType.FIELD)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Sentinel {
+    String value();
 }

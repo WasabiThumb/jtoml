@@ -17,8 +17,7 @@
 package io.github.wasabithumb.jtoml.serial.reflect.model.table;
 
 import io.github.wasabithumb.jtoml.comment.Comments;
-import io.github.wasabithumb.jtoml.key.TomlKey;
-import io.github.wasabithumb.jtoml.serial.reflect.Key;
+import io.github.wasabithumb.jtoml.key.convention.KeyConvention;
 import io.github.wasabithumb.jtoml.util.ParameterizedClass;
 import io.github.wasabithumb.recsup.RecordClass;
 import io.github.wasabithumb.recsup.RecordComponent;
@@ -28,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.UnknownNullability;
 import org.jetbrains.annotations.Unmodifiable;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -35,31 +35,30 @@ import java.util.*;
 @ApiStatus.Internal
 final class RecordTableTypeModel<T> extends AbstractTableTypeModel<T> {
 
-    private static @NotNull Map<TomlKey, RecordComponent> buildComponentMap(@NotNull RecordClass<?> cls) {
-        Map<TomlKey, RecordComponent> ret = new HashMap<>();
-        for (RecordComponent rc : cls.getRecordComponents()) {
-            String name = rc.getName();
-            Key annotation = rc.getAccessor().getAnnotation(Key.class);
-            if (annotation != null) name = annotation.value();
-            TomlKey key = TomlKey.literal(name);
-            RecordComponent existing = ret.get(key);
-            if (existing != null) {
-                throw new IllegalStateException("Record component (" + rc.getName() + ") defined with key " + key +
-                        " shadows existing component (" + existing.getName() + ") defined with same key");
-            }
-            ret.put(key, rc);
+    private static @NotNull Key recordComponentKey(
+            @NotNull RecordComponent component,
+            @NotNull KeyConvention defaultConvention
+    ) {
+        return new RecordComponentKey(component, defaultConvention);
+    }
+
+    private static @NotNull RecordComponent unwrapRecordComponentKey(
+            @NotNull Key key
+    ) {
+        if (key instanceof RecordComponentKey) {
+            return ((RecordComponentKey) key).component;
         }
-        return Collections.unmodifiableMap(ret);
+        throw new IllegalArgumentException("Key " + key + " is not a RecordComponentKey");
     }
 
     //
 
     private final RecordClass<T> clazz;
-    private final Map<TomlKey, RecordComponent> components;
+    private final RecordComponent[] components;
 
     RecordTableTypeModel(@NotNull Class<T> clazz) {
         this.clazz = RecordSupport.asRecord(clazz);
-        this.components = buildComponentMap(this.clazz);
+        this.components = this.clazz.getRecordComponents();
     }
 
     //
@@ -75,30 +74,34 @@ final class RecordTableTypeModel<T> extends AbstractTableTypeModel<T> {
     }
 
     @Override
-    public @NotNull @Unmodifiable Collection<TomlKey> keys(@NotNull T instance) {
-        return this.components.keySet();
-    }
-
-    private @NotNull RecordComponent lookupComponent(@NotNull TomlKey key) {
-        if (key.size() != 1)
-            throw new IllegalArgumentException("Invalid key size (expected 1, got " + key.size() + ")");
-
-        RecordComponent rc = this.components.get(key);
-        if (rc != null) return rc;
-
-        throw new IllegalArgumentException("Record " + this.clazz.handle().getName() +
-                " has no component with key " + key.get(0));
+    public @NotNull Mapper mapper(@NotNull KeyConvention defaultConvention) {
+        return new FixedMapper(this, this.keys(defaultConvention));
     }
 
     @Override
-    public @NotNull ParameterizedClass<?> elementType(@NotNull TomlKey key) {
-        RecordComponent rc = this.lookupComponent(key);
-        return new ParameterizedClass<>(rc.getType(), rc.getGenericType());
+    public @NotNull @Unmodifiable Collection<Key> keys(@NotNull T instance, @NotNull KeyConvention defaultConvention) {
+        return this.keys(defaultConvention);
+    }
+
+    private @NotNull @Unmodifiable Collection<Key> keys(@NotNull KeyConvention defaultConvention) {
+        List<Key> ret = new ArrayList<>(this.components.length);
+        for (RecordComponent rc : this.components) ret.add(recordComponentKey(rc, defaultConvention));
+        return Collections.unmodifiableList(ret);
     }
 
     @Override
-    public @UnknownNullability Object get(@NotNull T instance, @NotNull TomlKey key) {
-        Method m = this.lookupComponent(key).getAccessor();
+    public @NotNull ParameterizedClass<?> elementType(@NotNull Key key) {
+        final RecordComponent componentKey = unwrapRecordComponentKey(key);
+        return new ParameterizedClass<>(componentKey.getType(), componentKey.getGenericType());
+    }
+
+    @Override
+    public @UnknownNullability Object get(@NotNull T instance, @NotNull Key key) {
+        final RecordComponent component = unwrapRecordComponentKey(key);
+        final Method m = component.getAccessor();
+        try {
+            m.setAccessible(true);
+        } catch (Exception ignored) { }
         try {
             return m.invoke(instance);
         } catch (InvocationTargetException | ExceptionInInitializerError e) {
@@ -113,13 +116,13 @@ final class RecordTableTypeModel<T> extends AbstractTableTypeModel<T> {
 
     @Override
     public void applyTableComments(@NotNull Comments comments) {
-        applyAnnotationComments(this.clazz.handle().getDeclaredAnnotations(), comments);
+        applyAnnotationComments(this.clazz.handle(), comments);
     }
 
     @Override
-    public void applyFieldComments(@NotNull TomlKey key, @NotNull Comments comments) {
-        RecordComponent component = this.lookupComponent(key);
-        applyAnnotationComments(component.getAccessor().getDeclaredAnnotations(), comments);
+    public void applyFieldComments(@NotNull Key key, @NotNull Comments comments) {
+        final RecordComponent component = unwrapRecordComponentKey(key);
+        applyAnnotationComments(component.getAccessor(), comments);
     }
 
     //
@@ -131,21 +134,26 @@ final class RecordTableTypeModel<T> extends AbstractTableTypeModel<T> {
 
         private Builder(@NotNull RecordTableTypeModel<O> parent) {
             this.parent = parent;
-            this.values = new Object[parent.components.size()];
+            this.values = new Object[parent.components.length];
         }
 
         //
 
         @Override
-        public void set(@NotNull TomlKey key, @NotNull Object value) {
-            RecordComponent component = this.parent.lookupComponent(key);
+        public void set(@NotNull Key key, @NotNull Object value) {
+            final RecordComponent component = unwrapRecordComponentKey(key);
             this.values[component.index()] = value;
         }
 
         @Override
         public @NotNull O build() {
+            Constructor<O> con = this.parent.clazz.getPrimaryConstructor();
             try {
-                return this.parent.clazz.getPrimaryConstructor().newInstance(this.values);
+                con.setAccessible(true);
+            } catch (Exception ignored) { }
+
+            try {
+                return con.newInstance(this.values);
             } catch (InvocationTargetException | ExceptionInInitializerError e) {
                 Throwable cause = e.getCause();
                 if (cause == null) cause = e;
@@ -154,6 +162,20 @@ final class RecordTableTypeModel<T> extends AbstractTableTypeModel<T> {
             } catch (ReflectiveOperationException e) {
                 throw new AssertionError("Unexpected reflection error", e);
             }
+        }
+
+    }
+
+    private static final class RecordComponentKey extends MemberKey<Method> {
+
+        private final RecordComponent component;
+
+        RecordComponentKey(
+                @NotNull RecordComponent component,
+                @NotNull KeyConvention defaultConvention
+        ) {
+            super(component.getAccessor(), defaultConvention);
+            this.component = component;
         }
 
     }
