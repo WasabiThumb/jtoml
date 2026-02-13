@@ -100,6 +100,9 @@ final class RecordTableTypeModel<T> extends AbstractTableTypeModel<T> {
         final RecordComponent component = unwrapRecordComponentKey(key);
         final Method m = component.getAccessor();
         try {
+            m.setAccessible(true);
+        } catch (Exception ignored) { }
+        try {
             return m.invoke(instance);
         } catch (InvocationTargetException | ExceptionInInitializerError e) {
             Throwable cause = e.getCause();

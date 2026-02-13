@@ -1,0 +1,38 @@
+
+# The "people" array is declared in
+# ascending date order in order to
+# give the test route something to
+# validate. Data is taken from the
+# random tab of famousbirthdays.com
+
+[[people]]
+name = "Madonna"
+date-of-birth = 1958-08-16
+
+[[people]]
+name = "Heath Ledger"
+date-of-birth = 1979-04-04
+
+[[people]]
+name = "LeBron James"
+date-of-birth = 1984-12-30
+
+[[people]]
+name = "Rihanna"
+date-of-birth = 1988-02-20
+
+[[people]]
+name = "Taylor Swift"
+date-of-birth = 1989-12-13
+
+[[people]]
+name = "Harry Styles"
+date-of-birth = 1994-02-01
+
+[[people]]
+name = "Lil Nas X"
+date-of-birth = 1999-04-09
+
+[[people]]
+name = "Ice Spice"
+date-of-birth = 2000-01-01

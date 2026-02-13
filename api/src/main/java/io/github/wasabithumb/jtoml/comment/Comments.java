@@ -39,6 +39,14 @@ public interface Comments {
         return CommentsImpl.copyOf(other);
     }
 
+    @Contract("_ -> new")
+    @ApiStatus.AvailableSince("1.5.0")
+    static @NotNull Comments comments(@NotNull Comment @NotNull ... src) {
+        Comments ret = empty();
+        for (Comment comment : src) ret.add(comment);
+        return ret;
+    }
+
     //
 
     /**

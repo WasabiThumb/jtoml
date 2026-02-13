@@ -1,0 +1,8 @@
+# PRE 1
+# PRE 2
+[inner] # INLINE A
+# PRE 1
+# PRE 2
+value = 42 # INLINE B
+# POST 1
+# POST 2

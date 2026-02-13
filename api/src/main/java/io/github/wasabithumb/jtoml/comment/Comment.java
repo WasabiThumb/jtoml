@@ -40,6 +40,24 @@ public interface Comment {
         return new CommentImpl(position, content);
     }
 
+    @Contract("_ -> new")
+    @ApiStatus.AvailableSince("1.5.0")
+    static @NotNull Comment pre(@NotNull String content) {
+        return of(CommentPosition.PRE, content);
+    }
+
+    @Contract("_ -> new")
+    @ApiStatus.AvailableSince("1.5.0")
+    static @NotNull Comment post(@NotNull String content) {
+        return of(CommentPosition.POST, content);
+    }
+
+    @Contract("_ -> new")
+    @ApiStatus.AvailableSince("1.5.0")
+    static @NotNull Comment inline(@NotNull String content) {
+        return of(CommentPosition.INLINE, content);
+    }
+
     //
 
     /**

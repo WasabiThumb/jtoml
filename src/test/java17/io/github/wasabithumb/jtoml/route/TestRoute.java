@@ -23,6 +23,7 @@ public interface TestRoute {
             try {
                 this.executeFailing(instance);
             } catch (Throwable error) {
+                error.printStackTrace(System.err);
                 t = error;
             }
 

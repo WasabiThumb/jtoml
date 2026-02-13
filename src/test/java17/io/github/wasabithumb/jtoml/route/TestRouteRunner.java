@@ -8,9 +8,11 @@ import org.junit.jupiter.api.function.Executable;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.lang.reflect.InaccessibleObjectException;
 import java.lang.reflect.Modifier;
+import java.nio.charset.StandardCharsets;
 import java.util.function.BiConsumer;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -57,7 +59,17 @@ public record TestRouteRunner(
             String path
     ) throws IOException {
         String fullPath = "/sentinel/" + path;
-        TomlDocument doc;
+        SentinelType sentinelType;
+        Object value;
+
+        Class<?> type = field.getType();
+        if (type.isAssignableFrom(String.class)) {
+            sentinelType = SentinelType.STRING;
+        } else if (type.isAssignableFrom(TomlDocument.class)) {
+            sentinelType = SentinelType.DOCUMENT;
+        } else {
+            sentinelType = SentinelType.COMPLEX;
+        }
 
         try (InputStream in = TestRouteRunner.class.getResourceAsStream(fullPath)) {
             if (in == null) {
@@ -67,15 +79,20 @@ public record TestRouteRunner(
                                 " (resource not found)"
                 );
             }
-            doc = toml.read(in);
-        }
-
-        Class<?> type = field.getType();
-        Object value;
-        if (type.isAssignableFrom(TomlDocument.class)) {
-            value = doc;
-        } else {
-            value = toml.fromToml(type, doc);
+            value = switch (sentinelType) {
+                case STRING -> {
+                    InputStreamReader reader = new InputStreamReader(in, StandardCharsets.UTF_8);
+                    StringBuilder sb = new StringBuilder();
+                    char[] buf = new char[512];
+                    int read;
+                    while ((read = reader.read(buf)) != -1) {
+                        sb.append(buf, 0, read);
+                    }
+                    yield sb.toString();
+                }
+                case DOCUMENT -> toml.read(in);
+                case COMPLEX -> toml.fromToml(type, toml.read(in));
+            };
         }
 
         Throwable suppressed = null;
@@ -107,6 +124,14 @@ public record TestRouteRunner(
             }
             type = type.getSuperclass();
         } while (type != null && TestRoute.class.isAssignableFrom(type));
+    }
+
+    //
+
+    private enum SentinelType {
+        STRING,
+        DOCUMENT,
+        COMPLEX
     }
 
 }
