@@ -28,11 +28,13 @@ import io.github.wasabithumb.jtoml.key.TomlKey;
 import io.github.wasabithumb.jtoml.key.convention.StandardKeyConvention;
 import io.github.wasabithumb.jtoml.option.JTomlOption;
 import io.github.wasabithumb.jtoml.option.JTomlOptions;
+import io.github.wasabithumb.jtoml.route.TestRouteRunner;
+import io.github.wasabithumb.jtoml.route.TestRoutes;
 import io.github.wasabithumb.jtoml.serial.reflect.ReflectTomlSerializer;
 import io.github.wasabithumb.jtoml.serial.reflect.adapter.TypeAdapter;
 import io.github.wasabithumb.jtoml.serial.reflect.adapter.TypeAdapters;
-import io.github.wasabithumb.jtoml.test.TestSpec;
-import io.github.wasabithumb.jtoml.test.TestSpecs;
+import io.github.wasabithumb.jtoml.spec.TestSpec;
+import io.github.wasabithumb.jtoml.spec.TestSpecs;
 import io.github.wasabithumb.jtoml.value.TomlValue;
 import io.github.wasabithumb.jtoml.value.array.TomlArray;
 import io.github.wasabithumb.jtoml.value.primitive.TomlPrimitive;
@@ -62,6 +64,12 @@ class JTomlTest {
     }
 
     //
+
+    @TestFactory
+    Stream<DynamicTest> routes() {
+        return TestRoutes.stream()
+                .map(TestRouteRunner::newDynamicTest);
+    }
 
     @Test
     void readerWriter() {

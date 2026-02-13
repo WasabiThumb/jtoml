@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.UnknownNullability;
 import org.jetbrains.annotations.Unmodifiable;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -143,8 +144,13 @@ final class RecordTableTypeModel<T> extends AbstractTableTypeModel<T> {
 
         @Override
         public @NotNull O build() {
+            Constructor<O> con = this.parent.clazz.getPrimaryConstructor();
             try {
-                return this.parent.clazz.getPrimaryConstructor().newInstance(this.values);
+                con.setAccessible(true);
+            } catch (Exception ignored) { }
+
+            try {
+                return con.newInstance(this.values);
             } catch (InvocationTargetException | ExceptionInInitializerError e) {
                 Throwable cause = e.getCause();
                 if (cause == null) cause = e;

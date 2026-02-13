@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.github.wasabithumb.jtoml.test;
+package io.github.wasabithumb.jtoml.spec;
 
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
 
