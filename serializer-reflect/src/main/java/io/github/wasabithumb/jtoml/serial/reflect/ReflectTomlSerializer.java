@@ -39,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Modifier;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Handles reflection-powered conversion of TOML tables
@@ -241,17 +242,24 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
 
         if (universe != null) {
             for (Map.Entry<TomlKey, TableTypeModel.Key> entry : universe.entrySet()) {
+                TableTypeModel.Key modelKey = entry.getValue();
                 TomlValue value = table.get(entry.getKey());
+
                 if (value == null) {
-                    throw new IllegalArgumentException(
-                            "Table serialized to " + model.type().getName() +
-                            " does not contain key " + entry.getKey()
-                    );
+                    if (!modelKey.isDefaulting()) {
+                        throw new IllegalArgumentException(
+                                "Table serialized to " + model.type().getName() +
+                                        " does not contain key " + entry.getKey()
+                        );
+                    }
+                    Object defaultValue = modelKey.defaultValue();
+                    if (defaultValue != null) builder.set(modelKey, defaultValue);
+                    continue;
                 }
 
-                TypeModel<?> valueModel = TypeModel.of(model.elementType(entry.getValue()));
+                TypeModel<?> valueModel = TypeModel.of(model.elementType(modelKey));
                 Object object = this.serializeValue(valueModel, value);
-                builder.set(entry.getValue(), object);
+                builder.set(modelKey, object);
             }
         } else {
             for (TomlKey tk : table.keys(false)) {
@@ -333,6 +341,13 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
         for (TableTypeModel.Key key : model.keys(value, this.defaultConvention)) {
             TypeModel<?> valueModel = TypeModel.of(model.elementType(key));
             next = model.get(value, key);
+            if (key.isDefaulting() && Objects.equals(next, key.defaultValue())) continue;
+            if (next == null) {
+                throw new IllegalStateException(
+                        "Value for key " + key + " in instance of serializable type " +
+                        model.type().getName() + " is null (not the default value)"
+                );
+            }
             nextValue = this.deserializeValueUnsafe(
                     ReferenceHolder.copyOf(parents),
                     valueModel,
