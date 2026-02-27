@@ -89,16 +89,16 @@ public interface TableTypeModel<T> extends TypeModel<T> {
 
     }
 
-    /**
-     * Exists to allow the original representation
-     * of the key to be retained by implementers
-     */
     interface Key {
 
         @NotNull TomlKey asTomlKey();
 
-        default boolean matches(@NotNull TomlKey other) {
-            return this.asTomlKey().equals(other);
+        default boolean isDefaulting() {
+            return false;
+        }
+
+        default @Nullable Object defaultValue() throws UnsupportedOperationException {
+            throw new UnsupportedOperationException();
         }
 
     }

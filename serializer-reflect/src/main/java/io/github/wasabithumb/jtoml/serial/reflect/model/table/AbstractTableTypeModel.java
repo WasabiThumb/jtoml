@@ -22,6 +22,7 @@ import io.github.wasabithumb.jtoml.comment.MultiComment;
 import io.github.wasabithumb.jtoml.key.TomlKey;
 import io.github.wasabithumb.jtoml.key.convention.KeyConvention;
 import io.github.wasabithumb.jtoml.serial.reflect.Convention;
+import io.github.wasabithumb.jtoml.serial.reflect.Defaulting;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -31,10 +32,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 @ApiStatus.Internal
 abstract class AbstractTableTypeModel<T> implements TableTypeModel<T> {
@@ -100,6 +100,7 @@ abstract class AbstractTableTypeModel<T> implements TableTypeModel<T> {
 
         protected final M member;
         protected final KeyConvention defaultConvention;
+        private final @Nullable Annotation defaultingAnnotation;
 
         MemberKey(
                 @NotNull M member,
@@ -107,9 +108,80 @@ abstract class AbstractTableTypeModel<T> implements TableTypeModel<T> {
         ) {
             this.member = member;
             this.defaultConvention = defaultConvention;
+            this.defaultingAnnotation = findDefaultingAnnotation(member);
         }
 
         //
+
+        protected abstract Class<?> typeClassOf(M member);
+
+        protected abstract @Nullable Object nonSpecificDefault(Class<?> type);
+
+        @Override
+        public boolean isDefaulting() {
+            return this.defaultingAnnotation != null;
+        }
+
+        @Override
+        public @Nullable Object defaultValue() throws UnsupportedOperationException {
+            Annotation annotation = this.defaultingAnnotation;
+            if (annotation == null) throw new UnsupportedOperationException();
+            Class<?> typeClass = this.typeClassOf(this.member);
+
+            if (annotation instanceof Defaulting.ToInt) {
+                Defaulting.ToInt qual = (Defaulting.ToInt) annotation;
+                if (typeClass.equals(Byte.TYPE) || typeClass.equals(Byte.class)) {
+                    return (byte) qual.value();
+                } else if (typeClass.equals(Short.TYPE) || typeClass.equals(Short.class)) {
+                    return (short) qual.value();
+                } else if (typeClass.equals(Integer.TYPE) || typeClass.equals(Integer.class)) {
+                    return (int) qual.value();
+                } else if (typeClass.equals(Long.TYPE) || typeClass.equals(Long.class)) {
+                    return qual.value();
+                } else if (typeClass.equals(Character.TYPE) || typeClass.equals(Character.class)) {
+                    return (char) qual.value();
+                } else {
+                    throw new IllegalStateException(
+                            "@Defaulting.ToInt cannot be applied to element of type " +
+                            typeClass.getName() + " (" + this.member + ")"
+                    );
+                }
+            } else if (annotation instanceof Defaulting.ToFloat) {
+                Defaulting.ToFloat qual = (Defaulting.ToFloat) annotation;
+                if (typeClass.equals(Float.TYPE) || typeClass.equals(Float.class)) {
+                    return (float) qual.value();
+                } else if (typeClass.equals(Double.TYPE) || typeClass.equals(Double.class)) {
+                    return qual.value();
+                } else {
+                    throw new IllegalStateException(
+                            "@Defaulting.ToFloat cannot be applied to element of type " +
+                                    typeClass.getName() + " (" + this.member + ")"
+                    );
+                }
+            } else if (annotation instanceof Defaulting.ToBool) {
+                Defaulting.ToBool qual = (Defaulting.ToBool) annotation;
+                if (typeClass.equals(Boolean.TYPE) || typeClass.equals(Boolean.class)) {
+                    return qual.value();
+                } else {
+                    throw new IllegalStateException(
+                            "@Defaulting.ToBool cannot be applied to element of type " +
+                                    typeClass.getName() + " (" + this.member + ")"
+                    );
+                }
+            } else if (annotation instanceof Defaulting.ToString) {
+                Defaulting.ToString qual = (Defaulting.ToString) annotation;
+                if (typeClass.equals(String.class)) {
+                    return qual.value();
+                } else {
+                    throw new IllegalStateException(
+                            "@Defaulting.ToString cannot be applied to element of type " +
+                                    typeClass.getName() + " (" + this.member + ")"
+                    );
+                }
+            }
+
+            return this.nonSpecificDefault(typeClass);
+        }
 
         @Override
         public @NotNull TomlKey asTomlKey() {
@@ -123,24 +195,30 @@ abstract class AbstractTableTypeModel<T> implements TableTypeModel<T> {
 
         //
 
+        private static <M extends Member & AnnotatedElement> @Nullable Annotation findDefaultingAnnotation(
+                M member
+        ) {
+            return memberAndDeclaringClassAnnotations(member)
+                    .filter((Annotation a) ->
+                            a instanceof Defaulting ||
+                            Defaulting.class.equals(a.annotationType().getDeclaringClass())
+                    )
+                    .findFirst()
+                    .orElse(null);
+        }
+
         private static <M extends Member & AnnotatedElement> @NotNull KeyConvention determineConvention(
                 @NotNull M member,
                 @NotNull KeyConvention defaultConvention
         ) {
-            Class<?> declaringClass = member.getDeclaringClass();
-            Annotation[] a = member.getDeclaredAnnotations();
-            Annotation[] b = declaringClass.getDeclaredAnnotations();
-            final int al = a.length;
-            final int tl = al + b.length;
-
-            for (int i = 0; i < tl; i++) {
-                Annotation next = i < al ? a[i] : b[i - al];
+            Iterator<Annotation> annotations = memberAndDeclaringClassAnnotations(member).iterator();
+            while (annotations.hasNext()) {
+                Annotation next = annotations.next();
                 if (next instanceof Convention) return ((Convention) next).value();
                 Class<? extends Annotation> annotationType = next.annotationType();
                 if (!Convention.class.equals(annotationType.getDeclaringClass())) continue;
                 return resolveConventionHelperAnnotation(annotationType);
             }
-
             return defaultConvention;
         }
 
@@ -166,6 +244,18 @@ abstract class AbstractTableTypeModel<T> implements TableTypeModel<T> {
                 );
             }
             return value;
+        }
+
+        private static <M extends Member & AnnotatedElement> @NotNull Stream<Annotation> memberAndDeclaringClassAnnotations(
+                M member
+        ) {
+            Class<?> declaringClass = member.getDeclaringClass();
+            final Annotation[] a = member.getDeclaredAnnotations();
+            final Annotation[] b = declaringClass.getDeclaredAnnotations();
+            final int al = a.length;
+            final int tl = al + b.length;
+            return IntStream.range(0, tl)
+                    .mapToObj((int i) -> i < al ? a[i] : b[i - al]);
         }
 
     }

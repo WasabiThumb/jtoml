@@ -254,6 +254,18 @@ final class SerializableTableTypeModel<T extends TomlSerializable> extends Abstr
             super(field, defaultConvention);
         }
 
+        //
+
+        @Override
+        protected Class<?> typeClassOf(Field member) {
+            return member.getType();
+        }
+
+        @Override
+        protected @Nullable Object nonSpecificDefault(Class<?> type) {
+            return null;
+        }
+
     }
 
 }

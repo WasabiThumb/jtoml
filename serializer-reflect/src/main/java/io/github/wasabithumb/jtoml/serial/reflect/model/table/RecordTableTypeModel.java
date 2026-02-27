@@ -22,10 +22,7 @@ import io.github.wasabithumb.jtoml.util.ParameterizedClass;
 import io.github.wasabithumb.recsup.RecordClass;
 import io.github.wasabithumb.recsup.RecordComponent;
 import io.github.wasabithumb.recsup.RecordSupport;
-import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.UnknownNullability;
-import org.jetbrains.annotations.Unmodifiable;
+import org.jetbrains.annotations.*;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -168,6 +165,38 @@ final class RecordTableTypeModel<T> extends AbstractTableTypeModel<T> {
 
     private static final class RecordComponentKey extends MemberKey<Method> {
 
+        private static final Map<Class<?>, Object> PRIMITIVE_DEFAULTS = definePrimitiveDefaults(
+                Byte.TYPE, (byte) 0,
+                Short.TYPE, (short) 0,
+                Integer.TYPE, 0,
+                Long.TYPE, 0L,
+                Float.TYPE, 0f,
+                Double.TYPE, 0d,
+                Character.TYPE, (char) 0,
+                Boolean.TYPE, Boolean.FALSE
+        );
+
+        @SuppressWarnings("SameParameterValue")
+        private static Map<Class<?>, Object> definePrimitiveDefaults(
+               Object... entries
+        ) {
+            int len = entries.length;
+            assert (len & 1) == 0;
+            len >>= 1;
+
+            Map<Class<?>, Object> map = new HashMap<>((len * 4) / 3 + 1);
+            int head = 0;
+            for (int i = 0; i < len; i++) {
+                Class<?> key = (Class<?>) entries[head++];
+                Object value = entries[head++];
+                map.put(key, value);
+            }
+
+            return Collections.unmodifiableMap(map);
+        }
+
+        //
+
         private final RecordComponent component;
 
         RecordComponentKey(
@@ -176,6 +205,18 @@ final class RecordTableTypeModel<T> extends AbstractTableTypeModel<T> {
         ) {
             super(component.getAccessor(), defaultConvention);
             this.component = component;
+        }
+
+        //
+
+        @Override
+        protected Class<?> typeClassOf(Method member) {
+            return member.getReturnType();
+        }
+
+        @Override
+        protected @Nullable Object nonSpecificDefault(Class<?> type) {
+            return PRIMITIVE_DEFAULTS.get(type);
         }
 
     }
