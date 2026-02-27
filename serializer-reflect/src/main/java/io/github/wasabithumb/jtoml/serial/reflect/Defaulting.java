@@ -16,6 +16,8 @@
 
 package io.github.wasabithumb.jtoml.serial.reflect;
 
+import org.jetbrains.annotations.ApiStatus;
+
 import java.lang.annotation.*;
 
 /**
@@ -113,6 +115,7 @@ import java.lang.annotation.*;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.METHOD, ElementType.TYPE})
+@ApiStatus.AvailableSince("1.5.1")
 public @interface Defaulting {
 
     @Documented
