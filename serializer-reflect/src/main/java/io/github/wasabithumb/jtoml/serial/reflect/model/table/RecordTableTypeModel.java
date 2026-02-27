@@ -167,21 +167,13 @@ final class RecordTableTypeModel<T> extends AbstractTableTypeModel<T> {
 
         private static final Map<Class<?>, Object> PRIMITIVE_DEFAULTS = definePrimitiveDefaults(
                 Byte.TYPE, (byte) 0,
-                Byte.class, (byte) 0,
                 Short.TYPE, (short) 0,
-                Short.class, (short) 0,
                 Integer.TYPE, 0,
-                Integer.class, 0,
                 Long.TYPE, 0L,
-                Long.class, 0L,
                 Float.TYPE, 0f,
-                Float.class, 0f,
                 Double.TYPE, 0d,
-                Double.class, 0d,
                 Character.TYPE, (char) 0,
-                Character.class, (char) 0,
-                Boolean.TYPE, Boolean.FALSE,
-                Boolean.class, Boolean.FALSE
+                Boolean.TYPE, Boolean.FALSE
         );
 
         @SuppressWarnings("SameParameterValue")
