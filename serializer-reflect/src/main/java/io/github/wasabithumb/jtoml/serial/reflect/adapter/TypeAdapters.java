@@ -24,14 +24,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 
 /**
- * An immutable collection of {@link TypeAdapter}s for use
+ * Provides {@link TypeAdapter}s for given types, for use
  * in {@link io.github.wasabithumb.jtoml.serial.reflect.ReflectTomlSerializer reflect serialization}.
  * @see #builder()
  * @see #standard()
  */
 @ApiStatus.AvailableSince("1.4.1")
 @ApiStatus.NonExtendable
-public interface TypeAdapters extends Collection<TypeAdapter<?>> {
+public interface TypeAdapters {
 
     /**
      * Provides a new builder for creating
@@ -42,18 +42,30 @@ public interface TypeAdapters extends Collection<TypeAdapter<?>> {
      */
     @Contract("-> new")
     static @NotNull Builder builder() {
-        return new TypeAdaptersImpl.Builder();
+        return new TypeAdaptersBuilderImpl();
     }
 
     /**
      * Provides a {@link TypeAdapters} instance
-     * containing every constant defined
-     * in {@link TypeAdapter}. This is the default
-     * set of adapters used by the reflect serializer.
+     * which can serialize all simple types declared
+     * in {@link TypeAdapter} as well as any enum type.
+     * This is the default set of adapters used by the
+     * reflect serializer.
      */
     @Contract(pure = true)
     static @NotNull TypeAdapters standard() {
-        return TypeAdaptersImpl.STANDARD;
+        return TypeAdaptersBuilderImpl.STANDARD;
+    }
+
+    /**
+     * Provides a {@link TypeAdapters} instance
+     * which can serialize all enum types, yielding
+     * {@code null} given any type for which
+     * {@link Class#isEnum()} is not {@code true}.
+     */
+    @Contract(pure = true)
+    static @NotNull TypeAdapters enums() {
+        return EnumTypeAdapters.INSTANCE;
     }
 
     //
@@ -83,6 +95,14 @@ public interface TypeAdapters extends Collection<TypeAdapter<?>> {
         @NotNull Builder clear();
 
         /**
+         * Merges the result adapter with the given adapter.
+         * Any type which can be adapted by the given adapter
+         * can be adapted by the result adapter.
+         */
+        @Contract("_ -> this")
+        @NotNull Builder merge(@NotNull TypeAdapters adapters);
+
+        /**
          * Adds a new type adapter.
          * If an adapter with the same {@link TypeAdapter#typeClass() type class}
          * was already added, that adapter is replaced.
@@ -95,17 +115,32 @@ public interface TypeAdapters extends Collection<TypeAdapter<?>> {
 
         /**
          * Adds each type adapter contained in the
-         * given collection to this builder.
-         * Can be used to inherit the standard adapters
-         * via {@code add(TypeAdapters.standard())}.
+         * given array to this builder.
          * @see #add(TypeAdapter)
          */
         @Contract("_ -> this")
-        default @NotNull Builder add(@NotNull Collection<TypeAdapter<?>> adapters) {
-            for (TypeAdapter<?> adapter : adapters) {
-                this.add(adapter);
-            }
+        default @NotNull Builder add(@NotNull TypeAdapter<?> @NotNull ... adapters) {
+            for (TypeAdapter<?> adapter : adapters) this.add(adapter);
             return this;
+        }
+
+        /**
+         * Adds each type adapter contained in the
+         * given collection to this builder.
+         * @see #add(TypeAdapter)
+         */
+        @Contract("_ -> this")
+        default @NotNull Builder add(@NotNull Collection<? extends TypeAdapter<?>> adapters) {
+            for (TypeAdapter<?> adapter : adapters) this.add(adapter);
+            return this;
+        }
+
+        /**
+         * Deprecated alias for {@link #merge(TypeAdapters)}
+         */
+        @Deprecated
+        default @NotNull Builder add(@NotNull TypeAdapters adapters) {
+            return this.merge(adapters);
         }
 
         /**
