@@ -20,6 +20,7 @@ import io.github.wasabithumb.jtoml.Faker;
 import io.github.wasabithumb.jtoml.option.JTomlOption;
 import io.github.wasabithumb.jtoml.option.prop.LineSeparator;
 import io.leangen.geantyref.TypeToken;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.spongepowered.configurate.CommentedConfigurationNode;
@@ -51,6 +52,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Basic sanity checks for the loader.
  */
 class TomlConfigurationLoaderTest {
+
+    private static Faker FAKER;
+
+    @BeforeAll
+    static void setup() {
+        FAKER = Faker.faker();
+        System.out.println("Initial seed: " + FAKER.initialSeed());
+    }
 
     @Test
     void testSimpleLoading() throws ConfigurateException {
@@ -122,7 +131,7 @@ class TomlConfigurationLoaderTest {
                 .build();
 
         final CommentedConfigurationNode node = loader.load();
-        final NativeTypesTestConfig data = Faker.create(NativeTypesTestConfig.class);
+        final NativeTypesTestConfig data = FAKER.create(NativeTypesTestConfig.class);
         node.set(data);
         loader.save(node);
         final NativeTypesTestConfig roundTripped = loader.load().get(NativeTypesTestConfig.class);
