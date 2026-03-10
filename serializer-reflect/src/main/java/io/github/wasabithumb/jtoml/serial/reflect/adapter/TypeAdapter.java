@@ -22,6 +22,8 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -32,19 +34,8 @@ import java.util.function.Function;
  * Handles conversion of a single Java type to/from
  * a TOML document leaf.
  * @see #of(Class, Function, Function)
- * @see #BOOL
- * @see #BYTE
- * @see #SHORT
- * @see #INT
- * @see #LONG
- * @see #FLOAT
- * @see #DOUBLE
- * @see #CHAR
- * @see #STRING
- * @see #OFFSET_DATE_TIME
- * @see #LOCAL_DATE_TIME
- * @see #LOCAL_DATE
- * @see #LOCAL_TIME
+ * @see #forEnum(Class)
+ * @see #values()
  */
 @ApiStatus.AvailableSince("1.4.1")
 public interface TypeAdapter<T> {
@@ -61,7 +52,63 @@ public interface TypeAdapter<T> {
             @NotNull Function<TomlValue, O> toJava,
             @NotNull Function<O, TomlValue> toToml
     ) {
-        return new TypeAdapterImpl<>(typeClass, toJava, toToml);
+        return new FunctionalTypeAdapter<>(typeClass, toJava, toToml);
+    }
+
+    /**
+     * Helper function to create a new {@link TypeAdapter}
+     * for a given enum class. This converts enum constants
+     * to/from their name as a TOML string.
+     */
+    @Contract("_ -> new")
+    static <O extends Enum<O>> @NotNull TypeAdapter<O> forEnum(
+            @NotNull Class<O> enumClass
+    ) {
+        return new EnumTypeAdapter<>(enumClass);
+    }
+
+    /**
+     * Reports all type adapter constants.
+     * @see #BOOL
+     * @see #BYTE
+     * @see #SHORT
+     * @see #INT
+     * @see #LONG
+     * @see #FLOAT
+     * @see #DOUBLE
+     * @see #CHAR
+     * @see #STRING
+     * @see #OFFSET_DATE_TIME
+     * @see #LOCAL_DATE_TIME
+     * @see #LOCAL_DATE
+     * @see #LOCAL_TIME
+     */
+    @Contract("-> new")
+    static @NotNull TypeAdapter<?> @NotNull [] values() {
+        Field[] fields = TypeAdapter.class.getDeclaredFields();
+        TypeAdapter<?>[] ret = new TypeAdapter[fields.length];
+        int head = 0;
+
+        for (Field field : fields) {
+            int mod = field.getModifiers();
+            if (!Modifier.isStatic(mod) || !Modifier.isPublic(mod)) continue;
+            if (!TypeAdapter.class.isAssignableFrom(field.getType())) continue;
+            TypeAdapter<?> value;
+            try {
+                value = (TypeAdapter<?>) field.get(null);
+            } catch (Exception e) {
+                throw new IllegalStateException("Failed to read constant \"" + field.getName() + "\"", e);
+            }
+            ret[head++] = value;
+        }
+
+        if (head != ret.length) {
+            TypeAdapter<?>[] cpy = new TypeAdapter[head];
+            System.arraycopy(ret, 0, cpy, 0, head);
+            ret = cpy;
+        }
+
+        return ret;
     }
 
     //

@@ -19,15 +19,17 @@ package io.github.wasabithumb.jtoml.serial.reflect.model.array;
 import io.github.wasabithumb.jtoml.util.ParameterizedClass;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.UnknownNullability;
 
 import java.lang.reflect.Array;
+import java.util.Iterator;
+import java.util.stream.IntStream;
 
 @ApiStatus.Internal
 final class DirectArrayTypeModel<T> implements ArrayTypeModel<T> {
 
     private final Class<T> arrayType;
     private final Class<?> elementType;
+    private int head = 0;
 
     DirectArrayTypeModel(@NotNull Class<T> arrayType, @NotNull Class<?> elementType) {
         this.arrayType = arrayType;
@@ -58,13 +60,15 @@ final class DirectArrayTypeModel<T> implements ArrayTypeModel<T> {
     }
 
     @Override
-    public @UnknownNullability Object get(@NotNull T instance, int index) {
-        return Array.get(instance, index);
+    public @NotNull Iterator<?> iterator(@NotNull T instance) {
+        return IntStream.range(0, Array.getLength(instance))
+                .mapToObj((int i) -> Array.get(instance, i))
+                .iterator();
     }
 
     @Override
-    public void set(@NotNull T instance, int index, @NotNull Object object) {
-        Array.set(instance, index, this.elementType.cast(object));
+    public void put(@NotNull T instance, @NotNull Object object) {
+        Array.set(instance, this.head++, this.elementType.cast(object));
     }
 
 }

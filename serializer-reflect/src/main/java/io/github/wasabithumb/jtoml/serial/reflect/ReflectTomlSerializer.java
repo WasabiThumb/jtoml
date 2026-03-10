@@ -38,6 +38,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Modifier;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 
@@ -226,7 +227,7 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
         for (int i=0; i < len; i++) {
             TomlValue value = array.get(i);
             Object object = this.serializeValue(elementModel, value);
-            model.set(ret, i, object);
+            model.put(ret, object);
         }
 
         return ret;
@@ -314,10 +315,11 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
         TomlArray ret = TomlArray.create(size);
         TypeModel<?> componentModel = TypeModel.of(model.componentType());
 
+        Iterator<?> iter = model.iterator(value);
         Object next;
         TomlValue nextValue;
         for (int i=0; i < size; i++) {
-            next = model.get(value, i);
+            next = iter.next();
             nextValue = this.deserializeValueUnsafe(
                     ReferenceHolder.copyOf(parents),
                     componentModel,
