@@ -16,7 +16,6 @@
 
 package io.github.wasabithumb.jtoml;
 
-import io.github.wasabithumb.jtoml.dummy.*;
 import io.github.wasabithumb.jtoml.except.TomlException;
 import io.github.wasabithumb.jtoml.except.parse.TomlParseException;
 import io.github.wasabithumb.jtoml.key.TomlKey;
