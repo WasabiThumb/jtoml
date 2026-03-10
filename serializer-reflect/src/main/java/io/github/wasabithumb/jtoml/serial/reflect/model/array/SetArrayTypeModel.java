@@ -37,7 +37,9 @@ final class SetArrayTypeModel<T extends Set<E>, E> extends CollectionArrayTypeMo
     }
 
     private static int hc(int length) {
-        return length * 4 / 3 + 1;
+        if (length > 0x5FFFFFFF) return length;
+        if (length > 0x1FFFFFFF) return (int) Math.floor(4d * (double) length / 3d) + 1;
+        return 4 * length / 3 + 1;
     }
 
     //
