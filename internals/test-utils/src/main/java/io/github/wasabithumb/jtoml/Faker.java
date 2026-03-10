@@ -15,6 +15,7 @@
  */
 package io.github.wasabithumb.jtoml;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
@@ -38,17 +39,48 @@ import java.util.Random;
  */
 public final class Faker {
 
-    private static final Random RANDOM = new Random();
     private static final List<String> NOUNS = readStringList("faker/nouns.txt");
     private static final List<String> ADJECTIVES = readStringList("faker/adjectives.txt");
     private static final List<String> EMOJI = readStringList("faker/emoji.txt");
 
+    @Contract("_ -> new")
+    public static Faker faker(long seed) {
+        return new Faker(seed);
+    }
+
+    @Contract("-> new")
+    public static Faker faker() {
+        String testSeed = System.getenv("TEST_SEED");
+        if (testSeed != null) {
+            long value;
+            try {
+                value = Long.parseLong(testSeed);
+                return faker(value);
+            } catch (NumberFormatException ignored) { }
+        }
+        return faker(System.currentTimeMillis());
+    }
+
     //
+
+    private final long initialSeed;
+    private final Random random;
+
+    private Faker(long initialSeed) {
+        this.initialSeed = initialSeed;
+        this.random = new Random(initialSeed);
+    }
+
+    //
+
+    public long initialSeed() {
+        return this.initialSeed;
+    }
 
     /**
      * Populates the fields of a POJO with sample values
      */
-    public static void populate(@NotNull Object object) {
+    public void populate(@NotNull Object object) {
         Class<?> cls = object.getClass();
         for (Field f : cls.getDeclaredFields()) {
             try {
@@ -58,17 +90,15 @@ public final class Faker {
             final int mod = f.getModifiers();
             if (Modifier.isStatic(mod) || Modifier.isTransient(mod)) continue;
             boolean isFinal = Modifier.isFinal(mod);
-            if (isFinal)
-                trySetModifiers(f, mod & ~Modifier.FINAL);
+            if (isFinal) trySetModifiers(f, mod & ~Modifier.FINAL);
 
-            Object value = create(f.getType());
+            Object value = this.create(f.getType());
             try {
                 f.set(object, value);
             } catch (Exception e) {
                 throw new IllegalStateException("Failed to set field \"" + f.getName() + "\" on POJO");
             } finally {
-                if (isFinal)
-                    trySetModifiers(f, mod);
+                if (isFinal) trySetModifiers(f, mod);
             }
         }
     }
@@ -77,81 +107,81 @@ public final class Faker {
      * Creates a new sample value of the given type
      */
     @SuppressWarnings("unchecked")
-    public static <T> @NotNull T create(@NotNull Class<T> clazz) {
+    public <T> @NotNull T create(@NotNull Class<T> clazz) {
         if (String.class.equals(clazz)) {
-            return clazz.cast(createString());
+            return clazz.cast(this.createString());
         } else if (Boolean.class.equals(clazz) || Boolean.TYPE.equals(clazz)) {
-            return (T) Boolean.valueOf(createBoolean());
+            return (T) Boolean.valueOf(this.createBoolean());
         } else if (Long.class.equals(clazz) || Long.TYPE.equals(clazz)) {
-            return (T) Long.valueOf(createInteger());
+            return (T) Long.valueOf(this.createInteger());
         } else if (Integer.class.equals(clazz) || Integer.TYPE.equals(clazz)) {
-            return (T) Integer.valueOf((int) createInteger());
+            return (T) Integer.valueOf((int) this.createInteger());
         } else if (Short.class.equals(clazz) || Short.TYPE.equals(clazz)) {
-            return (T) Short.valueOf((short) createInteger());
+            return (T) Short.valueOf((short) this.createInteger());
         } else if (Byte.class.equals(clazz) || Byte.TYPE.equals(clazz)) {
-            return (T) Byte.valueOf((byte) createInteger());
+            return (T) Byte.valueOf((byte) this.createInteger());
         } else if (Double.class.equals(clazz) || Double.TYPE.equals(clazz)) {
-            return (T) Double.valueOf(createFloat());
+            return (T) Double.valueOf(this.createFloat());
         } else if (Float.class.equals(clazz) || Float.TYPE.equals(clazz)) {
-            return (T) Float.valueOf((float) createFloat());
+            return (T) Float.valueOf((float) this.createFloat());
         } else if (LocalDate.class.equals(clazz)) {
-            return clazz.cast(createLocalDate());
+            return clazz.cast(this.createLocalDate());
         } else if (LocalTime.class.equals(clazz)) {
-            return clazz.cast(createLocalTime());
+            return clazz.cast(this.createLocalTime());
         } else if (LocalDateTime.class.equals(clazz)) {
-            return clazz.cast(createLocalDateTime());
+            return clazz.cast(this.createLocalDateTime());
         } else if (OffsetDateTime.class.equals(clazz)) {
-            return clazz.cast(createOffsetDateTime());
+            return clazz.cast(this.createOffsetDateTime());
         } else {
             // Assume POJO
-            return createObject(clazz);
+            return this.createObject(clazz);
         }
     }
 
-    public static @NotNull String createString() {
-        return selectString(ADJECTIVES) + " " + selectString(NOUNS) + " " + selectString(EMOJI);
+    public @NotNull String createString() {
+        return this.selectString(ADJECTIVES) + " " + this.selectString(NOUNS) + " " + this.selectString(EMOJI);
     }
 
-    public static boolean createBoolean() {
-        return RANDOM.nextBoolean();
+    public boolean createBoolean() {
+        return this.random.nextBoolean();
     }
 
-    public static long createInteger() {
-        return RANDOM.nextInt(200000) - 100000;
+    public long createInteger() {
+        return this.random.nextInt(200000) - 100000;
     }
 
-    public static double createFloat() {
-        return (RANDOM.nextDouble() * 100d) - 50d;
+    public double createFloat() {
+        return (this.random.nextDouble() * 100d) - 50d;
     }
 
-    public static @NotNull LocalDate createLocalDate() {
-        final int year = 1800 + RANDOM.nextInt(400);
-        Month m = Month.of(RANDOM.nextInt(12) + 1);
-        int day = RANDOM.nextInt(m.length(Year.of(year).isLeap())) + 1;
+    public @NotNull LocalDate createLocalDate() {
+        final int year = 1800 + this.random.nextInt(400);
+        Month m = Month.of(this.random.nextInt(12) + 1);
+        int day = this.random.nextInt(m.length(Year.of(year).isLeap())) + 1;
         return LocalDate.of(year, m, day);
     }
 
-    public static @NotNull LocalTime createLocalTime() {
+    public @NotNull LocalTime createLocalTime() {
         return LocalTime.of(
-                RANDOM.nextInt(24),
-                RANDOM.nextInt(60),
-                RANDOM.nextInt(60),
-                RANDOM.nextInt(1000) * 1000000
+                this.random.nextInt(24),
+                this.random.nextInt(60),
+                this.random.nextInt(60),
+                this.random.nextInt(1000) * 1000000
         );
     }
 
-    public static @NotNull LocalDateTime createLocalDateTime() {
-        return LocalDateTime.of(createLocalDate(), createLocalTime());
+    public @NotNull LocalDateTime createLocalDateTime() {
+        return LocalDateTime.of(this.createLocalDate(), this.createLocalTime());
     }
 
-    public static @NotNull OffsetDateTime createOffsetDateTime() {
+    public @NotNull OffsetDateTime createOffsetDateTime() {
         return OffsetDateTime.of(
-                createLocalDateTime(),
-                ZoneOffset.ofTotalSeconds((RANDOM.nextInt(73) * 1800) - 64800)
+                this.createLocalDateTime(),
+                ZoneOffset.ofTotalSeconds((this.random.nextInt(73) * 1800) - 64800)
         );
     }
 
-    private static <T> @NotNull T createObject(@NotNull Class<T> clazz) {
+    private <T> @NotNull T createObject(@NotNull Class<T> clazz) {
         int mod = clazz.getModifiers();
         if (Modifier.isAbstract(mod) || Modifier.isInterface(mod)) {
             throw new IllegalArgumentException("Type \"" + clazz +
@@ -185,12 +215,12 @@ public final class Faker {
             throw new AssertionError("Unexpected reflection error", e);
         }
 
-        populate(instance);
+        this.populate(instance);
         return instance;
     }
 
-    private static @NotNull String selectString(@NotNull List<String> list) {
-        return list.get(RANDOM.nextInt(list.size()));
+    private @NotNull String selectString(@NotNull List<String> list) {
+        return list.get(this.random.nextInt(list.size()));
     }
 
     private static @NotNull List<String> readStringList(@NotNull String path) {

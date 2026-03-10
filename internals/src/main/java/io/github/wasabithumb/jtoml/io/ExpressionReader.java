@@ -16,7 +16,6 @@
 
 package io.github.wasabithumb.jtoml.io;
 
-import io.github.wasabithumb.jtoml.JToml;
 import io.github.wasabithumb.jtoml.comment.Comments;
 import io.github.wasabithumb.jtoml.except.TomlException;
 import io.github.wasabithumb.jtoml.except.parse.TomlDateTimeException;
@@ -656,10 +655,13 @@ public class ExpressionReader implements Closeable {
                 }
                 int hour = this.parseNDigits(str, whereOffset + 1, 2);
                 int minute = this.parseNDigits(str, whereOffset + 4, 2);
-                if (negative) hour = -hour;
+                if (negative) {
+                    hour = -hour;
+                    minute = -minute;
+                }
                 if (hour < -18 || hour > 18) this.in.raise("Offset hour out of range (got " + hour + ")");
-                if (minute < 0 || minute > 59) this.in.raise("Offset minute out of range (got " + minute + ")");
-                offset = ZoneOffset.ofHoursMinutes(hour, (hour < 0) ? -minute : minute);
+                if (minute < -59 || minute > 59) this.in.raise("Offset minute out of range (got " + minute + ")");
+                offset = ZoneOffset.ofHoursMinutes(hour, minute);
             } else {
                 offset = ZoneOffset.UTC;
             }

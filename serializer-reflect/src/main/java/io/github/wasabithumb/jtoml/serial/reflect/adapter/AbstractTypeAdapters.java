@@ -14,10 +14,18 @@
  * limitations under the License.
  */
 
-package io.github.wasabithumb.jtoml.dummy;
+package io.github.wasabithumb.jtoml.serial.reflect.adapter;
 
-public record NamedTriplet (
-        Named first,
-        Named second,
-        Named third
-) { }
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.function.Consumer;
+
+@ApiStatus.Internal
+abstract class AbstractTypeAdapters implements TypeAdapters {
+
+    protected abstract boolean canFlatten();
+
+    protected abstract void flatten(@NotNull Consumer<? super TypeAdapter<?>> consumer);
+
+}

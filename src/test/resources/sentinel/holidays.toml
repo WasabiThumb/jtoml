@@ -1,0 +1,47 @@
+# https://www.ca2.uscourts.gov/clerk/calendars/federal_holidays.html
+
+months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"]
+
+[[holidays."JAN"]]
+name = "New Year's Day"
+date = 2026-01-01
+
+[[holidays."JAN"]]
+name = "Birthday of Martin Luther King, Jr."
+date = 2026-01-19
+
+[[holidays."FEB"]]
+name = "Washington's Birthday"
+date = 2026-02-16
+
+[[holidays."MAY"]]
+name = "Memorial Day"
+date = 2026-05-25
+
+[[holidays."JUN"]]
+name = "Juneteenth National Independence Day"
+date = 2026-06-19
+
+[[holidays."JUL"]]
+name = "Independence Day"
+date = 2026-07-03
+
+[[holidays."SEP"]]
+name = "Labor Day"
+date = 2026-09-07
+
+[[holidays."OCT"]]
+name = "Columbus Day"
+date = 2026-10-12
+
+[[holidays."NOV"]]
+name = "Veterans Day"
+date = 2026-11-11
+
+[[holidays."NOV"]]
+name = "Thanksgiving Day"
+date = 2026-11-26
+
+[[holidays."DEC"]]
+name = "Christmas Day"
+date = 2026-12-25

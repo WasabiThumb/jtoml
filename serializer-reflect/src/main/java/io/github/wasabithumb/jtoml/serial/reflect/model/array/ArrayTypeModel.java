@@ -18,17 +18,14 @@ package io.github.wasabithumb.jtoml.serial.reflect.model.array;
 
 import io.github.wasabithumb.jtoml.serial.reflect.model.TypeModel;
 import io.github.wasabithumb.jtoml.util.ParameterizedClass;
-import io.github.wasabithumb.jtoml.value.TomlValue;
 import io.github.wasabithumb.jtoml.value.array.TomlArray;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.UnknownNullability;
 
-import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 @ApiStatus.Internal
 public interface ArrayTypeModel<T> extends TypeModel<T> {
@@ -52,6 +49,13 @@ public interface ArrayTypeModel<T> extends TypeModel<T> {
             return (ArrayTypeModel<O>) ListArrayTypeModel.create(raw.asSubclass(List.class), elementType);
         }
 
+        // Set<?>
+        ParameterizedClass<?> set = pc.declaredInterface(Set.class);
+        if (set != null && set.paramCount() >= 1) {
+            ParameterizedClass<?> elementType = ParameterizedClass.of(set.param(0));
+            return (ArrayTypeModel<O>) SetArrayTypeModel.create(raw.asSubclass(Set.class), elementType);
+        }
+
         // Other
         return null;
     }
@@ -64,8 +68,8 @@ public interface ArrayTypeModel<T> extends TypeModel<T> {
 
     int size(@NotNull T instance);
 
-    @UnknownNullability Object get(@NotNull T instance, int index);
+    @NotNull Iterator<?> iterator(@NotNull T instance);
 
-    void set(@NotNull T instance, int index, @NotNull Object object);
+    void put(@NotNull T instance, @NotNull Object object);
 
 }

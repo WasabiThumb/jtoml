@@ -16,44 +16,34 @@
 
 package io.github.wasabithumb.jtoml.serial.reflect.adapter;
 
-import io.github.wasabithumb.jtoml.value.TomlValue;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.function.Function;
+import java.util.function.Consumer;
 
 @ApiStatus.Internal
-final class TypeAdapterImpl<T> implements TypeAdapter<T> {
+final class EmptyTypeAdapters extends AbstractTypeAdapters {
 
-    private final Class<T> typeClass;
-    private final Function<TomlValue, T> toJava;
-    private final Function<T, TomlValue> toToml;
+    static final EmptyTypeAdapters INSTANCE = new EmptyTypeAdapters();
 
-    TypeAdapterImpl(
-            @NotNull Class<T> typeClass,
-            @NotNull Function<TomlValue, T> toJava,
-            @NotNull Function<T, TomlValue> toToml
-    ) {
-        this.typeClass = typeClass;
-        this.toJava = toJava;
-        this.toToml = toToml;
-    }
+    //
+
+    private EmptyTypeAdapters() { }
 
     //
 
     @Override
-    public @NotNull Class<T> typeClass() {
-        return this.typeClass;
+    public @Nullable <T> TypeAdapter<T> get(@NotNull Class<T> type) {
+        return null;
     }
 
     @Override
-    public @NotNull T toJava(@NotNull TomlValue toml) {
-        return this.toJava.apply(toml);
+    protected boolean canFlatten() {
+        return true;
     }
 
     @Override
-    public @NotNull TomlValue toToml(@NotNull T java) {
-        return this.toToml.apply(java);
-    }
+    protected void flatten(@NotNull Consumer<? super TypeAdapter<?>> consumer) { }
 
 }
