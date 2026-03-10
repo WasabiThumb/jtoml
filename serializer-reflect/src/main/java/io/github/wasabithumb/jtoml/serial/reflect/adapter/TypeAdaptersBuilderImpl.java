@@ -19,7 +19,6 @@ package io.github.wasabithumb.jtoml.serial.reflect.adapter;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
 
@@ -75,22 +74,26 @@ final class TypeAdaptersBuilderImpl implements TypeAdapters.Builder {
 
         switch (f) {
             case 0:
-                return new MapTypeAdapters(Collections.emptyMap());
+                return EmptyTypeAdapters.INSTANCE;
             case F_HAS_FLATTENED:
-                return new MapTypeAdapters(this.moveFlattened());
+                return this.moveFlattened();
             case F_HAS_UNFLATTENED:
+                if (this.unflattened.size() == 1) return this.unflattened.iterator().next();
                 return new UnionTypeAdapters(this.moveUnflattened(null));
             case F_HAS_FLATTENED | F_HAS_UNFLATTENED:
-                return new UnionTypeAdapters(this.moveUnflattened(new MapTypeAdapters(this.moveFlattened())));
+                return new UnionTypeAdapters(this.moveUnflattened(this.moveFlattened()));
             default:
                 throw new AssertionError();
         }
     }
 
-    private @NotNull @Unmodifiable Map<Class<?>, TypeAdapter<?>> moveFlattened() {
-        Map<Class<?>, TypeAdapter<?>> ret = new HashMap<>(this.flattened.size() * 4 / 3 + 1);
-        ret.putAll(this.flattened);
-        return Collections.unmodifiableMap(ret);
+    private @NotNull TypeAdapters moveFlattened() {
+        int size = this.flattened.size();
+        if (size == 1) return new SingleTypeAdapters(this.flattened.values().iterator().next());
+        Map<Class<?>, TypeAdapter<?>> map = new HashMap<>(size * 4 / 3 + 1);
+        map.putAll(this.flattened);
+        map = Collections.unmodifiableMap(map);
+        return new MapTypeAdapters(map);
     }
 
     private @NotNull TypeAdapters @NotNull [] moveUnflattened(@Nullable TypeAdapters insert) {

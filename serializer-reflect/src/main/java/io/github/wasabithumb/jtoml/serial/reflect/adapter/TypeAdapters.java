@@ -30,7 +30,6 @@ import java.util.Collection;
  * @see #standard()
  */
 @ApiStatus.AvailableSince("1.4.1")
-@ApiStatus.NonExtendable
 public interface TypeAdapters {
 
     /**
@@ -69,9 +68,19 @@ public interface TypeAdapters {
         return EnumTypeAdapters.INSTANCE;
     }
 
+    /**
+     * Provides a {@link TypeAdapters} instance
+     * which adapts no types, always yielding
+     * {@code null}.
+     */
+    @ApiStatus.AvailableSince("1.5.2")
+    @Contract(pure = true)
+    static @NotNull TypeAdapters empty() {
+        return EmptyTypeAdapters.INSTANCE;
+    }
+
     //
 
-    @ApiStatus.Internal
     <T> @Nullable TypeAdapter<T> get(@NotNull Class<T> type);
 
     //
