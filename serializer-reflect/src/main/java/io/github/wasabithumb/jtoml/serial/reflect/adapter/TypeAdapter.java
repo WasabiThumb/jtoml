@@ -60,6 +60,7 @@ public interface TypeAdapter<T> {
      * for a given enum class. This converts enum constants
      * to/from their name as a TOML string.
      */
+    @ApiStatus.AvailableSince("1.5.2")
     @Contract("_ -> new")
     static <O extends Enum<O>> @NotNull TypeAdapter<O> forEnum(
             @NotNull Class<O> enumClass
@@ -83,6 +84,7 @@ public interface TypeAdapter<T> {
      * @see #LOCAL_DATE
      * @see #LOCAL_TIME
      */
+    @ApiStatus.AvailableSince("1.5.2")
     @Contract("-> new")
     static @NotNull TypeAdapter<?> @NotNull [] values() {
         Field[] fields = TypeAdapter.class.getDeclaredFields();

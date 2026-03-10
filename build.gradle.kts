@@ -4,7 +4,7 @@ allprojects {
     apply(plugin = "java-library")
 
     group = "io.github.wasabithumb"
-    version = "1.5.1"
+    version = "1.5.2"
 }
 
 //

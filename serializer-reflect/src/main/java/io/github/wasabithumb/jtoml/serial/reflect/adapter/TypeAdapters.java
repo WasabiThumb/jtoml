@@ -63,6 +63,7 @@ public interface TypeAdapters {
      * {@code null} given any type for which
      * {@link Class#isEnum()} is not {@code true}.
      */
+    @ApiStatus.AvailableSince("1.5.2")
     @Contract(pure = true)
     static @NotNull TypeAdapters enums() {
         return EnumTypeAdapters.INSTANCE;
@@ -118,6 +119,7 @@ public interface TypeAdapters {
          * given array to this builder.
          * @see #add(TypeAdapter)
          */
+        @ApiStatus.AvailableSince("1.5.2")
         @Contract("_ -> this")
         default @NotNull Builder add(@NotNull TypeAdapter<?> @NotNull ... adapters) {
             for (TypeAdapter<?> adapter : adapters) this.add(adapter);
