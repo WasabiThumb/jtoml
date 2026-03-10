@@ -36,6 +36,10 @@ final class SetArrayTypeModel<T extends Set<E>, E> extends CollectionArrayTypeMo
         return new SetArrayTypeModel<>(setType, (ParameterizedClass<IE>) elementType);
     }
 
+    private static int hc(int length) {
+        return length * 4 / 3 + 1;
+    }
+
     //
 
     private SetArrayTypeModel(@NotNull Class<T> type, @NotNull ParameterizedClass<E> elementType) {
@@ -50,12 +54,12 @@ final class SetArrayTypeModel<T extends Set<E>, E> extends CollectionArrayTypeMo
             return this.type.cast(EnumSet.noneOf(this.elementType.raw().asSubclass(Enum.class)));
 
         if (this.type.isAssignableFrom(LinkedHashSet.class))
-            return this.type.cast(new LinkedHashSet<>());
+            return this.type.cast(new LinkedHashSet<>(hc(length)));
 
         if (Comparable.class.isAssignableFrom(this.elementType.raw()) && this.type.isAssignableFrom(TreeSet.class))
             return this.type.cast(new TreeSet<>());
 
-        return autoConstruct(this.type, length);
+        return autoConstruct(this.type, hc(length));
     }
 
 }
