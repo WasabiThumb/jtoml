@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.EnumSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 @ApiStatus.Internal
 final class SetArrayTypeModel<T extends Set<E>, E> extends CollectionArrayTypeModel<T, E> {
@@ -50,6 +51,9 @@ final class SetArrayTypeModel<T extends Set<E>, E> extends CollectionArrayTypeMo
 
         if (this.type.isAssignableFrom(LinkedHashSet.class))
             return this.type.cast(new LinkedHashSet<>());
+
+        if (Comparable.class.isAssignableFrom(this.elementType.raw()) && this.type.isAssignableFrom(TreeSet.class))
+            return this.type.cast(new TreeSet<>());
 
         return autoConstruct(this.type, length);
     }
