@@ -20,24 +20,24 @@ import io.github.wasabithumb.jtoml.util.ParameterizedClass;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.EnumSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @ApiStatus.Internal
-final class ListArrayTypeModel<T extends List<E>, E> extends CollectionArrayTypeModel<T, E> {
+final class SetArrayTypeModel<T extends Set<E>, E> extends CollectionArrayTypeModel<T, E> {
 
     @SuppressWarnings("unchecked")
-    static <IT extends List<IE>, IE> ListArrayTypeModel<IT, IE> create(
-            @NotNull Class<IT> listType,
+    static <IT extends Set<IE>, IE> SetArrayTypeModel<IT, IE> create(
+            @NotNull Class<IT> setType,
             @NotNull ParameterizedClass<?> elementType
     ) {
-        return new ListArrayTypeModel<>(listType, (ParameterizedClass<IE>) elementType);
+        return new SetArrayTypeModel<>(setType, (ParameterizedClass<IE>) elementType);
     }
 
     //
 
-    private ListArrayTypeModel(@NotNull Class<T> type, @NotNull ParameterizedClass<E> elementType) {
+    private SetArrayTypeModel(@NotNull Class<T> type, @NotNull ParameterizedClass<E> elementType) {
         super(type, elementType);
     }
 
@@ -45,11 +45,11 @@ final class ListArrayTypeModel<T extends List<E>, E> extends CollectionArrayType
 
     @Override
     public @NotNull T createNew(int length) {
-        if (this.type.isAssignableFrom(ArrayList.class))
-            return this.type.cast(new ArrayList<E>(length));
+        if (this.elementType.raw().isEnum() && this.type.isAssignableFrom(EnumSet.class))
+            return this.type.cast(EnumSet.noneOf(this.elementType.raw().asSubclass(Enum.class)));
 
-        if (this.type.isAssignableFrom(LinkedList.class))
-            return this.type.cast(new LinkedList<E>());
+        if (this.type.isAssignableFrom(LinkedHashSet.class))
+            return this.type.cast(new LinkedHashSet<>());
 
         return autoConstruct(this.type, length);
     }

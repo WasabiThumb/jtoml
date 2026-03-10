@@ -21,12 +21,15 @@ import io.github.wasabithumb.jtoml.value.TomlValue;
 import io.github.wasabithumb.jtoml.value.array.TomlArray;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.UnknownNullability;
+
+import java.util.Iterator;
 
 @ApiStatus.Internal
 final class TomlArrayTypeModel implements ArrayTypeModel<TomlArray> {
 
     static final TomlArrayTypeModel INSTANCE = new TomlArrayTypeModel();
+
+    private static final ParameterizedClass<TomlValue> COMPONENT_TYPE = new ParameterizedClass<>(TomlValue.class);
 
     //
 
@@ -37,7 +40,7 @@ final class TomlArrayTypeModel implements ArrayTypeModel<TomlArray> {
 
     @Override
     public @NotNull ParameterizedClass<?> componentType() {
-        return new ParameterizedClass<>(TomlValue.class);
+        return COMPONENT_TYPE;
     }
 
     @Override
@@ -51,17 +54,13 @@ final class TomlArrayTypeModel implements ArrayTypeModel<TomlArray> {
     }
 
     @Override
-    public @UnknownNullability Object get(@NotNull TomlArray instance, int index) {
-        return instance.get(index);
+    public @NotNull Iterator<?> iterator(@NotNull TomlArray instance) {
+        return instance.iterator();
     }
 
     @Override
-    public void set(@NotNull TomlArray instance, int index, @NotNull Object object) {
-        if (index == instance.size()) {
-            instance.add((TomlValue) object);
-        } else {
-            instance.set(index, (TomlValue) object);
-        }
+    public void put(@NotNull TomlArray instance, @NotNull Object object) {
+        instance.add((TomlValue) object);
     }
 
 }
