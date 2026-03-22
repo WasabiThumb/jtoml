@@ -11,7 +11,7 @@ be the ultimate solution for all things TOML, fully recreating its type system w
 |                                   [``WasabiThumb/jtoml``](https://github.com/WasabiThumb/jtoml) |      ✅      |       ✅        |      ✅      |   ✅   |     ✅     |
 | [``FasterXML/jackson-dataformats-text``](https://github.com/FasterXML/jackson-dataformats-text) |      ❌      |       ❌        |      ✅      |   ✅   |     ❌     |
 |                                           [``mwanji/toml4j``](https://github.com/mwanji/toml4j) |      ❌      |       ❌        |      ✅      |   ✅   |     ❌     |
-|             [``TheElectronWill/night-config``](https://github.com/TheElectronWill/night-config) |      ❌      |       ❌        |      ❌      |   ✅   |     ✅     |
+|             [``TheElectronWill/night-config``](https://github.com/TheElectronWill/night-config) |      ❌      |       ❌        |      ✅      |   ✅   |     ✅     |
 |                                               [``tomlj/tomlj``](https://github.com/tomlj/tomlj) |      ❌      |       ❌        |      ❌      |   ✅   |     ❌     |
 
 
