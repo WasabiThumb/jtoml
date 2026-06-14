@@ -53,9 +53,9 @@ public final class ReflectTomlSerializerFactory extends TomlSerializerFactory {
 
     //
 
-    private static @ReflectTomlSerializer.Feature int features(@NotNull JToml instance) {
+    private static @ReflectTomlSerializer.Feature.Set int features(@NotNull JToml instance) {
         final JTomlOptions options = instance.options();
-        @ReflectTomlSerializer.Feature int ret = 0;
+        @ReflectTomlSerializer.Feature.Set int ret = 0;
         if (options.get(JTomlOption.IGNORE_SERIALIZABLE_MARKER)) ret |= ReflectTomlSerializer.Feature.IGNORE_MARKER;
         if (options.get(JTomlOption.PERMIT_UNSAFE))              ret |= ReflectTomlSerializer.Feature.ALLOW_UNSAFE;
         return ret;

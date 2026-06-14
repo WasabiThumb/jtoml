@@ -56,7 +56,7 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
 
     static @Nullable String anyTypeError(
             @NotNull Class<?> type,
-            @Feature int features
+            @Feature.Set int features
     ) {
         if (RecordSupport.isRecord(type)) return null;
         if ((features & Feature.SUPPORTS_FROM_TOML) != 0) {
@@ -64,7 +64,7 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
             if (Modifier.isInterface(mod) || Modifier.isAbstract(mod)) return "not directly instantiable";
         }
         if ((features & Feature.IGNORE_MARKER) == 0 && !TomlSerializable.class.isAssignableFrom(type))
-            return "does not implement TomlSerializable and is not a record";
+            return "does not implement TomlSerializable, is not a record and marker is not ignored";
         if ((features & Feature.ALLOW_UNSAFE) == 0) {
             try {
                 type.getDeclaredConstructor();
@@ -77,7 +77,7 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
 
     private static void checkType(
             @NotNull Class<?> type,
-            @Feature int features
+            @Feature.Set int features
     ) throws IllegalArgumentException {
         String detail = anyTypeError(type, features);
         if (detail == null) return;
@@ -86,7 +86,7 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
                 " (" + detail + ")");
     }
 
-    private static @NotNull TypeModelOptions modelOptions(@Feature int features) {
+    private static @NotNull TypeModelOptions modelOptions(@Feature.Set int features) {
         return new TypeModelOptions(
                 (features & Feature.IGNORE_MARKER) == Feature.IGNORE_MARKER,
                 (features & Feature.ALLOW_UNSAFE) == Feature.ALLOW_UNSAFE
@@ -98,7 +98,7 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
     private final TableTypeModel<T> model;
     private final TypeAdapters adapters;
     private final KeyConvention defaultConvention;
-    private final @Feature int features;
+    private final @Feature.Set int features;
 
     /**
      * Create a new serializer for converting objects of the given
@@ -193,7 +193,7 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
             @NotNull Class<T> type,
             @NotNull TypeAdapters adapters,
             @NotNull KeyConvention defaultConvention,
-            @Feature int features
+            @Feature.Set int features
     ) {
         checkType(type, features);
         TableTypeModel<T> model = TableTypeModel.match(new ParameterizedClass<>(type), modelOptions(features));
@@ -411,15 +411,21 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
 
     //
 
-    @Documented
-    @Retention(RetentionPolicy.SOURCE)
-    @Target({ ElementType.FIELD, ElementType.PARAMETER, ElementType.LOCAL_VARIABLE, ElementType.METHOD })
-    @MagicConstant(flagsFromClass = Feature.class)
-    @interface Feature {
-        int SUPPORTS_FROM_TOML = 0x1;
-        int SUPPORTS_TO_TOML   = 0x2;
-        int IGNORE_MARKER      = 0x4;
-        int ALLOW_UNSAFE       = 0x8;
+    static final class Feature {
+
+        public static final int SUPPORTS_FROM_TOML = 0x1;
+        public static final int SUPPORTS_TO_TOML   = 0x2;
+        public static final int IGNORE_MARKER      = 0x4;
+        public static final int ALLOW_UNSAFE       = 0x8;
+
+        //
+
+        @Documented
+        @Retention(RetentionPolicy.SOURCE)
+        @Target({ ElementType.FIELD, ElementType.PARAMETER, ElementType.LOCAL_VARIABLE, ElementType.METHOD })
+        @MagicConstant(flagsFromClass = Feature.class)
+        @interface Set { }
+
     }
 
 }
