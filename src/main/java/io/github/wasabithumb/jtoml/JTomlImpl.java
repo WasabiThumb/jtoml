@@ -57,7 +57,7 @@ final class JTomlImpl implements JToml {
         for (TomlSerializerFactory tomlSerializerFactory : stubbornServiceLoader(TomlSerializerFactory.class))
             factories.add(tomlSerializerFactory);
 
-        SERIALIZER_FACTORIES = Collections.unmodifiableList(factories);
+        SERIALIZER_FACTORIES = Collections.unmodifiableList(new ArrayList<>(factories));
     }
 
     private static <T> @NotNull ServiceLoader<T> stubbornServiceLoader(@NotNull Class<T> type) {
@@ -152,15 +152,17 @@ final class JTomlImpl implements JToml {
 
     @Override
     public <T> @NotNull T fromToml(@NotNull Class<T> type, @NotNull TomlTable table) throws IllegalArgumentException {
-        int count = 0;
-        for (TomlSerializerFactory factory : SERIALIZER_FACTORIES) {
-            count++;
+        int count = SERIALIZER_FACTORIES.size();
+        String[] issues = new String[count];
+        for (int i = 0; i < count; i++) {
+            TomlSerializerFactory factory = SERIALIZER_FACTORIES.get(i);
             TomlSerializerFactory.Result<?, T> result = factory.fromToml(this, type);
             if (result.valid()) return result.serializer().fromToml(table);
+            issues[i] = result.issue();
         }
         throw new IllegalArgumentException(
                 "No serializer found on classpath for type " + type.getName() +
-                " (checked " + count + " in total)"
+                " (encountered " + count + " issues: " + String.join(", ", issues) + ")"
         );
     }
 
@@ -175,15 +177,17 @@ final class JTomlImpl implements JToml {
     }
 
     private <T> @NotNull TomlTable toTomlUnsafe(@NotNull Class<T> type, @NotNull Object data) throws IllegalArgumentException {
-        int count = 0;
-        for (TomlSerializerFactory factory : SERIALIZER_FACTORIES) {
-            count++;
+        int count = SERIALIZER_FACTORIES.size();
+        String[] issues = new String[count];
+        for (int i = 0; i < count; i++) {
+            TomlSerializerFactory factory = SERIALIZER_FACTORIES.get(i);
             TomlSerializerFactory.Result<T, ?> result = factory.toToml(this, type);
             if (result.valid()) return result.serializer().toToml(type.cast(data));
+            issues[i] = result.issue();
         }
         throw new IllegalArgumentException(
                 "No deserializer found on classpath for type " + type.getName() +
-                        " (checked " + count + " in total)"
+                " (encountered " + count + " issues: " + String.join(", ", issues) + ")"
         );
     }
 

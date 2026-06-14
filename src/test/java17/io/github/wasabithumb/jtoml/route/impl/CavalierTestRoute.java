@@ -21,7 +21,6 @@ import io.github.wasabithumb.jtoml.option.JTomlOption;
 import io.github.wasabithumb.jtoml.option.JTomlOptions;
 import io.github.wasabithumb.jtoml.route.TestConstants;
 import io.github.wasabithumb.jtoml.route.TestRoute;
-import io.github.wasabithumb.jtoml.serial.reflect.Defaulting;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
 
 import java.util.Objects;

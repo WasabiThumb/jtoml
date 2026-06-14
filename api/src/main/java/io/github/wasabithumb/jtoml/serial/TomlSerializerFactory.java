@@ -84,16 +84,18 @@ public abstract class TomlSerializerFactory {
             return new Valid<>(() -> serializer);
         }
 
-        @SuppressWarnings("unchecked")
-        public static <II, OO> Result<II, OO> invalid() {
-            return (Result<II, OO>) Invalid.INSTANCE;
+        @Contract("_ -> new")
+        public static <II, OO> Result<II, OO> invalid(@NotNull String issue) {
+            return new Invalid<>(issue);
         }
 
         //
 
         public abstract boolean valid();
 
-        public abstract @NotNull TomlSerializer<I, O> serializer();
+        public abstract @NotNull String issue() throws UnsupportedOperationException;
+
+        public abstract @NotNull TomlSerializer<I, O> serializer() throws UnsupportedOperationException;
 
         //
 
@@ -113,6 +115,11 @@ public abstract class TomlSerializerFactory {
             }
 
             @Override
+            public @NotNull String issue() {
+                throw new UnsupportedOperationException("valid result has no issue");
+            }
+
+            @Override
             public TomlSerializer<I, O> serializer() {
                 return this.supplier.get();
             }
@@ -121,15 +128,22 @@ public abstract class TomlSerializerFactory {
 
         private static final class Invalid<I, O> extends Result<I, O> {
 
-            private static final Invalid<?, ?> INSTANCE = new Invalid<>();
+            private final String issue;
 
-            private Invalid() { }
+            private Invalid(@NotNull String issue) {
+                this.issue = issue;
+            }
 
             //
 
             @Override
             public boolean valid() {
                 return false;
+            }
+
+            @Override
+            public @NotNull String issue() {
+                return this.issue;
             }
 
             @Override
@@ -155,13 +169,13 @@ public abstract class TomlSerializerFactory {
 
         @Override
         public <T> Result<?, T> fromToml(JToml instance, Class<T> outType) {
-            if (!this.handle.canSerializeTo(outType)) return Result.invalid();
+            if (!this.handle.canSerializeTo(outType)) return Result.invalid("rejected by " + this.handle);
             return Result.valid(this.handle.getSerializer(instance, outType));
         }
 
         @Override
         public <T> Result<T, ?> toToml(JToml instance, Class<T> inType) {
-            if (!this.handle.canDeserializeFrom(inType)) return Result.invalid();
+            if (!this.handle.canDeserializeFrom(inType)) return Result.invalid("rejected by " + this.handle);
             return Result.valid(this.handle.getDeserializer(instance, inType));
         }
 

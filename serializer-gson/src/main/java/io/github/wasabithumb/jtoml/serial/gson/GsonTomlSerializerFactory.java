@@ -13,14 +13,14 @@ public final class GsonTomlSerializerFactory extends TomlSerializerFactory {
     @SuppressWarnings("unchecked")
     @Override
     public @NotNull <T> Result<?, T> fromToml(@NotNull JToml instance, @NotNull Class<T> outType) {
-        if (!JsonObject.class.equals(outType)) return Result.invalid();
+        if (!JsonObject.class.equals(outType)) return Result.invalid("not JsonObject");
         return Result.valid(() -> (TomlSerializer<?, T>) GsonTomlSerializer.instance());
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public @NotNull <T> Result<T, ?> toToml(@NotNull JToml instance, @NotNull Class<T> inType) {
-        if (!JsonObject.class.equals(inType)) return Result.invalid();
+        if (!JsonObject.class.equals(inType)) return Result.invalid("not JsonObject");
         return Result.valid(() -> (TomlSerializer<T, ?>) GsonTomlSerializer.instance());
     }
 

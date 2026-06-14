@@ -64,12 +64,12 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
             if (Modifier.isInterface(mod) || Modifier.isAbstract(mod)) return "not directly instantiable";
         }
         if ((features & Feature.IGNORE_MARKER) == 0 && !TomlSerializable.class.isAssignableFrom(type))
-            return "does not implement TomlSerializable, is not a record and marker is not ignored";
+            return "not a record and does not implement TomlSerializable";
         if ((features & Feature.ALLOW_UNSAFE) == 0) {
             try {
                 type.getDeclaredConstructor();
             } catch (NoSuchMethodException ignored) {
-                return "does not have a primary constructor and unsafe instantiation is disabled";
+                return "no primary constructor and unsafe instantiation is disabled";
             }
         }
         return null;

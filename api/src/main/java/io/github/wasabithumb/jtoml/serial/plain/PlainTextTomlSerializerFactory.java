@@ -12,14 +12,14 @@ public final class PlainTextTomlSerializerFactory extends TomlSerializerFactory 
     @SuppressWarnings("unchecked")
     @Override
     public @NotNull <T> Result<?, T> fromToml(@NotNull JToml instance, @NotNull Class<T> outType) {
-        if (!String.class.equals(outType)) return Result.invalid();
+        if (!String.class.equals(outType)) return Result.invalid("not String");
         return Result.valid(() -> (TomlSerializer<?, T>) new PlainTextTomlSerializer(instance));
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public @NotNull <T> Result<T, ?> toToml(@NotNull JToml instance, @NotNull Class<T> inType) {
-        if (!String.class.equals(inType)) return Result.invalid();
+        if (!String.class.equals(inType)) return Result.invalid("not String");
         return Result.valid(() -> (TomlSerializer<T, ?>) new PlainTextTomlSerializer(instance));
     }
 

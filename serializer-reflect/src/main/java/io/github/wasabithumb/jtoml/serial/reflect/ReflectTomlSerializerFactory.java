@@ -30,7 +30,8 @@ public final class ReflectTomlSerializerFactory extends TomlSerializerFactory {
     @Override
     public @NotNull <T> Result<?, T> fromToml(@NotNull JToml instance, @NotNull Class<T> outType) {
         int features = features(instance) | ReflectTomlSerializer.Feature.SUPPORTS_FROM_TOML;
-        if (ReflectTomlSerializer.anyTypeError(outType, features) != null) return Result.invalid();
+        String error = ReflectTomlSerializer.anyTypeError(outType, features);
+        if (error != null) return Result.invalid(error);
         return Result.valid(() -> new ReflectTomlSerializer<>(
                 outType,
                 TypeAdapters.standard(),
@@ -42,7 +43,8 @@ public final class ReflectTomlSerializerFactory extends TomlSerializerFactory {
     @Override
     public @NotNull <T> Result<T, ?> toToml(@NotNull JToml instance, @NotNull Class<T> inType) {
         int features = features(instance) | ReflectTomlSerializer.Feature.SUPPORTS_TO_TOML;
-        if (ReflectTomlSerializer.anyTypeError(inType, features) != null) return Result.invalid();
+        String error = ReflectTomlSerializer.anyTypeError(inType, features);
+        if (error != null) return Result.invalid(error);
         return Result.valid(() -> new ReflectTomlSerializer<>(
                 inType,
                 TypeAdapters.standard(),
