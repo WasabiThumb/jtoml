@@ -32,11 +32,14 @@ import org.jetbrains.annotations.NotNull;
 @ApiStatus.Internal
 public interface TypeModel<T> {
 
-    static <O> @NotNull TypeModel<O> of(@NotNull ParameterizedClass<O> cls) {
+    static <O> @NotNull TypeModel<O> of(
+            @NotNull ParameterizedClass<O> cls,
+            @NotNull TypeModelOptions options
+    ) {
         TypeModel<O> candidate;
 
         // Tables
-        candidate = TableTypeModel.match(cls);
+        candidate = TableTypeModel.match(cls, options);
         if (candidate != null) return candidate;
 
         // Arrays

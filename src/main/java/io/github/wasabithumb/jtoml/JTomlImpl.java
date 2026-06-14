@@ -33,25 +33,37 @@ import io.github.wasabithumb.jtoml.meta.JTomlVersionInfo;
 import io.github.wasabithumb.jtoml.option.JTomlOption;
 import io.github.wasabithumb.jtoml.option.JTomlOptions;
 import io.github.wasabithumb.jtoml.option.prop.OrderMarkPolicy;
-import io.github.wasabithumb.jtoml.serial.TomlSerializer;
+import io.github.wasabithumb.jtoml.serial.TomlSerializerFactory;
 import io.github.wasabithumb.jtoml.serial.TomlSerializerService;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
-import java.util.ServiceLoader;
+import java.util.*;
 
 @ApiStatus.Internal
 final class JTomlImpl implements JToml {
 
-    private static final ServiceLoader<TomlSerializerService> SERIALIZERS;
+    private static final List<TomlSerializerFactory> SERIALIZER_FACTORIES;
     static {
-        ServiceLoader<TomlSerializerService> serializers = ServiceLoader.load(TomlSerializerService.class);
-        if (!serializers.iterator().hasNext()) {
-            serializers = ServiceLoader.load(TomlSerializerService.class, JToml.class.getClassLoader());
-        }
-        SERIALIZERS = serializers;
+        List<TomlSerializerFactory> factories = new LinkedList<>();
+
+        // Legacy support: eventually remove this
+        for (TomlSerializerService tomlSerializerService : stubbornServiceLoader(TomlSerializerService.class))
+            factories.add(TomlSerializerFactory.of(tomlSerializerService));
+
+        // New serializers
+        for (TomlSerializerFactory tomlSerializerFactory : stubbornServiceLoader(TomlSerializerFactory.class))
+            factories.add(tomlSerializerFactory);
+
+        SERIALIZER_FACTORIES = Collections.unmodifiableList(factories);
+    }
+
+    private static <T> @NotNull ServiceLoader<T> stubbornServiceLoader(@NotNull Class<T> type) {
+        ServiceLoader<T> ret = ServiceLoader.load(type);
+        if (!ret.iterator().hasNext()) ret = ServiceLoader.load(type, JToml.class.getClassLoader());
+        return ret;
     }
 
     //
@@ -141,12 +153,10 @@ final class JTomlImpl implements JToml {
     @Override
     public <T> @NotNull T fromToml(@NotNull Class<T> type, @NotNull TomlTable table) throws IllegalArgumentException {
         int count = 0;
-        for (TomlSerializerService service : SERIALIZERS) {
+        for (TomlSerializerFactory factory : SERIALIZER_FACTORIES) {
             count++;
-            if (service.canSerializeTo(type)) {
-                TomlSerializer<?, T> s = service.getSerializer(this, type);
-                return s.fromToml(table);
-            }
+            TomlSerializerFactory.Result<?, T> result = factory.fromToml(this, type);
+            if (result.valid()) return result.serializer().fromToml(table);
         }
         throw new IllegalArgumentException(
                 "No serializer found on classpath for type " + type.getName() +
@@ -166,12 +176,10 @@ final class JTomlImpl implements JToml {
 
     private <T> @NotNull TomlTable toTomlUnsafe(@NotNull Class<T> type, @NotNull Object data) throws IllegalArgumentException {
         int count = 0;
-        for (TomlSerializerService service : SERIALIZERS) {
+        for (TomlSerializerFactory factory : SERIALIZER_FACTORIES) {
             count++;
-            if (service.canDeserializeFrom(type)) {
-                TomlSerializer<T, ?> d = service.getDeserializer(this, type);
-                return d.toToml(type.cast(data));
-            }
+            TomlSerializerFactory.Result<T, ?> result = factory.toToml(this, type);
+            if (result.valid()) return result.serializer().toToml(type.cast(data));
         }
         throw new IllegalArgumentException(
                 "No deserializer found on classpath for type " + type.getName() +

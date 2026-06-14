@@ -17,8 +17,14 @@
 package io.github.wasabithumb.jtoml.serial;
 
 import io.github.wasabithumb.jtoml.JToml;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * @deprecated Replace with {@link TomlSerializerFactory}
+ */
+@Deprecated
+@ApiStatus.ScheduledForRemoval
 public abstract class TomlSerializerService {
 
     public abstract boolean canSerializeTo(@NotNull Class<?> outType);

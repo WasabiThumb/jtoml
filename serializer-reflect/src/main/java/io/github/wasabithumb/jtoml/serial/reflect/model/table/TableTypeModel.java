@@ -21,6 +21,7 @@ import io.github.wasabithumb.jtoml.key.TomlKey;
 import io.github.wasabithumb.jtoml.key.convention.KeyConvention;
 import io.github.wasabithumb.jtoml.serial.TomlSerializable;
 import io.github.wasabithumb.jtoml.serial.reflect.model.TypeModel;
+import io.github.wasabithumb.jtoml.serial.reflect.model.TypeModelOptions;
 import io.github.wasabithumb.jtoml.util.ParameterizedClass;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import io.github.wasabithumb.recsup.RecordSupport;
@@ -32,16 +33,19 @@ import java.util.*;
 public interface TableTypeModel<T> extends TypeModel<T> {
 
     @SuppressWarnings("unchecked")
-    static <O> @Nullable TableTypeModel<O> match(@NotNull ParameterizedClass<O> pc) {
+    static <O> @Nullable TableTypeModel<O> match(
+            @NotNull ParameterizedClass<O> pc,
+            @NotNull TypeModelOptions options
+    ) {
         Class<O> raw = pc.raw();
 
         // Record
         if (RecordSupport.isRecord(raw))
             return new RecordTableTypeModel<>(raw);
 
-        // TomlSerializable
-        if (TomlSerializable.class.isAssignableFrom(raw))
-            return (TableTypeModel<O>) SerializableTableTypeModel.create(raw);
+        // POJO (marked with TomlSerializable)
+        if (!options.ignoreMarker() && TomlSerializable.class.isAssignableFrom(raw))
+            return new PojoTableTypeModel<>(raw, options);
 
         // TomlTable
         if (TomlTable.class.equals(raw))
@@ -53,6 +57,10 @@ public interface TableTypeModel<T> extends TypeModel<T> {
             ParameterizedClass<?> vt = ParameterizedClass.of(mt.param(1));
             return (TableTypeModel<O>) StringMapTableTypeModel.create(raw.asSubclass(Map.class), vt);
         }
+
+        // POJO (not marked with TomlSerializable)
+        if (options.ignoreMarker())
+            return new PojoTableTypeModel<>(raw, options);
 
         // Other
         return null;
