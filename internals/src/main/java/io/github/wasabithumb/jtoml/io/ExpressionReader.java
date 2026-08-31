@@ -37,6 +37,7 @@ import org.jetbrains.annotations.UnknownNullability;
 
 import java.io.Closeable;
 import java.time.*;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -986,25 +987,25 @@ public class ExpressionReader implements Closeable {
     }
 
     private @NotNull TomlTable readInlineTable() throws TomlException {
+        List<String> commentStack = new LinkedList<>();
         TomlTable ret = TomlTable.create();
+        TomlValue lastValue = null;
         boolean expectComma = false;
         int ctrl;
         char c;
 
         while (true) {
-            ctrl = this.readInlineTableControl();
+            ctrl = this.readInlineTableControl(commentStack);
             if (ctrl == -1) this.in.raise("Unclosed inline table");
             c = (char) ctrl;
-            if (c == '}') return ret;
+            if (c == '}') break;
             if (expectComma) {
                 if (c != ',') this.in.raise("Expected inline table separator or closing char");
-                ctrl = this.readInlineTableControl();
+                ctrl = this.readInlineTableControl(commentStack);
                 if (ctrl == -1) this.in.raise("Unclosed inline table");
                 if (ctrl == '}') {
                     // v1.1.0 - allow trailing commas
-                    if (this.options.get(JTomlOption.COMPLIANCE).isAtLeast(1, 1)) {
-                        return ret;
-                    }
+                    if (this.options.get(JTomlOption.COMPLIANCE).isAtLeast(1, 1)) break;
                     this.in.raise("Disallowed trailing comma in inline table");
                 }
                 c = (char) ctrl;
@@ -1019,12 +1020,29 @@ public class ExpressionReader implements Closeable {
                 if (TomlValueFlags.isConstant(existing))
                     this.in.raise(key + " conflicts with previously defined key " + partialKey + " in inline table");
             }
-            ctrl = this.readInlineTableControl();
+            ctrl = this.readInlineTableControl(commentStack);
             if (ctrl == -1) this.in.raise("Expected value, got EOF");
             TomlValue value = this.readValue(ctrl);
+            for (String comment : commentStack) value.comments().addPre(comment);
+            commentStack.clear();
             ret.put(key, TomlValueFlags.setConstant(value, true));
+            lastValue = value;
             expectComma = true;
         }
+
+        if (!commentStack.isEmpty()) {
+            if (lastValue != null) {
+                for (String comment : commentStack)
+                    lastValue.comments().addPost(comment);
+            }
+            // TODO: Comments are getting THROWN OUT
+            // when parsing multiline inline tables
+            // with no key-values in them. Retaining
+            // these comments would require rethinking
+            // the entire comments API ;(
+        }
+
+        return ret;
     }
 
     private @NotNull TomlArray readArray() throws TomlException {
@@ -1108,7 +1126,7 @@ public class ExpressionReader implements Closeable {
     }
 
     /** Skip specific to inline tables */
-    private int readInlineTableControl() throws TomlException {
+    private int readInlineTableControl(Collection<? super String> comments) throws TomlException {
         if (this.options.get(JTomlOption.COMPLIANCE).isAtLeast(1, 1)) {
             // v1.1.0 - support newlines in inline tables
             char c;
@@ -1117,6 +1135,10 @@ public class ExpressionReader implements Closeable {
                 if (c == '\r') {
                     c = this.in.nextChar();
                     if (c != '\n') this.in.raise("Expected LF after CR within inline table");
+                    continue;
+                }
+                if (c == '#') {
+                    comments.add(this.in.finishExpression(true));
                     continue;
                 }
                 if (c != '\n') return c;
