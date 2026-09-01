@@ -601,7 +601,10 @@ public class ExpressionReader implements Closeable {
         if (len < 5) {
             truncated = true;
         } else if (str.charAt(2) == ':') { // Local Time
-            return TomlPrimitive.of(this.parsePartialTime(str, 0, len), this.options.get(JTomlOption.TIME_ZONE));
+            PartialTime pt = this.parsePartialTime(str, 0, len);
+            TomlPrimitive ret = TomlPrimitive.of(pt.time, this.options.get(JTomlOption.TIME_ZONE));
+            UnsafePrimitives.setTemporalMinNanoResolution(ret, pt.nanoPrecision);
+            return ret;
         } else if (len < 8) {
             truncated = true;
         }
@@ -641,10 +644,13 @@ public class ExpressionReader implements Closeable {
         }
 
         if (whereOffset == -1) {                                                        // Local Date-Time
-            LocalTime time = this.parsePartialTime(str, 11, len - 11);
-            return TomlPrimitive.of(LocalDateTime.of(date, time), this.options.get(JTomlOption.TIME_ZONE));
+            PartialTime pt = this.parsePartialTime(str, 11, len - 11);
+            TomlPrimitive ret = TomlPrimitive.of(LocalDateTime.of(date, pt.time), this.options.get(JTomlOption.TIME_ZONE));
+            UnsafePrimitives.setTemporalMinNanoResolution(ret, pt.nanoPrecision);
+            return ret;
         } else {                                                                        // Offset Date-Time
-            LocalTime time = this.parsePartialTime(str, 11, whereOffset - 11);
+            PartialTime pt = this.parsePartialTime(str, 11, whereOffset - 11);
+            LocalTime time = pt.time;
             LocalDateTime dateTime = LocalDateTime.of(date, time);
             ZoneOffset offset;
             if (numOffset) {
@@ -666,11 +672,13 @@ public class ExpressionReader implements Closeable {
             } else {
                 offset = ZoneOffset.UTC;
             }
-            return TomlPrimitive.of(dateTime.atOffset(offset));
+            TomlPrimitive ret = TomlPrimitive.of(dateTime.atOffset(offset));
+            UnsafePrimitives.setTemporalMinNanoResolution(ret, pt.nanoPrecision);
+            return ret;
         }
     }
 
-    private @NotNull LocalTime parsePartialTime(@NotNull CharSequence str, int off, int len) throws TomlException {
+    private @NotNull PartialTime parsePartialTime(@NotNull CharSequence str, int off, int len) throws TomlException {
         // v1.1.0 - support datetimes without seconds
         boolean ignoreSeconds = false;
         if (len == 5 && this.options.get(JTomlOption.COMPLIANCE).isAtLeast(1, 1)) {
@@ -690,6 +698,7 @@ public class ExpressionReader implements Closeable {
         if (second < 0 || second > 59) this.in.raise("Second out of range (got " + second + ")");
 
         int nanos = 0;
+        int nanoPrecision = 1;
         if (len > 8) {
             char c = str.charAt(off + 8);
             if (c != '.') this.in.raise("Expected decimal point");
@@ -697,6 +706,7 @@ public class ExpressionReader implements Closeable {
             int nd = len - 9;
             if (nd <= 9) {
                 nanos = this.parseNDigits(str, off + 9, nd);
+                nanoPrecision = nd;
                 switch (nd) {
                     case 1: nanos *= 100000000; break;
                     case 2: nanos *= 10000000; break;
@@ -709,6 +719,7 @@ public class ExpressionReader implements Closeable {
                 }
             } else {
                 nanos = this.parseNDigits(str, off + 9, 9);
+                nanoPrecision = 9;
                 for (int i=18; i < len; i++) {
                     c = str.charAt(off + i);
                     if (c < '0' || c > '9') this.in.raise("Expected digit");
@@ -716,7 +727,10 @@ public class ExpressionReader implements Closeable {
             }
         }
 
-        return LocalTime.of(hour, minute, second, nanos);
+        return new PartialTime(
+                LocalTime.of(hour, minute, second, nanos),
+                nanoPrecision
+        );
     }
 
     private int parseNDigits(@NotNull CharSequence str, int off, int len) throws TomlException {
@@ -1159,6 +1173,18 @@ public class ExpressionReader implements Closeable {
         ArrayControl(char character, @UnknownNullability List<String> comments) {
             this.character = character;
             this.comments = comments;
+        }
+
+    }
+
+    private static final class PartialTime {
+
+        final LocalTime time;
+        final int nanoPrecision;
+
+        PartialTime(LocalTime time, int nanoPrecision) {
+            this.time = time;
+            this.nanoPrecision = nanoPrecision;
         }
 
     }

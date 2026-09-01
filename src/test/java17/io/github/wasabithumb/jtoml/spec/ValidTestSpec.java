@@ -31,6 +31,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -147,13 +150,19 @@ final class ValidTestSpec extends AbstractTestSpec {
             assertTrue(primitive.isBoolean(), "Expected " + descriptor + " to be a boolean");
         } else if ("datetime".equals(vType)) {
             assertTrue(primitive.isOffsetDateTime(), "Expected " + descriptor + " to be an offset date-time");
+            assertEquals(OffsetDateTime.parse(vValue), primitive.asOffsetDateTime());
+            return;
         } else if ("datetime-local".equals(vType)) {
             assertTrue(primitive.isLocalDateTime(), "Expected " + descriptor + " to be a local date-time");
+            assertEquals(LocalDateTime.parse(vValue), primitive.asLocalDateTime());
+            return;
         } else if ("date-local".equals(vType)) {
             assertTrue(primitive.isLocalDate(), "Expected " + descriptor + " to be a local date");
         } else {
             assertEquals("time-local", vType);
-            assertTrue(primitive.isLocalTime(), "Expected " + descriptor + " tto be a local time");
+            assertTrue(primitive.isLocalTime(), "Expected " + descriptor + " to be a local time");
+            assertEquals(LocalTime.parse(vValue), primitive.asLocalTime());
+            return;
         }
 
         assertEquals(vValue, primitive.asString());
