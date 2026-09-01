@@ -31,6 +31,7 @@ import java.util.function.Supplier;
  * loading mechanism. Replaces the deprecated
  * {@link TomlSerializerService}.
  */
+@ApiStatus.AvailableSince("1.6.0")
 public abstract class TomlSerializerFactory {
 
     /**
