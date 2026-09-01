@@ -29,11 +29,11 @@ be the ultimate solution for all things TOML, fully recreating its type system w
 
 ## Star History
 
-<a href="https://www.star-history.com/#WasabiThumb/jtoml&Date">
+<a href="https://www.star-history.com/?repos=WasabiThumb%2Fjtoml&type=date&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=WasabiThumb/jtoml&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=WasabiThumb/jtoml&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=WasabiThumb/jtoml&type=Date" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=WasabiThumb/jtoml&type=date&theme=dark&legend=top-left&sealed_token=M1-fGhdvGyE5d1zIkw5juaCQTltb_vHPfgR1EmBZoRIaK0E3ErewJpOeoKL338jaj1DWfyzU_5bRSx4HVNU9ZAcxqe6TePayGpSviBzRYnH8ZEmtNDdj7A" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=WasabiThumb/jtoml&type=date&legend=top-left&sealed_token=M1-fGhdvGyE5d1zIkw5juaCQTltb_vHPfgR1EmBZoRIaK0E3ErewJpOeoKL338jaj1DWfyzU_5bRSx4HVNU9ZAcxqe6TePayGpSviBzRYnH8ZEmtNDdj7A" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=WasabiThumb/jtoml&type=date&legend=top-left&sealed_token=M1-fGhdvGyE5d1zIkw5juaCQTltb_vHPfgR1EmBZoRIaK0E3ErewJpOeoKL338jaj1DWfyzU_5bRSx4HVNU9ZAcxqe6TePayGpSviBzRYnH8ZEmtNDdj7A" />
  </picture>
 </a>
 
