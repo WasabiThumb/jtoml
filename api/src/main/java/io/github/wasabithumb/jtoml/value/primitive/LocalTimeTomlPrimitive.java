@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import java.time.*;
 
 @ApiStatus.Internal
-final class LocalTimeTomlPrimitive extends AbstractTomlPrimitive<LocalTime> {
+final class LocalTimeTomlPrimitive extends AbstractTemporalTomlPrimitive<LocalTime> {
 
     private final LocalTime value;
     private final ZoneOffset offset;
@@ -65,7 +65,7 @@ final class LocalTimeTomlPrimitive extends AbstractTomlPrimitive<LocalTime> {
     @Override
     public @NotNull String asString() {
         StringBuilder sb = new StringBuilder();
-        writeTime(sb, this.value);
+        writeTime(sb, this.value, this.minNanoResolution);
         return sb.toString();
     }
 

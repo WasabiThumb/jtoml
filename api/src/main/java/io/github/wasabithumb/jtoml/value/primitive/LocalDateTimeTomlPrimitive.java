@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import java.time.*;
 
 @ApiStatus.Internal
-final class LocalDateTimeTomlPrimitive extends AbstractTomlPrimitive<LocalDateTime> {
+final class LocalDateTimeTomlPrimitive extends AbstractTemporalTomlPrimitive<LocalDateTime> {
 
     private final LocalDateTime value;
     private final ZoneOffset offset;
@@ -69,7 +69,7 @@ final class LocalDateTimeTomlPrimitive extends AbstractTomlPrimitive<LocalDateTi
         StringBuilder sb = new StringBuilder();
         writeDate(sb, this.value.toLocalDate());
         sb.append('T');
-        writeTime(sb, this.value.toLocalTime());
+        writeTime(sb, this.value.toLocalTime(), this.minNanoResolution);
         return sb.toString();
     }
 

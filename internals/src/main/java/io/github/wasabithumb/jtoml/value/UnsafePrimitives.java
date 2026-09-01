@@ -20,8 +20,10 @@ import io.github.wasabithumb.jtoml.value.primitive.TomlPrimitive;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Range;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,18 +32,26 @@ import java.util.logging.Logger;
 public final class UnsafePrimitives {
 
     private static final Constructor<?> FLOAT_WITH_CHARS;
+    private static final Class<?> TEMPORAL_CLASS;
+    private static final Field TEMPORAL_MIN_NANO_RESOLUTION;
     static {
-        Class<?> cls;
-        Constructor<?> con = null;
+        Constructor<?> floatWithChars = null;
+        Class<?> temporalClass = null;
+        Field temporalMinNanoResolution = null;
         try {
-            cls = Class.forName("io.github.wasabithumb.jtoml.value.primitive.FloatTomlPrimitive");
-            con = cls.getDeclaredConstructor(Double.TYPE, String.class);
-            con.setAccessible(true);
-        } catch (ReflectiveOperationException | SecurityException e) {
+            Class<?> clsFloatTomlPrimitive = Class.forName("io.github.wasabithumb.jtoml.value.primitive.FloatTomlPrimitive");
+            floatWithChars = clsFloatTomlPrimitive.getDeclaredConstructor(Double.TYPE, String.class);
+            floatWithChars.setAccessible(true);
+            temporalClass = Class.forName("io.github.wasabithumb.jtoml.value.primitive.AbstractTemporalTomlPrimitive");
+            temporalMinNanoResolution = temporalClass.getDeclaredField("minNanoResolution");
+            temporalMinNanoResolution.setAccessible(true);
+        } catch (Exception e) {
             Logger.getLogger("jtoml")
-                    .log(Level.WARNING, "Failed to access float constructor (please report this)", e);
+                    .log(Level.WARNING, "Failed to access internals (please report this)", e);
         }
-        FLOAT_WITH_CHARS = con;
+        FLOAT_WITH_CHARS = floatWithChars;
+        TEMPORAL_CLASS = temporalClass;
+        TEMPORAL_MIN_NANO_RESOLUTION = temporalMinNanoResolution;
     }
 
     //
@@ -52,15 +62,32 @@ public final class UnsafePrimitives {
         TomlPrimitive ret;
         try {
             ret = (TomlPrimitive) FLOAT_WITH_CHARS.newInstance(v, chars);
-        } catch (InvocationTargetException | ExceptionInInitializerError e) {
+        } catch (InvocationTargetException e) {
             Throwable cause = e.getCause();
             if (cause == null) cause = e;
-            if (cause instanceof RuntimeException) throw ((RuntimeException) cause);
-            throw new AssertionError("Unexpected error in constructor/initializer", e);
-        } catch (ReflectiveOperationException e) {
-            throw new AssertionError("Unexpected reflection error", e);
+            if (cause instanceof RuntimeException) throw (RuntimeException) cause;
+            throw new IllegalStateException("Primitive constructor raised a checked exception", e);
+        } catch (Exception e) {
+            throw new IllegalStateException("Unexpected reflection error", e);
         }
         return ret;
+    }
+
+    @Contract(mutates = "param1")
+    public static void setTemporalMinNanoResolution(
+            TomlPrimitive target,
+            @Range(from = 1, to = 9) int minNanoResolution
+    ) {
+        if (TEMPORAL_CLASS == null ||
+                TEMPORAL_MIN_NANO_RESOLUTION == null ||
+                !TEMPORAL_CLASS.isInstance(target)
+        ) return;
+
+        try {
+            TEMPORAL_MIN_NANO_RESOLUTION.setInt(target, minNanoResolution);
+        } catch (Exception e) {
+            throw new IllegalStateException("Unexpected reflection error", e);
+        }
     }
 
     //

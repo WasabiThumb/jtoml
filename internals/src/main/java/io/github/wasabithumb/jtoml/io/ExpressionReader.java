@@ -37,6 +37,7 @@ import org.jetbrains.annotations.UnknownNullability;
 
 import java.io.Closeable;
 import java.time.*;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -600,7 +601,10 @@ public class ExpressionReader implements Closeable {
         if (len < 5) {
             truncated = true;
         } else if (str.charAt(2) == ':') { // Local Time
-            return TomlPrimitive.of(this.parsePartialTime(str, 0, len), this.options.get(JTomlOption.TIME_ZONE));
+            PartialTime pt = this.parsePartialTime(str, 0, len);
+            TomlPrimitive ret = TomlPrimitive.of(pt.time, this.options.get(JTomlOption.TIME_ZONE));
+            UnsafePrimitives.setTemporalMinNanoResolution(ret, pt.nanoPrecision);
+            return ret;
         } else if (len < 8) {
             truncated = true;
         }
@@ -640,10 +644,13 @@ public class ExpressionReader implements Closeable {
         }
 
         if (whereOffset == -1) {                                                        // Local Date-Time
-            LocalTime time = this.parsePartialTime(str, 11, len - 11);
-            return TomlPrimitive.of(LocalDateTime.of(date, time), this.options.get(JTomlOption.TIME_ZONE));
+            PartialTime pt = this.parsePartialTime(str, 11, len - 11);
+            TomlPrimitive ret = TomlPrimitive.of(LocalDateTime.of(date, pt.time), this.options.get(JTomlOption.TIME_ZONE));
+            UnsafePrimitives.setTemporalMinNanoResolution(ret, pt.nanoPrecision);
+            return ret;
         } else {                                                                        // Offset Date-Time
-            LocalTime time = this.parsePartialTime(str, 11, whereOffset - 11);
+            PartialTime pt = this.parsePartialTime(str, 11, whereOffset - 11);
+            LocalTime time = pt.time;
             LocalDateTime dateTime = LocalDateTime.of(date, time);
             ZoneOffset offset;
             if (numOffset) {
@@ -665,11 +672,13 @@ public class ExpressionReader implements Closeable {
             } else {
                 offset = ZoneOffset.UTC;
             }
-            return TomlPrimitive.of(dateTime.atOffset(offset));
+            TomlPrimitive ret = TomlPrimitive.of(dateTime.atOffset(offset));
+            UnsafePrimitives.setTemporalMinNanoResolution(ret, pt.nanoPrecision);
+            return ret;
         }
     }
 
-    private @NotNull LocalTime parsePartialTime(@NotNull CharSequence str, int off, int len) throws TomlException {
+    private @NotNull PartialTime parsePartialTime(@NotNull CharSequence str, int off, int len) throws TomlException {
         // v1.1.0 - support datetimes without seconds
         boolean ignoreSeconds = false;
         if (len == 5 && this.options.get(JTomlOption.COMPLIANCE).isAtLeast(1, 1)) {
@@ -689,6 +698,7 @@ public class ExpressionReader implements Closeable {
         if (second < 0 || second > 59) this.in.raise("Second out of range (got " + second + ")");
 
         int nanos = 0;
+        int nanoPrecision = 1;
         if (len > 8) {
             char c = str.charAt(off + 8);
             if (c != '.') this.in.raise("Expected decimal point");
@@ -696,6 +706,7 @@ public class ExpressionReader implements Closeable {
             int nd = len - 9;
             if (nd <= 9) {
                 nanos = this.parseNDigits(str, off + 9, nd);
+                nanoPrecision = nd;
                 switch (nd) {
                     case 1: nanos *= 100000000; break;
                     case 2: nanos *= 10000000; break;
@@ -708,6 +719,7 @@ public class ExpressionReader implements Closeable {
                 }
             } else {
                 nanos = this.parseNDigits(str, off + 9, 9);
+                nanoPrecision = 9;
                 for (int i=18; i < len; i++) {
                     c = str.charAt(off + i);
                     if (c < '0' || c > '9') this.in.raise("Expected digit");
@@ -715,7 +727,10 @@ public class ExpressionReader implements Closeable {
             }
         }
 
-        return LocalTime.of(hour, minute, second, nanos);
+        return new PartialTime(
+                LocalTime.of(hour, minute, second, nanos),
+                nanoPrecision
+        );
     }
 
     private int parseNDigits(@NotNull CharSequence str, int off, int len) throws TomlException {
@@ -986,25 +1001,25 @@ public class ExpressionReader implements Closeable {
     }
 
     private @NotNull TomlTable readInlineTable() throws TomlException {
+        List<String> commentStack = new LinkedList<>();
         TomlTable ret = TomlTable.create();
+        TomlValue lastValue = null;
         boolean expectComma = false;
         int ctrl;
         char c;
 
         while (true) {
-            ctrl = this.readInlineTableControl();
+            ctrl = this.readInlineTableControl(commentStack);
             if (ctrl == -1) this.in.raise("Unclosed inline table");
             c = (char) ctrl;
-            if (c == '}') return ret;
+            if (c == '}') break;
             if (expectComma) {
                 if (c != ',') this.in.raise("Expected inline table separator or closing char");
-                ctrl = this.readInlineTableControl();
+                ctrl = this.readInlineTableControl(commentStack);
                 if (ctrl == -1) this.in.raise("Unclosed inline table");
                 if (ctrl == '}') {
                     // v1.1.0 - allow trailing commas
-                    if (this.options.get(JTomlOption.COMPLIANCE).isAtLeast(1, 1)) {
-                        return ret;
-                    }
+                    if (this.options.get(JTomlOption.COMPLIANCE).isAtLeast(1, 1)) break;
                     this.in.raise("Disallowed trailing comma in inline table");
                 }
                 c = (char) ctrl;
@@ -1019,12 +1034,29 @@ public class ExpressionReader implements Closeable {
                 if (TomlValueFlags.isConstant(existing))
                     this.in.raise(key + " conflicts with previously defined key " + partialKey + " in inline table");
             }
-            ctrl = this.readInlineTableControl();
+            ctrl = this.readInlineTableControl(commentStack);
             if (ctrl == -1) this.in.raise("Expected value, got EOF");
             TomlValue value = this.readValue(ctrl);
+            for (String comment : commentStack) value.comments().addPre(comment);
+            commentStack.clear();
             ret.put(key, TomlValueFlags.setConstant(value, true));
+            lastValue = value;
             expectComma = true;
         }
+
+        if (!commentStack.isEmpty()) {
+            if (lastValue != null) {
+                for (String comment : commentStack)
+                    lastValue.comments().addPost(comment);
+            }
+            // TODO: Comments are getting THROWN OUT
+            // when parsing multiline inline tables
+            // with no key-values in them. Retaining
+            // these comments would require rethinking
+            // the entire comments API ;(
+        }
+
+        return ret;
     }
 
     private @NotNull TomlArray readArray() throws TomlException {
@@ -1108,7 +1140,7 @@ public class ExpressionReader implements Closeable {
     }
 
     /** Skip specific to inline tables */
-    private int readInlineTableControl() throws TomlException {
+    private int readInlineTableControl(Collection<? super String> comments) throws TomlException {
         if (this.options.get(JTomlOption.COMPLIANCE).isAtLeast(1, 1)) {
             // v1.1.0 - support newlines in inline tables
             char c;
@@ -1117,6 +1149,10 @@ public class ExpressionReader implements Closeable {
                 if (c == '\r') {
                     c = this.in.nextChar();
                     if (c != '\n') this.in.raise("Expected LF after CR within inline table");
+                    continue;
+                }
+                if (c == '#') {
+                    comments.add(this.in.finishExpression(true));
                     continue;
                 }
                 if (c != '\n') return c;
@@ -1137,6 +1173,18 @@ public class ExpressionReader implements Closeable {
         ArrayControl(char character, @UnknownNullability List<String> comments) {
             this.character = character;
             this.comments = comments;
+        }
+
+    }
+
+    private static final class PartialTime {
+
+        final LocalTime time;
+        final int nanoPrecision;
+
+        PartialTime(LocalTime time, int nanoPrecision) {
+            this.time = time;
+            this.nanoPrecision = nanoPrecision;
         }
 
     }
