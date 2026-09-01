@@ -23,6 +23,7 @@ import io.github.wasabithumb.jtoml.serial.TomlSerializable;
 import io.github.wasabithumb.jtoml.serial.TomlSerializer;
 import io.github.wasabithumb.jtoml.serial.reflect.adapter.TypeAdapter;
 import io.github.wasabithumb.jtoml.serial.reflect.adapter.TypeAdapters;
+import io.github.wasabithumb.jtoml.serial.reflect.model.TypeModelOptions;
 import io.github.wasabithumb.jtoml.serial.reflect.model.array.ArrayTypeModel;
 import io.github.wasabithumb.jtoml.serial.reflect.model.table.TableTypeModel;
 import io.github.wasabithumb.jtoml.serial.reflect.model.TypeModel;
@@ -34,9 +35,10 @@ import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import io.github.wasabithumb.recsup.RecordSupport;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.lang.annotation.*;
 import java.lang.reflect.Modifier;
 import java.util.Iterator;
 import java.util.Map;
@@ -52,34 +54,43 @@ import java.util.Objects;
 @ApiStatus.AvailableSince("1.4.1")
 public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<T> {
 
-    static final int C_SERIALIZE   = 1;
-    static final int C_DESERIALIZE = 2;
+    static @Nullable String anyTypeError(
+            @NotNull Class<?> type,
+            @Feature.Set int features
+    ) {
+        if (RecordSupport.isRecord(type)) return null;
+        if ((features & Feature.SUPPORTS_FROM_TOML) != 0) {
+            int mod = type.getModifiers();
+            if (Modifier.isInterface(mod) || Modifier.isAbstract(mod)) return "not directly instantiable";
+        }
+        if ((features & Feature.IGNORE_MARKER) == 0 && !TomlSerializable.class.isAssignableFrom(type))
+            return "not a record and does not implement TomlSerializable";
+        if ((features & Feature.ALLOW_UNSAFE) == 0) {
+            try {
+                type.getDeclaredConstructor();
+            } catch (NoSuchMethodException ignored) {
+                return "no primary constructor and unsafe instantiation is disabled";
+            }
+        }
+        return null;
+    }
 
     private static void checkType(
             @NotNull Class<?> type,
-            @MagicConstant(flags = { C_SERIALIZE, C_DESERIALIZE }) int capabilities
+            @Feature.Set int features
     ) throws IllegalArgumentException {
-        if (RecordSupport.isRecord(type)) return;
-        if (TomlSerializable.class.isAssignableFrom(type)) {
-            if ((capabilities & C_SERIALIZE) == 0) return;
-            int mod = type.getModifiers();
-            if (Modifier.isInterface(mod) || Modifier.isAbstract(mod)) {
-                raiseTypeError(type, capabilities, "not directly instantiable");
-            }
-        } else {
-            raiseTypeError(type, capabilities, "does not implement TomlSerializable and is not a record");
-        }
-    }
-
-    @Contract("_, _, _ -> fail")
-    private static void raiseTypeError(
-            @NotNull Class<?> type,
-            @MagicConstant(flags = { C_SERIALIZE, C_DESERIALIZE }) int capabilities,
-            @NotNull String detail
-    ) {
-        String classifier = ((capabilities & C_SERIALIZE) == 0) ? "deserializer" : "serializer";
+        String detail = anyTypeError(type, features);
+        if (detail == null) return;
+        String classifier = ((features & Feature.SUPPORTS_FROM_TOML) == 0) ? "deserializer" : "serializer";
         throw new IllegalArgumentException("Cannot create " + classifier + " for " + type.getName() +
                 " (" + detail + ")");
+    }
+
+    private static @NotNull TypeModelOptions modelOptions(@Feature.Set int features) {
+        return new TypeModelOptions(
+                (features & Feature.IGNORE_MARKER) == Feature.IGNORE_MARKER,
+                (features & Feature.ALLOW_UNSAFE) == Feature.ALLOW_UNSAFE
+        );
     }
 
     //
@@ -87,7 +98,7 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
     private final TableTypeModel<T> model;
     private final TypeAdapters adapters;
     private final KeyConvention defaultConvention;
-    private final int capabilities;
+    private final @Feature.Set int features;
 
     /**
      * Create a new serializer for converting objects of the given
@@ -147,22 +158,50 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
             @NotNull TypeAdapters adapters,
             @NotNull KeyConvention defaultConvention
     ) throws IllegalArgumentException {
-        this(type, adapters, defaultConvention, C_SERIALIZE | C_DESERIALIZE);
+        this(type, adapters, defaultConvention, false, false);
+    }
+
+    /**
+     * Create a new serializer for converting objects of the given
+     * type to/from a TOML table.
+     * @param type The table-like type to convert to/from.
+     * @param adapters Describes how leaves in the document tree may be converted to/from Java objects.
+     * @param defaultConvention The default {@link KeyConvention key convention} to use.
+     * @param ignoreMarker True to ignore the {@link TomlSerializable} marker.
+     * @param allowUnsafe True to allow usage of {@code sun.misc.Unsafe} to instantiate classes without a no-args constructor.
+     * @throws IllegalArgumentException The given type is not serializable.
+     */
+    public ReflectTomlSerializer(
+            @NotNull Class<T> type,
+            @NotNull TypeAdapters adapters,
+            @NotNull KeyConvention defaultConvention,
+            boolean ignoreMarker,
+            boolean allowUnsafe
+    ) throws IllegalArgumentException {
+        this(
+                type,
+                adapters,
+                defaultConvention,
+                Feature.SUPPORTS_FROM_TOML |
+                        Feature.SUPPORTS_TO_TOML |
+                        (ignoreMarker ? Feature.IGNORE_MARKER : 0) |
+                        (allowUnsafe ? Feature.ALLOW_UNSAFE : 0)
+        );
     }
 
     ReflectTomlSerializer(
             @NotNull Class<T> type,
             @NotNull TypeAdapters adapters,
             @NotNull KeyConvention defaultConvention,
-            @MagicConstant(flags = { C_SERIALIZE, C_DESERIALIZE }) int capabilities
+            @Feature.Set int features
     ) {
-        checkType(type, capabilities);
-        TableTypeModel<T> model = TableTypeModel.match(new ParameterizedClass<>(type));
+        checkType(type, features);
+        TableTypeModel<T> model = TableTypeModel.match(new ParameterizedClass<>(type), modelOptions(features));
         assert model != null;
         this.model = model;
         this.adapters = adapters;
         this.defaultConvention = defaultConvention;
-        this.capabilities = capabilities;
+        this.features = features;
     }
 
     //
@@ -174,7 +213,7 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
 
     @Override
     public @NotNull T fromToml(@NotNull TomlTable table) {
-        if ((this.capabilities & C_SERIALIZE) == 0) throw new UnsupportedOperationException();
+        if ((this.features & Feature.SUPPORTS_FROM_TOML) == 0) throw new UnsupportedOperationException();
         return this.serializeTable(
                 this.model,
                 table
@@ -183,7 +222,7 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
 
     @Override
     public @NotNull TomlTable toToml(@NotNull T data) {
-        if ((this.capabilities & C_DESERIALIZE) == 0) throw new UnsupportedOperationException();
+        if ((this.features & Feature.SUPPORTS_TO_TOML) == 0) throw new UnsupportedOperationException();
         ReferenceHolder parents = new ReferenceHolder();
         parents.add(this);
         return this.deserializeTable(
@@ -222,7 +261,7 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
     ) {
         final int len = array.size();
         E ret = model.createNew(len);
-        TypeModel<?> elementModel = TypeModel.of(model.componentType());
+        TypeModel<?> elementModel = TypeModel.of(model.componentType(), modelOptions(this.features));
 
         for (int i=0; i < len; i++) {
             TomlValue value = array.get(i);
@@ -258,7 +297,7 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
                     continue;
                 }
 
-                TypeModel<?> valueModel = TypeModel.of(model.elementType(modelKey));
+                TypeModel<?> valueModel = TypeModel.of(model.elementType(modelKey), modelOptions(this.features));
                 Object object = this.serializeValue(valueModel, value);
                 builder.set(modelKey, object);
             }
@@ -270,7 +309,7 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
                 TableTypeModel.Key key = mapper.fromTomlKey(tk);
                 if (key == null) continue;
 
-                TypeModel<?> valueModel = TypeModel.of(model.elementType(key));
+                TypeModel<?> valueModel = TypeModel.of(model.elementType(key), modelOptions(this.features));
                 Object object = this.serializeValue(valueModel, value);
                 builder.set(key, object);
             }
@@ -313,7 +352,7 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
     ) {
         final int size = model.size(value);
         TomlArray ret = TomlArray.create(size);
-        TypeModel<?> componentModel = TypeModel.of(model.componentType());
+        TypeModel<?> componentModel = TypeModel.of(model.componentType(), modelOptions(this.features));
 
         Iterator<?> iter = model.iterator(value);
         Object next;
@@ -341,7 +380,7 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
         Object next;
         TomlValue nextValue;
         for (TableTypeModel.Key key : model.keys(value, this.defaultConvention)) {
-            TypeModel<?> valueModel = TypeModel.of(model.elementType(key));
+            TypeModel<?> valueModel = TypeModel.of(model.elementType(key), modelOptions(this.features));
             next = model.get(value, key);
             if (key.isDefaulting() && Objects.equals(next, key.defaultValue())) continue;
             if (next == null) {
@@ -368,6 +407,25 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
 
         model.applyTableComments(ret.comments());
         return ret;
+    }
+
+    //
+
+    static final class Feature {
+
+        public static final int SUPPORTS_FROM_TOML = 0x1;
+        public static final int SUPPORTS_TO_TOML   = 0x2;
+        public static final int IGNORE_MARKER      = 0x4;
+        public static final int ALLOW_UNSAFE       = 0x8;
+
+        //
+
+        @Documented
+        @Retention(RetentionPolicy.SOURCE)
+        @Target({ ElementType.FIELD, ElementType.PARAMETER, ElementType.LOCAL_VARIABLE, ElementType.METHOD })
+        @MagicConstant(flagsFromClass = Feature.class)
+        @interface Set { }
+
     }
 
 }

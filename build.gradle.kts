@@ -2,9 +2,8 @@ import tasks.FetchTestsTask
 
 allprojects {
     apply(plugin = "java-library")
-
     group = "io.github.wasabithumb"
-    version = "1.5.2"
+    version = "1.6.0"
 }
 
 //
@@ -73,7 +72,8 @@ dependencies {
 }
 
 tasks.register<FetchTestsTask>("fetchTests") {
-    outputs.upToDateWhen { false }
+    description = "Ensures that the official test suite is cloned and checked out to the correct tag"
+    versionPattern = "^v2\\.2\\..*$".toRegex() // v2.2.x
 }
 
 tasks.processTestResources {

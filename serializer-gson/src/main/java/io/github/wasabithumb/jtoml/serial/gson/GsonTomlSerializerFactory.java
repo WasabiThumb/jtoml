@@ -1,0 +1,43 @@
+/*
+ * Copyright 2025 Xavier Pedraza
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package io.github.wasabithumb.jtoml.serial.gson;
+
+import com.google.gson.JsonObject;
+import io.github.wasabithumb.jtoml.JToml;
+import io.github.wasabithumb.jtoml.serial.TomlSerializer;
+import io.github.wasabithumb.jtoml.serial.TomlSerializerFactory;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+
+@ApiStatus.Internal
+public final class GsonTomlSerializerFactory extends TomlSerializerFactory {
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public @NotNull <T> Result<?, T> fromToml(@NotNull JToml instance, @NotNull Class<T> outType) {
+        if (!JsonObject.class.equals(outType)) return Result.invalid("not JsonObject");
+        return Result.valid(() -> (TomlSerializer<?, T>) GsonTomlSerializer.instance());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public @NotNull <T> Result<T, ?> toToml(@NotNull JToml instance, @NotNull Class<T> inType) {
+        if (!JsonObject.class.equals(inType)) return Result.invalid("not JsonObject");
+        return Result.valid(() -> (TomlSerializer<T, ?>) GsonTomlSerializer.instance());
+    }
+
+}

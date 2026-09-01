@@ -200,6 +200,30 @@ public interface JTomlOption<T> {
             StandardKeyConvention.LITERAL
     );
 
+    /**
+     * If {@code true}, POJOs (non-records) handled
+     * by the reflect serializer are not required to implement
+     * {@link io.github.wasabithumb.jtoml.serial.TomlSerializable TomlSerializable}.
+     * This also disables the protection implemented in the
+     * reflect serializer which prevents fields in supertypes
+     * which do not implement the marker from being modified.
+     */
+    @ApiStatus.AvailableSince("1.6.0")
+    Bool IGNORE_SERIALIZABLE_MARKER = of(
+            "IGNORE_SERIALIZABLE_MARKER",
+            false
+    );
+
+    /**
+     * If {@code true}, permits the usage of {@code sun.misc.Unsafe} to
+     * instantiate classes without a no-args constructor.
+     */
+    @ApiStatus.AvailableSince("1.6.0")
+    Bool PERMIT_UNSAFE = of(
+            "PERMIT_UNSAFE",
+            false
+    );
+
     //
 
     /**

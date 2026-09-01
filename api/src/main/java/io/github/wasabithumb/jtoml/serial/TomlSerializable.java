@@ -31,8 +31,15 @@ package io.github.wasabithumb.jtoml.serial;
  * </p>
  * <p>
  *     A {@link TomlSerializable} type that is not a <a href="https://openjdk.org/jeps/395">record</a>
- *     must have a no-args constructor. If the type is a record, it should not implement the
+ *     must have a no-args constructor unless
+ *     {@link io.github.wasabithumb.jtoml.option.JTomlOption#PERMIT_UNSAFE {@code PERMIT_UNSAFE}} is {@code true}.
+ *     If the type is a record, it may not implement the
  *     {@link TomlSerializable} marker interface. This marker is always ignored for records.
  * </p>
+ * <p><strong>
+ *     This marker is ignored, and the effects listed above do not apply, when
+ *     {@link io.github.wasabithumb.jtoml.option.JTomlOption#IGNORE_SERIALIZABLE_MARKER {@code IGNORE_SERIALIZABLE_MARKER}}
+ *     is set to {@code true}.
+ * </strong></p>
  */
 public interface TomlSerializable { }

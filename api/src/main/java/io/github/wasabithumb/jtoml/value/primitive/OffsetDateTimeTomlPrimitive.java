@@ -24,7 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import java.time.*;
 
 @ApiStatus.Internal
-final class OffsetDateTimeTomlPrimitive extends AbstractTomlPrimitive<OffsetDateTime> {
+final class OffsetDateTimeTomlPrimitive extends AbstractTemporalTomlPrimitive<OffsetDateTime> {
 
     private final OffsetDateTime value;
 
@@ -61,7 +61,7 @@ final class OffsetDateTimeTomlPrimitive extends AbstractTomlPrimitive<OffsetDate
 
         writeDate(sb, this.value.toLocalDate());
         sb.append('T');
-        writeTime(sb, this.value.toLocalTime());
+        writeTime(sb, this.value.toLocalTime(), this.minNanoResolution);
 
         int sec = this.value.getOffset().getTotalSeconds();
         if (sec == 0) {

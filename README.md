@@ -1,4 +1,9 @@
 # JToml
+
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/WasabiThumb/jtoml/gradle.yml)
+![Maven Central Version](https://img.shields.io/maven-central/v/io.github.wasabithumb/jtoml)
+![License](https://img.shields.io/badge/license-apache--2.0-blue)
+
 **[Wiki](https://github.com/WasabiThumb/jtoml/wiki) • [Javadocs](https://javadoc.io/doc/io.github.wasabithumb/jtoml-api)**
 
 A modular [TOML](https://toml.io/en/v1.1.0) library for Java 8 and above. JToml aims to
