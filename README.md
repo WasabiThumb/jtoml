@@ -11,13 +11,13 @@ be the ultimate solution for all things TOML, fully recreating its type system w
 **robust yet permissive API inspired by Gson**.
 
 ## Comparison
-|                                                                                                 | Up To Date¹ | Test Coverage² | Reflection³ | Json⁴ | Comments⁵ |
-|------------------------------------------------------------------------------------------------:|:-----------:|:--------------:|:-----------:|:-----:|:---------:|
-|                                   [``WasabiThumb/jtoml``](https://github.com/WasabiThumb/jtoml) |      ✅      |       ✅        |      ✅      |   ✅   |     ✅     |
-| [``FasterXML/jackson-dataformats-text``](https://github.com/FasterXML/jackson-dataformats-text) |      ❌      |       ❌        |      ✅      |   ✅   |     ❌     |
-|                                           [``mwanji/toml4j``](https://github.com/mwanji/toml4j) |      ❌      |       ❌        |      ✅      |   ✅   |     ❌     |
-|             [``TheElectronWill/night-config``](https://github.com/TheElectronWill/night-config) |      ❌      |       ❌        |      ✅      |   ✅   |     ✅     |
-|                                               [``tomlj/tomlj``](https://github.com/tomlj/tomlj) |      ❌      |       ❌        |      ❌      |   ✅   |     ❌     |
+|                                                                                                 | Up To Date¹ | Test Coverage² | Reflection³ | Json⁴ | Preserves Comments⁵ |
+|------------------------------------------------------------------------------------------------:|:-----------:|:--------------:|:-----------:|:-----:|:-------------------:|
+|                                   [``WasabiThumb/jtoml``](https://github.com/WasabiThumb/jtoml) |      ✅      |       ✅        |      ✅      |   ✅   |          ✅          |
+| [``FasterXML/jackson-dataformats-text``](https://github.com/FasterXML/jackson-dataformats-text) |      ❌      |       ❌        |      ✅      |   ✅   |          ❌          |
+|                                           [``mwanji/toml4j``](https://github.com/mwanji/toml4j) |      ❌      |       ❌        |      ✅      |   ✅   |          ❌          |
+|             [``TheElectronWill/night-config``](https://github.com/TheElectronWill/night-config) |      ❌      |       ❌        |      ✅      |   ✅   |          ✅          |
+|                                               [``tomlj/tomlj``](https://github.com/tomlj/tomlj) |      ✅      |       ✅        |      ❌      |   ✅   |          ❌          |
 
 
 
@@ -29,7 +29,7 @@ be the ultimate solution for all things TOML, fully recreating its type system w
 >
 > ⁴ May be used to convert TOML to/from a JSON representation in some way.
 >
-> ⁵ Supports TOML [comments](https://toml.io/en/v1.1.0#comment) to some extent.
+> ⁵ Exposes TOML [comments](https://toml.io/en/v1.1.0#comment) in its data model and preserves them when writing, at least in part.
 
 
 ## Star History
