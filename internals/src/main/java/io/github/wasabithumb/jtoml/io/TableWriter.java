@@ -95,7 +95,6 @@ public final class TableWriter implements Closeable {
         int ks = key.size();
         if (ks > 1) this.indentLevel += (ks * indentation.variableIndent());
 
-        for (int i=0; i < spacing.preTable(); i++) this.out.put(newline);
         this.writeIndent();
         this.out.put('[');
         if (array) {
@@ -129,6 +128,10 @@ public final class TableWriter implements Closeable {
         final boolean writeComments = this.options.get(JTomlOption.WRITE_COMMENTS) && comments.count() != 0;
         final boolean writeEmptyTables = this.options.get(JTomlOption.WRITE_EMPTY_TABLES);
         final LineSeparator newline = this.options.get(JTomlOption.LINE_SEPARATOR);
+        if (!(writeComments || writeEmptyTables || unconditional)) return;
+
+        final SpacingPolicy spacing = this.options.get(JTomlOption.SPACING);
+        for (int i = 0; i < spacing.preTable(); i++) this.out.put(newline);
 
         if (writeComments) {
             for (Comment c : comments.get(CommentPosition.PRE)) {
@@ -137,19 +140,17 @@ public final class TableWriter implements Closeable {
                 this.out.put(newline);
             }
         }
-        if (writeComments || writeEmptyTables || unconditional) {
-            this.writeTableHeader0(
-                    key,
-                    array,
-                    writeComments ? comments.getInline() : null
-            );
-        }
-        if (writeComments) {
-            for (Comment c : comments.get(CommentPosition.POST)) {
-                this.out.put("# ");
-                this.out.put(c.content());
-                this.out.put(newline);
-            }
+
+        this.writeTableHeader0(
+                key,
+                array,
+                writeComments ? comments.getInline() : null
+        );
+
+        for (Comment c : comments.get(CommentPosition.POST)) {
+            this.out.put("# ");
+            this.out.put(c.content());
+            this.out.put(newline);
         }
     }
 
