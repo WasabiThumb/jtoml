@@ -45,11 +45,23 @@ public final class TrickyFloatsTestRoute implements TestRoute {
     }
 
     private void test(JToml instance, double value) {
-        String doc = "a = " + value + "\n";
+        String tomlValue;
+        if (Double.isNaN(value)) {
+            tomlValue = "nan";
+        } else if (value == Double.POSITIVE_INFINITY) {
+            tomlValue = "inf";
+        } else if (value == Double.NEGATIVE_INFINITY) {
+            tomlValue = "-inf";
+        } else {
+            tomlValue = Double.toString(value);
+        }
+        String doc = "a = " + tomlValue + "\n";
+
         TomlTable table = instance.readFromString(doc);
         TomlValue v = table.get("a");
         assertNotNull(v);
         double out = v.asPrimitive().asDouble();
+
         double expected = Double.parseDouble(Double.toString(value));
         assertEquals(expected, out);
     }

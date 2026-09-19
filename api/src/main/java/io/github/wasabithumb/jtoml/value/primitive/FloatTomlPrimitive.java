@@ -22,14 +22,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.text.NumberFormat;
 import java.util.Locale;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @ApiStatus.Internal
 final class FloatTomlPrimitive extends AbstractTomlPrimitive<Double> {
 
-    private static final Pattern PARSE_PATTERN =
-            Pattern.compile("^([-+]?(?:inf|nan))|([-+]?)([1-9]\\d*)(?:\\.(\\d+))?(?:e([-+]?\\d+))?$");
+    private static final double NEGATIVE_NAN = Double.longBitsToDouble(0xfff8000000000000L);
+    private static final Pattern NORMAL_FLOAT_PATTERN = Pattern.compile("^[+-]?([1-9]|0(?=[.eE]))(_?\\d)*(\\.\\d(_?\\d)*)?([eE][+-]?\\d(_?\\d)*)?$");
 
     private static final ThreadLocal<NumberFormat> NUMBER_FORMAT = ThreadLocal.withInitial(() -> {
         NumberFormat df = NumberFormat.getInstance(Locale.ROOT);
@@ -40,58 +39,87 @@ final class FloatTomlPrimitive extends AbstractTomlPrimitive<Double> {
     });
 
     private static @NotNull String autoChars(double value) {
-        if (value == Double.POSITIVE_INFINITY) return "inf";
-        if (value == Double.NEGATIVE_INFINITY) return "-inf";
-        if (Double.isNaN(value)) return "nan";
-        if (Double.doubleToLongBits(value) == -9223372036854775808L) return "-0.0";
+        long bits = Double.doubleToRawLongBits(value);
+        if (bits == 0x8000000000000000L) return "-0.0";
+        if ((bits & 0x7ff0000000000000L) == 0x7ff0000000000000L) {
+            if ((bits & 0x000fffffffffffffL) == 0L) {
+                return (bits & 0x8000000000000000L) == 0x8000000000000000L ?
+                        "-inf" : "inf";
+            } else {
+                return (bits & 0x8000000000000000L) == 0x8000000000000000L ?
+                        "-nan" : "nan";
+            }
+        }
         return NUMBER_FORMAT.get().format(value);
     }
 
-    static @NotNull FloatTomlPrimitive parse(@NotNull String string) throws IllegalArgumentException {
-        Matcher m = PARSE_PATTERN.matcher(string);
-        if (!m.matches()) throw new IllegalArgumentException("Invalid float string: " + string);
+    static @NotNull FloatTomlPrimitive parse(@NotNull CharSequence str) throws IllegalArgumentException {
+        final int len = str.length();
+        if (len == 0) {
+            throw new IllegalArgumentException("Cannot parse empty string as TOML float");
+        }
 
-        String special = m.group(1);
-        if (special != null && !special.isEmpty()) {
-            switch (special) {
-                case "-inf":
-                    return new FloatTomlPrimitive(Double.NEGATIVE_INFINITY, special);
-                case "+inf":
-                case "inf":
-                    return new FloatTomlPrimitive(Double.POSITIVE_INFINITY, special);
-                default:
-                    return new FloatTomlPrimitive(Double.NaN, special);
+        // Check for special floats (+/- inf, nan)
+        if (len > 2) {
+            int start = 0;
+            char c = str.charAt(start);
+            boolean negative = false;
+            if (c == '+') {
+                c = str.charAt(++start);
+            } else if (c == '-') {
+                c = str.charAt(++start);
+                negative = true;
+            }
+            if (c == 'i') {
+                if (str.charAt(start + 1) == 'n' &&
+                        start + 3 == len &&
+                        str.charAt(start + 2) == 'f'
+                ) {
+                    return new FloatTomlPrimitive(
+                            negative ? Double.NEGATIVE_INFINITY : Double.POSITIVE_INFINITY,
+                            str.toString()
+                    );
+                }
+            } else if (c == 'n') {
+                if (str.charAt(start + 1) == 'a' &&
+                    start + 3 == len &&
+                    str.charAt(start + 2) == 'n'
+                ) {
+                    return new FloatTomlPrimitive(
+                            negative ? NEGATIVE_NAN : Double.NaN,
+                            str.toString()
+                    );
+                }
             }
         }
 
-        boolean negative = false;
-        String signText = m.group(2);
-        if (signText != null && !signText.isEmpty()) {
-            negative = signText.charAt(0) == '-';
+        // This approach may seem inefficient, but delegating
+        // to Java's parseDouble avoids significant headaches
+        // (see #76). We still can't pass it directory to parseDouble
+        // since TOML's rules still need to be followed.
+        // So first, we check if it's valid, then strip underscores,
+        // then pass to parseDouble.
+
+        if (!NORMAL_FLOAT_PATTERN.matcher(str).matches()) {
+            throw new IllegalArgumentException("TOML float string (" + str + ") does not match pattern");
         }
 
-        long intPart = Long.parseLong(m.group(3));
-        double frac = 0d;
-        String fracText = m.group(4);
-        if (fracText != null && !fracText.isEmpty()) {
-            frac = Double.parseDouble("0." + fracText);
+        StringBuilder sb = new StringBuilder(len);
+        for (int i = 0; i < len; i++) {
+            char c = str.charAt(i);
+            if (c == '_') continue;
+            sb.append(c);
         }
 
-        long exp = 0L;
-        String expText = m.group(5);
-        if (expText != null && !expText.isEmpty()) {
-            exp = Long.parseLong(expText);
+        String stripped = sb.toString();
+        double value;
+        try {
+            value = Double.parseDouble(stripped);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("TOML float string (" + str + ") could not be parsed", e);
         }
 
-        double ret;
-        if (exp != 0L) {
-            double scale = Math.pow(10, exp);
-            ret = (scale * intPart) + (scale * frac);
-        } else {
-            ret = ((double) intPart) + frac;
-        }
-        if (negative) ret = -ret;
-        return new FloatTomlPrimitive(ret, string);
+        return new FloatTomlPrimitive(value, str.toString());
     }
 
     //
