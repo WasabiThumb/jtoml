@@ -1,6 +1,6 @@
 # JToml
 
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/WasabiThumb/jtoml/gradle.yml)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/WasabiThumb/jtoml/build.yml)
 ![Maven Central Version](https://img.shields.io/maven-central/v/io.github.wasabithumb/jtoml)
 ![License](https://img.shields.io/badge/license-apache--2.0-blue)
 
