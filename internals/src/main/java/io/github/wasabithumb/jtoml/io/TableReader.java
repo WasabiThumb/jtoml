@@ -18,6 +18,7 @@ package io.github.wasabithumb.jtoml.io;
 
 import io.github.wasabithumb.jtoml.comment.Comments;
 import io.github.wasabithumb.jtoml.document.TomlIssue;
+import io.github.wasabithumb.jtoml.document.TomlIssues;
 import io.github.wasabithumb.jtoml.except.TomlException;
 import io.github.wasabithumb.jtoml.except.parse.TomlClobberException;
 import io.github.wasabithumb.jtoml.except.parse.TomlExtensionException;
@@ -38,25 +39,23 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.UnknownNullability;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
 public final class TableReader extends ExpressionReader {
 
-    private final @UnknownNullability List<TomlIssue> issues;
+    private final TomlIssues.@UnknownNullability Builder issues;
 
     public TableReader(@NotNull BufferedCharSource in, @NotNull JTomlOptions options) {
         super(in, options);
-        this.issues = options.get(JTomlOption.ERROR_RECOVERY) ? new LinkedList<>() : null;
+        this.issues = options.get(JTomlOption.ERROR_RECOVERY) ? TomlIssues.builder() : null;
     }
 
     //
 
-    public @NotNull @Unmodifiable List<TomlIssue> reportIssues() {
-        if (this.issues == null || this.issues.isEmpty()) return Collections.emptyList();
-        return Collections.unmodifiableList(new ArrayList<>(this.issues));
+    public @NotNull @Unmodifiable TomlIssues issues() {
+        if (this.issues == null) return TomlIssues.empty();
+        return this.issues.build();
     }
 
     public @NotNull TomlTable readTable() {

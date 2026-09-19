@@ -89,7 +89,7 @@ final class JTomlImpl implements JToml {
     private @NotNull TomlDocumentImpl read(@NotNull BufferedCharSource cs) throws TomlException {
         TableReader tr = new TableReader(cs, this.options);
         TomlTable table = tr.readTable();
-        return new TomlDocumentImpl(table, tr.reportIssues());
+        return new TomlDocumentImpl(table, tr.issues());
     }
 
     @Override

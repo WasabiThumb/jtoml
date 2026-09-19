@@ -16,6 +16,7 @@
 
 package io.github.wasabithumb.jtoml.document;
 
+import io.github.wasabithumb.jtoml.except.TomlException;
 import io.github.wasabithumb.jtoml.except.parse.TomlLocalParseException;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
@@ -68,5 +69,25 @@ public interface TomlIssue {
 
     @Contract(pure = true)
     @NotNull String message();
+
+    /**
+     * Creates a new {@link TomlLocalParseException}
+     * with the same information as stored in this
+     * issue.
+     * @see #unwrap()
+     */
+    @Contract("-> new")
+    default @NotNull TomlLocalParseException toException() {
+        return new TomlLocalParseException(this.message(), this.line(), this.column());
+    }
+
+    /**
+     * Throws the exception yielded by
+     * {@link #toException()}.
+     */
+    @Contract("-> fail")
+    default void unwrap() throws TomlException {
+        throw this.toException();
+    }
 
 }

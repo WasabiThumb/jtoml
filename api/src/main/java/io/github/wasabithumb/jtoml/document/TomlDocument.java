@@ -19,9 +19,6 @@ package io.github.wasabithumb.jtoml.document;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
-
-import java.util.List;
 
 /**
  * The top-level table read from a TOML file/string.
@@ -37,6 +34,6 @@ public interface TomlDocument extends TomlTable {
      * {@link io.github.wasabithumb.jtoml.option.JTomlOption#ERROR_RECOVERY error recovery}
      * is enabled.
      */
-    @NotNull @Unmodifiable List<TomlIssue> issues();
+    @NotNull TomlIssues issues();
 
 }
