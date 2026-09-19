@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
+import java.util.List;
 import java.util.Set;
 
 @ApiStatus.Internal
@@ -32,14 +33,24 @@ public final class TomlDocumentImpl implements TomlDocument {
 
     private final long creationTime;
     private final TomlTable backing;
+    private final List<TomlIssue> issues;
     private boolean orderMarked = false;
 
-    public TomlDocumentImpl(@NotNull TomlTable backing) {
+    public TomlDocumentImpl(
+            @NotNull TomlTable backing,
+            @NotNull List<TomlIssue> issues
+    ) {
         this.creationTime = System.nanoTime();
         this.backing = backing;
+        this.issues = issues;
     }
 
     // START Metadata
+
+    @Override
+    public @NotNull @Unmodifiable List<TomlIssue> issues() {
+        return this.issues;
+    }
 
     public boolean isOrderMarked() {
         return this.orderMarked;

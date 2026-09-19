@@ -18,10 +18,25 @@ package io.github.wasabithumb.jtoml.document;
 
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
+
+import java.util.List;
 
 /**
  * The top-level table read from a TOML file/string.
- * Provides no additional API.
+ * Mostly identical to a regular table, but may
+ * hold {@link #issues() issues}.
  */
 @ApiStatus.NonExtendable
-public interface TomlDocument extends TomlTable { }
+public interface TomlDocument extends TomlTable {
+
+    /**
+     * Issues generated when parsing this document.
+     * This will be empty unless
+     * {@link io.github.wasabithumb.jtoml.option.JTomlOption#ERROR_RECOVERY error recovery}
+     * is enabled.
+     */
+    @NotNull @Unmodifiable List<TomlIssue> issues();
+
+}

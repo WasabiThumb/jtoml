@@ -17,9 +17,12 @@
 package io.github.wasabithumb.jtoml.io;
 
 import io.github.wasabithumb.jtoml.comment.Comments;
+import io.github.wasabithumb.jtoml.document.TomlIssue;
 import io.github.wasabithumb.jtoml.except.TomlException;
 import io.github.wasabithumb.jtoml.except.parse.TomlClobberException;
 import io.github.wasabithumb.jtoml.except.parse.TomlExtensionException;
+import io.github.wasabithumb.jtoml.except.parse.TomlLocalParseException;
+import io.github.wasabithumb.jtoml.except.parse.TomlParseException;
 import io.github.wasabithumb.jtoml.expression.Expression;
 import io.github.wasabithumb.jtoml.expression.KeyValueExpression;
 import io.github.wasabithumb.jtoml.expression.TableExpression;
@@ -32,17 +35,29 @@ import io.github.wasabithumb.jtoml.value.TomlValueFlags;
 import io.github.wasabithumb.jtoml.value.array.TomlArray;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.UnknownNullability;
+import org.jetbrains.annotations.Unmodifiable;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
 public final class TableReader extends ExpressionReader {
 
+    private final @UnknownNullability List<TomlIssue> issues;
+
     public TableReader(@NotNull BufferedCharSource in, @NotNull JTomlOptions options) {
         super(in, options);
+        this.issues = options.get(JTomlOption.ERROR_RECOVERY) ? new LinkedList<>() : null;
     }
 
     //
+
+    public @NotNull @Unmodifiable List<TomlIssue> reportIssues() {
+        if (this.issues == null || this.issues.isEmpty()) return Collections.emptyList();
+        return Collections.unmodifiableList(new ArrayList<>(this.issues));
+    }
 
     public @NotNull TomlTable readTable() {
         TomlTable ret = TomlTable.create();
@@ -53,24 +68,31 @@ public final class TableReader extends ExpressionReader {
         List<String> comments = readComments ? new LinkedList<>() : null;
         TomlValue commentAttr = ret;
 
-        while ((next = this.readExpression()) != null) {
-            TomlValue defined;
-            String comment;
-            if (next.isKeyValue()) {
-                defined = ctx.applyKeyValue(next.asKeyValue());
-            } else if (next.isTable()) {
-                defined = ctx.applyTable(next.asTable());
-            } else {
-                if (readComments && (comment = next.getComment()) != null)
-                    comments.add(comment);
-                continue;
-            }
-            if (readComments) {
-                commentAttr = defined;
-                Comments definedComments = defined.comments();
-                if ((comment = next.getComment()) != null) definedComments.addInline(comment);
-                for (String pre : comments) definedComments.addPre(pre);
-                comments.clear();
+        while (true) {
+            try {
+                next = this.readExpression();
+                if (next == null) break;
+                TomlValue defined;
+                String comment;
+                if (next.isKeyValue()) {
+                    defined = ctx.applyKeyValue(next.asKeyValue());
+                } else if (next.isTable()) {
+                    defined = ctx.applyTable(next.asTable());
+                } else {
+                    if (readComments && (comment = next.getComment()) != null)
+                        comments.add(comment);
+                    continue;
+                }
+                if (readComments) {
+                    commentAttr = defined;
+                    Comments definedComments = defined.comments();
+                    if ((comment = next.getComment()) != null) definedComments.addInline(comment);
+                    for (String pre : comments) definedComments.addPre(pre);
+                    comments.clear();
+                }
+            } catch (TomlParseException e) {
+                if (!this.options.get(JTomlOption.ERROR_RECOVERY)) throw e;
+                this.issues.add(this.newIssue(e));
             }
         }
 
@@ -80,6 +102,11 @@ public final class TableReader extends ExpressionReader {
         }
 
         return ret;
+    }
+
+    private TomlIssue newIssue(TomlParseException e) {
+        if (e instanceof TomlLocalParseException) return TomlIssue.issue((TomlLocalParseException) e);
+        return this.in.newIssue(e.getMessage());
     }
 
     //
