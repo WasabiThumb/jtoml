@@ -147,10 +147,12 @@ public final class TableWriter implements Closeable {
                 writeComments ? comments.getInline() : null
         );
 
-        for (Comment c : comments.get(CommentPosition.POST)) {
-            this.out.put("# ");
-            this.out.put(c.content());
-            this.out.put(newline);
+        if (writeComments) {
+            for (Comment c : comments.get(CommentPosition.POST)) {
+                this.out.put("# ");
+                this.out.put(c.content());
+                this.out.put(newline);
+            }
         }
     }
 
