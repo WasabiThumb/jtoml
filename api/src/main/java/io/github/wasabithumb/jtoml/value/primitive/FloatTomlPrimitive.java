@@ -95,7 +95,7 @@ final class FloatTomlPrimitive extends AbstractTomlPrimitive<Double> {
 
         // This approach may seem inefficient, but delegating
         // to Java's parseDouble avoids significant headaches
-        // (see #76). We still can't pass it directory to parseDouble
+        // (see #76). We still can't pass it directly to parseDouble
         // since TOML's rules still need to be followed.
         // So first, we check if it's valid, then strip underscores,
         // then pass to parseDouble.
