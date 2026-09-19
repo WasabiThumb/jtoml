@@ -13,11 +13,11 @@ be the ultimate solution for all things TOML, fully recreating its type system w
 ## Comparison
 |                                                                                                 | Up To Date¹ | Test Coverage² | Reflection³ | Json⁴ | Preserves Comments⁵ | Error Recovery⁶ |
 |------------------------------------------------------------------------------------------------:|:-----------:|:--------------:|:-----------:|:-----:|:-------------------:|:---------------:|
-|                                   [``WasabiThumb/jtoml``](https://github.com/WasabiThumb/jtoml) |      ✅      |       ✅        |      ✅      |   ✅   |          ✅          |        ❌        |
-| [``FasterXML/jackson-dataformats-text``](https://github.com/FasterXML/jackson-dataformats-text) |      ❌      |       ❌        |      ✅      |   ✅   |          ❌          |        ❌        |
-|                                           [``mwanji/toml4j``](https://github.com/mwanji/toml4j) |      ❌      |       ❌        |      ✅      |   ✅   |          ❌          |        ❌        |
-|             [``TheElectronWill/night-config``](https://github.com/TheElectronWill/night-config) |      ❌      |       ❌        |      ✅      |   ✅   |          ✅          |        ❌        |
-|                                               [``tomlj/tomlj``](https://github.com/tomlj/tomlj) |      ✅      |       ✅        |      ❌      |   ✅   |          ❌          |        ✅        |
+|                                   [``WasabiThumb/jtoml``](https://github.com/WasabiThumb/jtoml) |     ✅      |       ✅       |     ✅      |  ✅   |         ✅          |       ✅        |
+|                                               [``tomlj/tomlj``](https://github.com/tomlj/tomlj) |     ✅      |       ✅       |     ❌      |  ✅   |         ❌          |       ✅        |
+|             [``TheElectronWill/night-config``](https://github.com/TheElectronWill/night-config) |     ✅      |       ❌       |     ✅      |  ✅   |         ✅          |       ❌        |
+| [``FasterXML/jackson-dataformats-text``](https://github.com/FasterXML/jackson-dataformats-text) |     ❌      |       ❌       |     ✅      |  ✅   |         ❌          |       ❌        |
+|                                           [``mwanji/toml4j``](https://github.com/mwanji/toml4j) |     ❌      |       ❌       |     ✅      |  ✅   |         ❌          |       ❌        |
 
 
 
@@ -31,7 +31,7 @@ be the ultimate solution for all things TOML, fully recreating its type system w
 >
 > ⁵ Exposes TOML [comments](https://toml.io/en/v1.1.0#comment) in its data model and preserves them when writing, at least in part.
 >
-> ⁶ Continues parsing after an error and reports every error with its position, rather than stopping at the first one.
+> ⁶ May be configured to continue parsing after an error, storing readable positioned error data.
 
 
 ## Star History

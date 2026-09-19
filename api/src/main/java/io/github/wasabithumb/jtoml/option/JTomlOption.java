@@ -224,6 +224,17 @@ public interface JTomlOption<T> {
             false
     );
 
+    /**
+     * If {@code true} (defaults to {@code false}), parsing errors will be
+     * {@link io.github.wasabithumb.jtoml.document.TomlDocument#issues() stored on the resulting document}
+     * instead of being thrown. {@link io.github.wasabithumb.jtoml.except.TomlIOException TomlIOException}
+     * may still be thrown when the underlying stream raises an {@code IOException}.
+     */
+    Bool ERROR_RECOVERY = of(
+            "ERROR_RECOVERY",
+            false
+    );
+
     //
 
     /**
