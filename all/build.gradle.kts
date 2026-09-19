@@ -1,4 +1,6 @@
 import java.io.*
+import java.nio.file.Files
+import kotlin.io.path.name
 
 plugins {
     alias(libs.plugins.indra.core)
@@ -37,17 +39,29 @@ sourceSets {
             moduleName("io.github.wasabithumb.jtoml")
         }
     }
+
+    // Gradle 10+ requires features to have their own source sets
+    register("configurate")
+    register("gson")
 }
 
 java {
     registerFeature("configurate") {
-        usingSourceSet(sourceSets.main.get())
+        usingSourceSet(sourceSets.named("configurate").get())
     }
     registerFeature("gson") {
-        usingSourceSet(sourceSets.main.get())
+        usingSourceSet(sourceSets.named("gson").get())
     }
     modularity.inferModulePath = false
     withSourcesJar()
+}
+
+configurations {
+    compileOnly {
+        // Allows javadoc task to find transient dependency classes
+        extendsFrom(named("configurateApi"))
+        extendsFrom(named("gsonApi"))
+    }
 }
 
 dependencies {
@@ -86,24 +100,33 @@ tasks.javadoc {
 fun blitFile(src: File, target: File) {
     if (target.exists()) {
         // Treat as service file
-        val lines = mutableListOf<String>()
-        FileInputStream(src).use { inputStream ->
-            InputStreamReader(inputStream, Charsets.UTF_8).useLines { sequence ->
-                lines.addAll(sequence)
-            }
-        }
-        FileInputStream(target).use { inputStream ->
-            InputStreamReader(inputStream, Charsets.UTF_8).useLines { sequence ->
-                lines.addAll(sequence)
-            }
-        }
-        FileOutputStream(target).use { outputStream ->
-            OutputStreamWriter(outputStream, Charsets.UTF_8).use { writer ->
-                lines.forEach { line ->
-                    writer.write(line)
-                    writer.write('\n'.code)
+        val targetPath = target.toPath()
+        val temp = targetPath.parent.resolve(targetPath.name + ".tmp")
+        var ok = false
+        try {
+            Files.newBufferedWriter(temp, Charsets.UTF_8).use { out ->
+                val set: MutableSet<String> = mutableSetOf()
+                Files.newBufferedReader(src.toPath(), Charsets.UTF_8).useLines { s ->
+                    s.forEach {
+                        if (it.isEmpty() || !set.add(it)) return@forEach
+                        out.write(it)
+                        out.write('\n'.code)
+                    }
                 }
+                Files.newBufferedReader(targetPath, Charsets.UTF_8).useLines { s ->
+                    s.forEach {
+                        if (it.isEmpty() || !set.add(it)) return@forEach
+                        out.write(it)
+                        out.write('\n'.code)
+                    }
+                }
+                out.flush()
             }
+            Files.delete(targetPath)
+            Files.move(temp, targetPath)
+            ok = true
+        } finally {
+            if (!ok) Files.delete(temp)
         }
     } else {
         src.copyTo(target, true)
