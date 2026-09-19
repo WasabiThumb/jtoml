@@ -230,6 +230,7 @@ public interface JTomlOption<T> {
      * instead of being thrown. {@link io.github.wasabithumb.jtoml.except.TomlIOException TomlIOException}
      * may still be thrown when the underlying stream raises an {@code IOException}.
      */
+    @ApiStatus.AvailableSince("1.7.0")
     Bool ERROR_RECOVERY = of(
             "ERROR_RECOVERY",
             false

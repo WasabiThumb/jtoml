@@ -17,6 +17,7 @@
 package io.github.wasabithumb.jtoml.except.parse;
 
 import io.github.wasabithumb.jtoml.document.TomlIssues;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,6 +31,7 @@ import java.util.Iterator;
  * {@link TomlIssues#unwrap() unwrapping issues} when more than 1
  * issue is present.
  */
+@ApiStatus.AvailableSince("1.7.0")
 public final class TomlMultiParseException extends TomlParseException {
 
     private static final long serialVersionUID = -6004683919942778023L;

@@ -29,6 +29,7 @@ import java.util.List;
  * An unmodifiable list of
  * {@link TomlIssue}s.
  */
+@ApiStatus.AvailableSince("1.7.0")
 @ApiStatus.NonExtendable
 @Unmodifiable
 public interface TomlIssues extends List<TomlIssue> {

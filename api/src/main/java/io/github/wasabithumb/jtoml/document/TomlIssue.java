@@ -29,6 +29,7 @@ import java.util.Objects;
  * when {@link io.github.wasabithumb.jtoml.option.JTomlOption#ERROR_RECOVERY error recovery}
  * is enabled.
  */
+@ApiStatus.AvailableSince("1.7.0")
 @ApiStatus.NonExtendable
 public interface TomlIssue {
 
