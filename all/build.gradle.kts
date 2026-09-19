@@ -1,3 +1,4 @@
+import tasks.PeerResourcesTask
 import java.io.*
 import java.nio.file.Files
 import kotlin.io.path.name
@@ -97,75 +98,22 @@ tasks.javadoc {
     }
 }
 
-fun blitFile(src: File, target: File) {
-    if (target.exists()) {
-        // Treat as service file
-        val targetPath = target.toPath()
-        val temp = targetPath.parent.resolve(targetPath.name + ".tmp")
-        var ok = false
-        try {
-            Files.newBufferedWriter(temp, Charsets.UTF_8).use { out ->
-                val set: MutableSet<String> = mutableSetOf()
-                Files.newBufferedReader(src.toPath(), Charsets.UTF_8).useLines { s ->
-                    s.forEach {
-                        if (it.isEmpty() || !set.add(it)) return@forEach
-                        out.write(it)
-                        out.write('\n'.code)
-                    }
-                }
-                Files.newBufferedReader(targetPath, Charsets.UTF_8).useLines { s ->
-                    s.forEach {
-                        if (it.isEmpty() || !set.add(it)) return@forEach
-                        out.write(it)
-                        out.write('\n'.code)
-                    }
-                }
-                out.flush()
-            }
-            Files.delete(targetPath)
-            Files.move(temp, targetPath)
-            ok = true
-        } finally {
-            if (!ok) Files.delete(temp)
-        }
-    } else {
-        src.copyTo(target, true)
-    }
-}
-
-fun recursiveCopy(src: File, target: File) {
-    if (!src.exists()) return
-    if (!target.exists()) target.mkdirs()
-
-    val files = src.listFiles() ?:
-        throw Error("Failed to list directory $src")
-
-    files.forEach { sub ->
-        val dest = File(target, sub.name)
-        if (sub.isDirectory) {
-            recursiveCopy(sub, File(target, sub.name))
-        } else {
-            blitFile(sub, dest)
-        }
-    }
+// Collate resources from peers
+val peerResources = tasks.register("peerResources", PeerResourcesTask::class) {
+    description = "Collates resources from peer projects"
+    fromPeerProjects(peers)
 }
 
 tasks.processResources {
-    val tmp = project.layout.buildDirectory.dir("tmp/peerResources")
+    // Shade peer resources
+    dependsOn(peerResources)
+    from(peerResources.map { it.outputs.files.singleFile })
 
     // Shade module classes and resources
     peers.forEach { src ->
         dependsOn(src.tasks.processResources)
         dependsOn(src.tasks.assemble)
         from(src.layout.buildDirectory.dir("classes/java/main"))
-        from(tmp)
-    }
-
-    doFirst {
-        peers.forEach { peers ->
-            val resources = peers.layout.buildDirectory.dir("resources/main")
-            recursiveCopy(resources.get().asFile, tmp.get().asFile)
-        }
     }
 }
 
