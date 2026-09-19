@@ -241,7 +241,7 @@ public interface TomlPrimitive extends TomlValue {
     @ApiStatus.AvailableSince("1.3.0")
     @Contract("null -> fail; _ -> new")
     static @NotNull TomlPrimitive parseFloat(
-            @Pattern("^([-+]?(?:inf|nan))|([-+]?)([1-9]\\d*)(?:\\.(\\d+))?(?:e([-+]?\\d+))?$") String string
+            CharSequence string
     ) throws IllegalArgumentException {
         if (string == null) throw new NullPointerException("Cannot parse null as float");
         return FloatTomlPrimitive.parse(string);

@@ -40,8 +40,14 @@ import java.time.*;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class ExpressionReader implements Closeable {
+
+    private static final double NEGATIVE_NAN = Double.longBitsToDouble(0xfff8000000000000L);
+    private static final Pattern NORMAL_FLOAT_PATTERN = Pattern.compile("^[+-]?([1-9]|0(?=[.eE]))(_?\\d)*(\\.\\d(_?\\d)*)?([eE][+-]?\\d(_?\\d)*)?$");
+
+    //
 
     protected final BufferedCharSource in;
     protected final JTomlOptions options;
@@ -455,143 +461,12 @@ public class ExpressionReader implements Closeable {
     }
 
     private @NotNull TomlPrimitive parseFloat(@NotNull CharSequence str) throws TomlException {
-        final int len = str.length();
-        if (len == 0) this.in.raise("Cannot parse empty sequence as float");
-        char c;
-
-        // Handle sign
-        boolean negative = false;
-        int head = 0;
-        c = str.charAt(0);
-        if (c == '+') {
-            head = 1;
-        } else if (c == '-') {
-            negative = true;
-            head = 1;
+        try {
+            return TomlPrimitive.parseFloat(str);
+        } catch (IllegalArgumentException e) {
+            this.in.raise("Invalid float primitive", e);
+            return null;
         }
-        if (head == len) this.in.raise("Expected float after sign");
-
-        // Handle special float (inf & nan)
-        int rem = len - head;
-        if (rem == 3) {
-            char c0 = str.charAt(head);
-            char c1 = str.charAt(head + 1);
-            char c2 = str.charAt(head + 2);
-            if (c0 == 'i' && c1 == 'n' && c2 == 'f') {
-                return negative ? UnsafePrimitives.createFloat(Double.NEGATIVE_INFINITY, "-inf") :
-                        UnsafePrimitives.createFloat(Double.POSITIVE_INFINITY, "inf");
-            } else if (c0 == 'n' && c1 == 'a' && c2 == 'n') {
-                return UnsafePrimitives.createFloat(Double.NaN, "nan");
-            }
-        }
-
-        // Read integer part
-        long ip;
-        c = str.charAt(head++);
-        boolean leadsWithZero;
-        if (c == '0') {
-            leadsWithZero = true;
-            ip = 0;
-        } else {
-            if (c < '1' || c > '9')
-                this.in.raise("Invalid integer part");
-            leadsWithZero = false;
-            ip = (c - '0');
-        }
-        while (head < len) {
-            c = str.charAt(head);
-            if (c == '_') {
-                head++;
-                if (head >= len || (c = str.charAt(head)) < '0' || c > '9')
-                    this.in.raise("Illegal underscore placement");
-                continue;
-            }
-            if (c < '0' || c > '9') break;
-            if (leadsWithZero) this.in.raise("Illegal leading zero in float");
-            head++;
-            try {
-                ip = Math.multiplyExact(ip, 10L);
-                ip = Math.addExact(ip, (c - '0'));
-            } catch (ArithmeticException e) {
-                this.in.raise("Integer part is too large", e);
-            }
-        }
-
-        if (head >= len) this.in.raise("Expected decimal point or exponent");
-        double frac = 0d;
-        long exp = 0;
-        boolean none = true;
-        c = str.charAt(head++);
-
-        // Read fractional part
-        if (c == '.') {
-            StringBuilder buf = new StringBuilder("0.");
-            none = false;
-            if (head >= len) this.in.raise("Expected digits after decimal point");
-            c = str.charAt(head++);
-            if (c < '0' || c > '9') this.in.raise("Invalid fractional part");
-            buf.append(c);
-            while (head < len) {
-                c = str.charAt(head++);
-                if (c == '_') {
-                    if (head >= len || (c = str.charAt(head)) < '0' || c > '9')
-                        this.in.raise("Illegal underscore placement");
-                    continue;
-                }
-                if (c < '0' || c > '9') break;
-                buf.append(c);
-            }
-            frac = Double.parseDouble(buf.toString());
-        }
-
-        // Read exponent
-        if (c == 'e' || c == 'E') {
-            boolean exponentNegative = false;
-            if (head >= len) this.in.raise("Expected decimal after exponent");
-            c = str.charAt(head++);
-            if (c == '+') {
-                if (head >= len) this.in.raise("Expected digits after sign");
-                c = str.charAt(head++);
-            } else if (c == '-') {
-                if (head >= len) this.in.raise("Expected digits after sign");
-                c = str.charAt(head++);
-                exponentNegative = true;
-            }
-            boolean first = true;
-            while (true) {
-                if (c == '_') {
-                    if (first || head >= len || (c = str.charAt(head++)) < '0' || c > '9')
-                        this.in.raise("Illegal underscore placement");
-                    continue;
-                }
-                first = false;
-                if (c < '0' || c > '9') break;
-                try {
-                    exp = Math.multiplyExact(exp, 10L);
-                    exp = Math.addExact(exp, exponentNegative ? ('0' - c) : (c - '0'));
-                } catch (ArithmeticException e) {
-                    this.in.raise("Exponent is too large", e);
-                }
-                if (head >= len) break;
-                c = str.charAt(head++);
-            }
-        } else if (none) {
-            this.in.raise("Expected decimal point or exponent");
-        }
-
-        if (head < len) {
-            this.in.raise("Unprocessable characters in float");
-        }
-
-        double d;
-        if (exp != 0) {
-            double scale = Math.pow(10, exp);
-            d = (scale * ip) + (scale * frac);
-        } else {
-            d = ((double) ip) + frac;
-        }
-        if (negative) d = -d;
-        return UnsafePrimitives.createFloat(d, str.toString());
     }
 
     private @NotNull TomlPrimitive parseDateTime(@NotNull CharSequence str) throws TomlException, DateTimeException {
