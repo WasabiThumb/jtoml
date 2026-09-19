@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Xavier Pedraza
+ * Copyright 2026 Xavier Pedraza
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -221,6 +221,18 @@ public interface JTomlOption<T> {
     @ApiStatus.AvailableSince("1.6.0")
     Bool PERMIT_UNSAFE = of(
             "PERMIT_UNSAFE",
+            false
+    );
+
+    /**
+     * If {@code true} (defaults to {@code false}), parsing errors will be
+     * {@link io.github.wasabithumb.jtoml.document.TomlDocument#issues() stored on the resulting document}
+     * instead of being thrown. {@link io.github.wasabithumb.jtoml.except.TomlIOException TomlIOException}
+     * may still be thrown when the underlying stream raises an {@code IOException}.
+     */
+    @ApiStatus.AvailableSince("1.7.0")
+    Bool ERROR_RECOVERY = of(
+            "ERROR_RECOVERY",
             false
     );
 

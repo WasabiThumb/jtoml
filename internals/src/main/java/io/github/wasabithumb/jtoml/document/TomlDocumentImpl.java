@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Xavier Pedraza
+ * Copyright 2026 Xavier Pedraza
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,14 +32,24 @@ public final class TomlDocumentImpl implements TomlDocument {
 
     private final long creationTime;
     private final TomlTable backing;
+    private final TomlIssues issues;
     private boolean orderMarked = false;
 
-    public TomlDocumentImpl(@NotNull TomlTable backing) {
+    public TomlDocumentImpl(
+            @NotNull TomlTable backing,
+            @NotNull TomlIssues issues
+    ) {
         this.creationTime = System.nanoTime();
         this.backing = backing;
+        this.issues = issues;
     }
 
     // START Metadata
+
+    @Override
+    public @NotNull @Unmodifiable TomlIssues issues() {
+        return this.issues;
+    }
 
     public boolean isOrderMarked() {
         return this.orderMarked;

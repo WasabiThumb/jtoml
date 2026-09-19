@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Xavier Pedraza
+ * Copyright 2026 Xavier Pedraza
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package io.github.wasabithumb.jtoml.io.source;
 
+import io.github.wasabithumb.jtoml.document.TomlIssue;
 import io.github.wasabithumb.jtoml.except.TomlException;
 import io.github.wasabithumb.jtoml.except.parse.TomlLocalParseException;
 import org.jetbrains.annotations.Contract;
@@ -119,6 +120,11 @@ public final class BufferedCharSource implements CharSource {
         return comment ?
                 commentBuffer.toString() :
                 null;
+    }
+
+    @Contract("_ -> new")
+    public TomlIssue newIssue(@NotNull String message) {
+        return TomlIssue.issue(this.ln, this.cn, message);
     }
 
     @Contract("_ -> fail")

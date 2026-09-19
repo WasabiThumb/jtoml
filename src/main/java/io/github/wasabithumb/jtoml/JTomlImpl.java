@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Xavier Pedraza
+ * Copyright 2026 Xavier Pedraza
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,24 +86,23 @@ final class JTomlImpl implements JToml {
         return this.options;
     }
 
-    private @NotNull TomlTable read(@NotNull BufferedCharSource cs) throws TomlException {
+    private @NotNull TomlDocumentImpl read(@NotNull BufferedCharSource cs) throws TomlException {
         TableReader tr = new TableReader(cs, this.options);
-        return tr.readTable();
+        TomlTable table = tr.readTable();
+        return new TomlDocumentImpl(table, tr.issues());
     }
 
     @Override
     public @NotNull TomlDocument readFromString(@NotNull String toml) throws TomlException {
         try (StringCharSource cs = new StringCharSource(toml)) {
-            TomlTable table = this.read(new BufferedCharSource(cs));
-            return new TomlDocumentImpl(table);
+            return this.read(new BufferedCharSource(cs));
         }
     }
 
     @Override
     public @NotNull TomlDocument read(@NotNull InputStream in) throws TomlException {
         StreamCharSource cs = new StreamCharSource(in, this.options.get(JTomlOption.READ_BOM));
-        TomlTable table = this.read(new BufferedCharSource(cs));
-        TomlDocumentImpl doc = new TomlDocumentImpl(table);
+        TomlDocumentImpl doc = this.read(new BufferedCharSource(cs));
         doc.setOrderMarked(cs.didReadBOM());
         return doc;
     }
@@ -111,8 +110,7 @@ final class JTomlImpl implements JToml {
     @Override
     public @NotNull TomlDocument read(@NotNull Reader reader) throws TomlException {
         ReaderCharSource cs = new ReaderCharSource(reader, this.options.get(JTomlOption.READ_BOM));
-        TomlTable table = this.read(new BufferedCharSource(cs));
-        TomlDocumentImpl doc = new TomlDocumentImpl(table);
+        TomlDocumentImpl doc = this.read(new BufferedCharSource(cs));
         doc.setOrderMarked(cs.didReadBOM());
         return doc;
     }

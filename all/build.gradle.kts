@@ -1,4 +1,4 @@
-import java.io.*
+import tasks.PeerResourcesTask
 
 plugins {
     alias(libs.plugins.indra.core)
@@ -37,17 +37,29 @@ sourceSets {
             moduleName("io.github.wasabithumb.jtoml")
         }
     }
+
+    // Gradle 10+ requires features to have their own source sets
+    register("configurate")
+    register("gson")
 }
 
 java {
     registerFeature("configurate") {
-        usingSourceSet(sourceSets.main.get())
+        usingSourceSet(sourceSets.named("configurate").get())
     }
     registerFeature("gson") {
-        usingSourceSet(sourceSets.main.get())
+        usingSourceSet(sourceSets.named("gson").get())
     }
     modularity.inferModulePath = false
     withSourcesJar()
+}
+
+configurations {
+    compileOnly {
+        // Allows javadoc task to find transient dependency classes
+        extendsFrom(named("configurateApi"))
+        extendsFrom(named("gsonApi"))
+    }
 }
 
 dependencies {
@@ -83,66 +95,22 @@ tasks.javadoc {
     }
 }
 
-fun blitFile(src: File, target: File) {
-    if (target.exists()) {
-        // Treat as service file
-        val lines = mutableListOf<String>()
-        FileInputStream(src).use { inputStream ->
-            InputStreamReader(inputStream, Charsets.UTF_8).useLines { sequence ->
-                lines.addAll(sequence)
-            }
-        }
-        FileInputStream(target).use { inputStream ->
-            InputStreamReader(inputStream, Charsets.UTF_8).useLines { sequence ->
-                lines.addAll(sequence)
-            }
-        }
-        FileOutputStream(target).use { outputStream ->
-            OutputStreamWriter(outputStream, Charsets.UTF_8).use { writer ->
-                lines.forEach { line ->
-                    writer.write(line)
-                    writer.write('\n'.code)
-                }
-            }
-        }
-    } else {
-        src.copyTo(target, true)
-    }
-}
-
-fun recursiveCopy(src: File, target: File) {
-    if (!src.exists()) return
-    if (!target.exists()) target.mkdirs()
-
-    val files = src.listFiles() ?:
-        throw Error("Failed to list directory $src")
-
-    files.forEach { sub ->
-        val dest = File(target, sub.name)
-        if (sub.isDirectory) {
-            recursiveCopy(sub, File(target, sub.name))
-        } else {
-            blitFile(sub, dest)
-        }
-    }
+// Collate resources from peers
+val peerResources = tasks.register("peerResources", PeerResourcesTask::class) {
+    description = "Collates resources from peer projects"
+    fromPeerProjects(peers)
 }
 
 tasks.processResources {
-    val tmp = project.layout.buildDirectory.dir("tmp/peerResources")
+    // Shade peer resources
+    dependsOn(peerResources)
+    from(peerResources.map { it.outputs.files.singleFile })
 
     // Shade module classes and resources
     peers.forEach { src ->
         dependsOn(src.tasks.processResources)
         dependsOn(src.tasks.assemble)
         from(src.layout.buildDirectory.dir("classes/java/main"))
-        from(tmp)
-    }
-
-    doFirst {
-        peers.forEach { peers ->
-            val resources = peers.layout.buildDirectory.dir("resources/main")
-            recursiveCopy(resources.get().asFile, tmp.get().asFile)
-        }
     }
 }
 

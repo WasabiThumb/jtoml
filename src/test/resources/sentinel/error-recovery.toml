@@ -1,0 +1,13 @@
+[good] # Good table header
+[bad # Bad table header
+
+# Some value
+x = 42
+
+[good] # Redeclared table header (invalid)
+
+# Invalid value
+z = 0e
+
+# Some other value
+y = "wonderful"
