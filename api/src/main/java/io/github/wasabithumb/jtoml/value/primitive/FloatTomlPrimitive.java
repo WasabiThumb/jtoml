@@ -41,16 +41,10 @@ final class FloatTomlPrimitive extends AbstractTomlPrimitive<Double> {
     private static @NotNull String autoChars(double value) {
         long bits = Double.doubleToRawLongBits(value);
         if (bits == 0x8000000000000000L) return "-0.0";
-        if ((bits & 0x7ff0000000000000L) == 0x7ff0000000000000L) {
-            if ((bits & 0x000fffffffffffffL) == 0L) {
-                return (bits & 0x8000000000000000L) == 0x8000000000000000L ?
-                        "-inf" : "inf";
-            } else {
-                return (bits & 0x8000000000000000L) == 0x8000000000000000L ?
-                        "-nan" : "nan";
-            }
-        }
-        return NUMBER_FORMAT.get().format(value);
+        if ((bits & 0x7ff0000000000000L) != 0x7ff0000000000000L) return NUMBER_FORMAT.get().format(value);
+        return (bits & 0x000fffffffffffffL) == 0L ?
+                ((bits & 0x8000000000000000L) == 0x8000000000000000L ? "-inf" : "inf") :
+                ((bits & 0x8000000000000000L) == 0x8000000000000000L ? "-nan" : "nan");
     }
 
     static @NotNull FloatTomlPrimitive parse(@NotNull CharSequence str) throws IllegalArgumentException {

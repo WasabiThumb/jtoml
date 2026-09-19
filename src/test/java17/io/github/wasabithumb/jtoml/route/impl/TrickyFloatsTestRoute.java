@@ -35,35 +35,45 @@ public final class TrickyFloatsTestRoute implements TestRoute {
 
     @Override
     public void execute(JToml instance) {
+        // Test known exceptional doubles
+        test(instance, "+inf");
+        test(instance, "-inf");
+        test(instance, "nan");
+        test(instance, "1.7976931348623157e308");
+        test(instance, "0.1e309");
+        test(instance, "0e999");
+        test(instance, "4.9e-324");
+
         // Test 8192 stable random doubles
         Random random = new Random(3277808293637613256L);
         for (int i = 0; i < 8192; i++) {
             double value = Double.longBitsToDouble(random.nextLong());
-            System.out.println(value);
-            test(instance, value);
+            test(instance, stringify(value));
         }
     }
 
-    private void test(JToml instance, double value) {
-        String tomlValue;
-        if (Double.isNaN(value)) {
-            tomlValue = "nan";
-        } else if (value == Double.POSITIVE_INFINITY) {
-            tomlValue = "inf";
-        } else if (value == Double.NEGATIVE_INFINITY) {
-            tomlValue = "-inf";
-        } else {
-            tomlValue = Double.toString(value);
-        }
-        String doc = "a = " + tomlValue + "\n";
+    private static String stringify(double d) {
+        if (Double.isFinite(d)) return Double.toString(d);
+        if (Double.isNaN(d)) return "nan";
+        return Double.POSITIVE_INFINITY == d ? "inf" : "-inf";
+    }
 
+    private static double parse(String s) {
+        return switch (s) {
+            case "nan", "+nan", "-nan" -> Double.NaN;
+            case "inf", "+inf" -> Double.POSITIVE_INFINITY;
+            case "-inf" -> Double.NEGATIVE_INFINITY;
+            default -> Double.parseDouble(s);
+        };
+    }
+
+    private static void test(JToml instance, String value) {
+        String doc = "a = " + value + "\n";
         TomlTable table = instance.readFromString(doc);
         TomlValue v = table.get("a");
         assertNotNull(v);
         double out = v.asPrimitive().asDouble();
-
-        double expected = Double.parseDouble(Double.toString(value));
-        assertEquals(expected, out);
+        assertEquals(parse(value), out);
     }
 
 }
