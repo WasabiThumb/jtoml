@@ -1,38 +1,15 @@
-# JToml
+# <img src="doc/logo.svg" alt="JToml"/>
 
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/WasabiThumb/jtoml/build.yml)
 ![Maven Central Version](https://img.shields.io/maven-central/v/io.github.wasabithumb/jtoml)
 ![License](https://img.shields.io/badge/license-apache--2.0-blue)
 
-**[Wiki](https://github.com/WasabiThumb/jtoml/wiki) • [Javadocs](https://javadoc.io/doc/io.github.wasabithumb/jtoml-api)**
-
 A modular [TOML](https://toml.io/en/v1.1.0) library for Java 8 and above. JToml aims to
 be the ultimate solution for all things TOML, fully recreating its type system with a
-**robust yet permissive API inspired by Gson**.
+*robust yet permissive API inspired by Gson*. **To get started, check out [the wiki](https://github.com/WasabiThumb/jtoml/wiki).** For a more technical overview, reference the [javadocs](https://javadoc.io/doc/io.github.wasabithumb/jtoml-api).
 
-## Comparison
-|                                                                                                 | Up To Date¹ | Test Coverage² | Reflection³ | Json⁴ | Preserves Comments⁵ | Error Recovery⁶ |
-|------------------------------------------------------------------------------------------------:|:-----------:|:--------------:|:-----------:|:-----:|:-------------------:|:---------------:|
-|                                   [``WasabiThumb/jtoml``](https://github.com/WasabiThumb/jtoml) |     ✅      |       ✅       |     ✅      |  ✅   |         ✅          |       ✅        |
-|                                               [``tomlj/tomlj``](https://github.com/tomlj/tomlj) |     ✅      |       ✅       |     ❌      |  ✅   |         ❌          |       ✅        |
-|             [``TheElectronWill/night-config``](https://github.com/TheElectronWill/night-config) |     ✅      |       ❌       |     ✅      |  ✅   |         ✅          |       ❌        |
-| [``FasterXML/jackson-dataformats-text``](https://github.com/FasterXML/jackson-dataformats-text) |     ❌      |       ❌       |     ✅      |  ✅   |         ❌          |       ❌        |
-|                                           [``mwanji/toml4j``](https://github.com/mwanji/toml4j) |     ❌      |       ❌       |     ✅      |  ✅   |         ❌          |       ❌        |
-
-
-
-> ¹ Supports the latest version of the specification- ``v1.1.0`` as of writing.
->
-> ² Passes all tests in the [official test suite](https://github.com/toml-lang/toml-test).
->
-> ³ May be used to convert TOML to/from user-defined Java objects in some way.
->
-> ⁴ May be used to convert TOML to/from a JSON representation in some way.
->
-> ⁵ Exposes TOML [comments](https://toml.io/en/v1.1.0#comment) in its data model and preserves them when writing, at least in part.
->
-> ⁶ May be configured to continue parsing after an error, storing readable positioned error data.
-
+## Comparison Table
+<img src="doc/comparisonTable.svg" alt="A table comparing JToml to similar projects"/>
 
 ## Star History
 
