@@ -40,14 +40,8 @@ import java.time.*;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 public class ExpressionReader implements Closeable {
-
-    private static final double NEGATIVE_NAN = Double.longBitsToDouble(0xfff8000000000000L);
-    private static final Pattern NORMAL_FLOAT_PATTERN = Pattern.compile("^[+-]?([1-9]|0(?=[.eE]))(_?\\d)*(\\.\\d(_?\\d)*)?([eE][+-]?\\d(_?\\d)*)?$");
-
-    //
 
     protected final BufferedCharSource in;
     protected final JTomlOptions options;
@@ -236,7 +230,7 @@ public class ExpressionReader implements Closeable {
     }
 
     private @NotNull TomlValue readValue(int firstIfKnown) throws TomlException {
-        char c0 = (firstIfKnown != -1) ? ((char) firstIfKnown) : this.in.nextChar();
+        char c0 = (firstIfKnown != -1) ? ((char) firstIfKnown) : this.in.nextChar("a value after key");
 
         if (c0 == '"')              return this.readBasicString();
         if (c0 == '\'')             return this.readLiteralString();
@@ -1022,8 +1016,8 @@ public class ExpressionReader implements Closeable {
             while (this.in.skipWhitespace()) {
                 c = this.in.nextChar();
                 if (c == '\r') {
-                    c = this.in.nextChar();
-                    if (c != '\n') this.in.raise("Expected LF after CR within inline table");
+                    int cc = this.in.next();
+                    if (cc != '\n') this.in.raise("Expected LF after CR within inline table");
                     continue;
                 }
                 if (c == '#') {

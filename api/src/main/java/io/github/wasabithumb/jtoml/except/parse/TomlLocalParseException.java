@@ -20,7 +20,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A {@link TomlParseException} with location info
+ * A {@link TomlParseException} with location info.
+ * This covers the vast majority of parsing errors.
  */
 public final class TomlLocalParseException extends TomlParseException {
 
