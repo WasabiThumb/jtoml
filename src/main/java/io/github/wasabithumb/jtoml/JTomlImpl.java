@@ -35,6 +35,7 @@ import io.github.wasabithumb.jtoml.option.JTomlOptions;
 import io.github.wasabithumb.jtoml.option.prop.OrderMarkPolicy;
 import io.github.wasabithumb.jtoml.serial.TomlSerializerFactory;
 import io.github.wasabithumb.jtoml.serial.TomlSerializerService;
+import io.github.wasabithumb.jtoml.util.Pinned;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -42,6 +43,10 @@ import org.jetbrains.annotations.NotNull;
 import java.io.*;
 import java.util.*;
 
+/**
+ * Canonical implementation of
+ * {@link JToml}.
+ */
 @ApiStatus.Internal
 final class JTomlImpl implements JToml {
 
@@ -70,7 +75,8 @@ final class JTomlImpl implements JToml {
 
     private final JTomlOptions options;
 
-    JTomlImpl(@NotNull JTomlOptions options) {
+    @Pinned(reason = "called by JTomlProvider")
+    public JTomlImpl(@NotNull JTomlOptions options) {
         this.options = options;
     }
 
