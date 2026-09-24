@@ -82,7 +82,8 @@ public final class TableWriter implements Closeable {
 
     private void writeIndent() {
         final char c = this.options.get(JTomlOption.INDENTATION).indentChar();
-        for (int i=0; i < this.indentLevel; i++) this.out.put(c);
+        if (c == '\0') return;
+        for (int i = 0; i < this.indentLevel; i++) this.out.put(c);
     }
 
     private void writeTableHeader0(
