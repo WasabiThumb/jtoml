@@ -1,7 +1,7 @@
 [versions]
 gson = "2.14.0"
 configurate = "4.2.0"
-recsup = "0.1.1"
+recsup = "0.2.0"
 annotations = "26.1.0"
 indra = "4.1.0"
 
