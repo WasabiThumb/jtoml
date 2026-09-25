@@ -16,6 +16,12 @@
 
 package io.github.wasabithumb.jtoml.option.prop;
 
+/**
+ * Value of the
+ * {@link io.github.wasabithumb.jtoml.option.JTomlOption#ARRAY_STRATEGY ARRAY_STRATEGY}
+ * option, determining how non-table arrays should be spaced
+ * when writing. One of {@link #SHORT}, {@link #TALL} or {@link #DYNAMIC}.
+ */
 public enum ArrayStrategy {
     /**
      * Array elements are always written on

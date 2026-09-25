@@ -16,6 +16,7 @@
 
 package io.github.wasabithumb.jtoml.option;
 
+import io.github.wasabithumb.jtoml.util.Buildable;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,16 +30,25 @@ import java.util.Objects;
  * @see #defaults()
  * @see #builder()
  */
-public final class JTomlOptions {
+public final class JTomlOptions implements Buildable<JTomlOptions> {
 
     private static final JTomlOption<?>[] UNIVERSE = JTomlOption.values();
     private static final JTomlOptions DEFAULTS = new JTomlOptions(new Object[0]);
 
+    /**
+     * Reports an empty {@link JTomlOptions} instance,
+     * always reporting the {@link JTomlOption#defaultValue() default value}
+     * for any option.
+     */
     @Contract(pure = true)
     public static @NotNull JTomlOptions defaults() {
         return DEFAULTS;
     }
 
+    /**
+     * Creates a new {@link Builder builder} for the purposes
+     * of creating a custom {@link JTomlOptions} instance.
+     */
     @Contract("-> new")
     public static @NotNull Builder builder() {
         return new Builder();
@@ -65,6 +75,20 @@ public final class JTomlOptions {
     @Contract(pure = true)
     public boolean get(@NotNull JTomlOption.Bool option) {
         return this.get((JTomlOption<Boolean>) option);
+    }
+
+    @Override
+    public Builder toBuilder() {
+        Builder ret = new Builder();
+        int max = -1;
+        for (int i = 0; i < this.values.length; i++) {
+            Object value = this.values[i];
+            if (value == null) continue;
+            ret.values[i] = value;
+            max = i;
+        }
+        ret.max = max;
+        return ret;
     }
 
     @Override
@@ -105,7 +129,7 @@ public final class JTomlOptions {
 
     //
 
-    public static final class Builder {
+    public static final class Builder implements Buildable.Builder<JTomlOptions> {
 
         private final Object[] values = new Object[UNIVERSE.length];
         private int max               = -1;
@@ -123,7 +147,19 @@ public final class JTomlOptions {
                 throw new IllegalArgumentException("Illegal value (" + value + ") for " + key.name());
             }
             this.values[idx] = value;
-            if (idx > this.max) this.max = idx;
+            if (idx >= this.max) {
+                if (value == null) {
+                    int newMax = -1;
+                    for (int i = idx - 1; i >= 0; i--) {
+                        if (this.values[i] == null) continue;
+                        newMax = i;
+                        break;
+                    }
+                    this.max = newMax;
+                } else {
+                    this.max = idx;
+                }
+            }
             return this;
         }
 
@@ -133,6 +169,7 @@ public final class JTomlOptions {
         }
 
         @Contract("-> new")
+        @Override
         public @NotNull JTomlOptions build() {
             int count = this.max + 1;
             Object[] cpy = new Object[count];

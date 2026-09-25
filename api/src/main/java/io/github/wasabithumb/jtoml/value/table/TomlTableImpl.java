@@ -181,6 +181,39 @@ final class TomlTableImpl implements TomlTable {
         return new Resolution(head, label);
     }
 
+    @Override
+    public int hashCode() {
+        return this.root.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof TomlTableImpl &&
+                this.root.equals(((TomlTableImpl) obj).root);
+    }
+
+    @Override
+    public String toString() {
+        Iterator<TomlKey> iter = this.keys(true).iterator();
+        if (!iter.hasNext()) return "{}";
+
+        StringBuilder sb = new StringBuilder();
+        sb.append('{');
+        while (true) {
+            TomlKey next = iter.next();
+            TomlValue value = this.get(next);
+            if (value == null) throw new ConcurrentModificationException();
+            sb.append(next);
+            sb.append('=');
+            sb.append(value);
+            if (!iter.hasNext()) break;
+            sb.append(", ");
+        }
+
+        return sb.append('}')
+                .toString();
+    }
+
     //
 
     private static final class Resolution {

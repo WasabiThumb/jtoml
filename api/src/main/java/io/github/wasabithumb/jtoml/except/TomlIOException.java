@@ -41,6 +41,11 @@ public final class TomlIOException extends TomlException {
 
     private static final long serialVersionUID = -4876355186588461257L;
 
+    /**
+     * A utility for handling low-level {@link IOException}s, throwing
+     * the appropriate {@link TomlException} (which is not always {@link TomlIOException}).
+     * Not meant for use outside of library internals.
+     */
     @ApiStatus.Internal
     @Contract("_ -> fail")
     public static void rethrow(@NotNull IOException cause) throws TomlException {

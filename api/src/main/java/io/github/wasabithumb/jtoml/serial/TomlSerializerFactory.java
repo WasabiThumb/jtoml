@@ -55,6 +55,14 @@ public abstract class TomlSerializerFactory {
 
     //
 
+    /**
+     * Result of a call to {@link #fromToml(JToml, Class) fromToml}
+     * or {@link #toToml(JToml, Class) toToml}. If the result
+     * is {@link #valid() valid}, a serializer can be obtained
+     * through the {@link #serializer()} method. Otherwise,
+     * an issue described by the {@link #issue()} method may
+     * be read.
+     */
     @ApiStatus.NonExtendable
     public static abstract class Result<I, O> {
 
@@ -77,10 +85,28 @@ public abstract class TomlSerializerFactory {
 
         //
 
+        /**
+         * Reports the validity of this result.
+         * @return True if valid.
+         * @see #serializer()
+         * @see #issue()
+         */
         public abstract boolean valid();
 
+        /**
+         * Reports the issue message stored
+         * in this result if it is not valid.
+         * @return The stored issue message.
+         * @throws UnsupportedOperationException This result is {@link #valid() valid}.
+         */
         public abstract @NotNull String issue() throws UnsupportedOperationException;
 
+        /**
+         * Reports the {@link TomlSerializer serializer} stored
+         * in this result if it is valid.
+         * @return The stored {@link TomlSerializer serializer}.
+         * @throws UnsupportedOperationException This result is not {@link #valid() valid}.
+         */
         public abstract @NotNull TomlSerializer<I, O> serializer() throws UnsupportedOperationException;
 
         //

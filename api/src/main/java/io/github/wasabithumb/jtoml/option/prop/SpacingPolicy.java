@@ -16,6 +16,7 @@
 
 package io.github.wasabithumb.jtoml.option.prop;
 
+import io.github.wasabithumb.jtoml.util.Buildable;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -40,8 +41,11 @@ import java.util.Arrays;
  * # postStatement
  * # postBlock
  * }</pre>
+ * @see #NONE
+ * @see #STANDARD
+ * @see #builder()
  */
-public final class SpacingPolicy {
+public final class SpacingPolicy implements Buildable<SpacingPolicy> {
 
     /** No spacing */
     public static final SpacingPolicy NONE;
@@ -49,6 +53,10 @@ public final class SpacingPolicy {
     /** Places 1 newline before each header, no spacing otherwise */
     public static final SpacingPolicy STANDARD;
 
+    /**
+     * Creates a new {@link Builder Builder} for the purpose
+     * of creating a custom {@link SpacingPolicy} instance.
+     */
     @Contract("-> new")
     public static @NotNull Builder builder() {
         return new Builder();
@@ -92,24 +100,53 @@ public final class SpacingPolicy {
         return this.postHeader();
     }
 
+    /**
+     * The number of newlines to insert before each header
+     * and its comments, up to 255.
+     */
     public @Range(from=0, to=255) int preHeader() {
         return this.get(Kind.PRE_HEADER);
     }
 
+    /**
+     * The number of newlines to insert after each header
+     * and its comments, up to 255.
+     */
     public @Range(from=0, to=255) int postHeader() {
         return this.get(Kind.POST_HEADER);
     }
 
+    /**
+     * The number of newlines to insert before each statement (key-values)
+     * and its comments, up to 255.
+     */
     public @Range(from=0, to=255) int preStatement() {
         return this.get(Kind.PRE_STATEMENT);
     }
 
+    /**
+     * The number of newlines to insert after each statement (key-values)
+     * and its comments, up to 255.
+     */
     public @Range(from=0, to=255) int postStatement() {
         return this.get(Kind.POST_STATEMENT);
     }
 
+    /**
+     * The number of newlines to insert after each block
+     * (subsequent statements following a header up to and excluding the next header)
+     * and its comments, up to 255.
+     */
     public @Range(from = 0, to = 255) int postBlock() {
         return this.get(Kind.POST_BLOCK);
+    }
+
+    @Override
+    @Contract("-> new")
+    public @NotNull Builder toBuilder() {
+        Builder ret = new Builder();
+        System.arraycopy(this.data, 0, ret.data, 0, Kind.MAX);
+        return ret;
     }
 
     @Override
@@ -125,8 +162,8 @@ public final class SpacingPolicy {
 
     @Override
     public @NotNull String toString() {
-        return "SpacingPolicy[preTable=" + this.preTable() +
-                ", postTable=" + this.postTable() +
+        return "SpacingPolicy[preHeader=" + this.preHeader() +
+                ", postHeader=" + this.postHeader() +
                 ", preStatement=" + this.preStatement() +
                 ", postStatement=" + this.postStatement() +
                 ", postBlock=" + this.postBlock() +
@@ -135,7 +172,11 @@ public final class SpacingPolicy {
 
     //
 
-    public static final class Builder {
+    /**
+     * Facilitates the creation of
+     * a new {@link SpacingPolicy}.
+     */
+    public static final class Builder implements Buildable.Builder<SpacingPolicy> {
 
         private final byte[] data = new byte[Kind.MAX];
 
@@ -167,31 +208,67 @@ public final class SpacingPolicy {
             return this.postHeader(spacing);
         }
 
+        /**
+         * Sets the {@link SpacingPolicy#preHeader() preHeader} spacing
+         * of the {@link SpacingPolicy} being built.
+         * @param spacing The spacing to use.
+         * @throws IllegalArgumentException Spacing is less than 0 or greater than 255.
+         * @return This builder.
+         */
         @Contract("_ -> this")
         public @NotNull Builder preHeader(@Range(from = 0, to = 255) int spacing) {
             return this.set(Kind.PRE_HEADER, spacing);
         }
 
+        /**
+         * Sets the {@link SpacingPolicy#postHeader() postHeader} spacing
+         * of the {@link SpacingPolicy} being built.
+         * @param spacing The spacing to use.
+         * @throws IllegalArgumentException Spacing is less than 0 or greater than 255.
+         * @return This builder.
+         */
         @Contract("_ -> this")
         public @NotNull Builder postHeader(@Range(from=0, to=255) int spacing) {
             return this.set(Kind.POST_HEADER, spacing);
         }
 
+        /**
+         * Sets the {@link SpacingPolicy#preStatement() preStatement} spacing
+         * of the {@link SpacingPolicy} being built.
+         * @param spacing The spacing to use.
+         * @throws IllegalArgumentException Spacing is less than 0 or greater than 255.
+         * @return This builder.
+         */
         @Contract("_ -> this")
         public @NotNull Builder preStatement(@Range(from=0, to=255) int spacing) {
             return this.set(Kind.PRE_STATEMENT, spacing);
         }
 
+        /**
+         * Sets the {@link SpacingPolicy#postStatement() postStatement} spacing
+         * of the {@link SpacingPolicy} being built.
+         * @param spacing The spacing to use.
+         * @throws IllegalArgumentException Spacing is less than 0 or greater than 255.
+         * @return This builder.
+         */
         @Contract("_ -> this")
         public @NotNull Builder postStatement(@Range(from=0, to=255) int spacing) {
             return this.set(Kind.POST_STATEMENT, spacing);
         }
 
+        /**
+         * Sets the {@link SpacingPolicy#postBlock() postBlock} spacing
+         * of the {@link SpacingPolicy} being built.
+         * @param spacing The spacing to use.
+         * @throws IllegalArgumentException Spacing is less than 0 or greater than 255.
+         * @return This builder.
+         */
         @Contract("_ -> this")
         public @NotNull Builder postBlock(@Range(from=0, to=255) int spacing) {
             return this.set(Kind.POST_BLOCK, spacing);
         }
 
+        @Override
         @Contract("-> new")
         public @NotNull SpacingPolicy build() {
             return new SpacingPolicy(Arrays.copyOf(this.data, Kind.MAX));

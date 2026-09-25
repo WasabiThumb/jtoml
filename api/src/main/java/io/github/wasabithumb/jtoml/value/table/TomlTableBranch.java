@@ -17,10 +17,10 @@
 package io.github.wasabithumb.jtoml.value.table;
 
 import io.github.wasabithumb.jtoml.value.TomlValue;
-import io.github.wasabithumb.jtoml.value.array.TomlArray;
 import org.jetbrains.annotations.*;
 
 import java.util.*;
+import java.util.function.IntFunction;
 
 @ApiStatus.Internal
 final class TomlTableBranch implements TomlTableNode {
@@ -53,6 +53,35 @@ final class TomlTableBranch implements TomlTableNode {
             ret.parents.add(parent);
 
         return ret;
+    }
+
+    private static <T> @UnknownNullability T binarySearch(
+            @NotNull String needle,
+            @NotNull String @NotNull [] haystack,
+            int len,
+            @NotNull IntFunction<T> hit,
+            @NotNull IntFunction<T> miss
+    ) {
+        int off = 0;
+        while (len > 0) {
+            int hl = len >>> 1;
+            int s = off + hl;
+            int cmp = needle.compareTo(haystack[s]);
+            if (cmp == 0) return hit.apply(s);
+            if (cmp < 0) {
+                len = hl;
+            } else {
+                off += hl + 1;
+                len -= hl + 1;
+            }
+        }
+        return miss.apply(off);
+    }
+
+    private static int grow(int n) {
+        if (n == 0x7FFFFFFF) throw new OutOfMemoryError("Cannot grow array past " + n + " elements");
+        if (n >= 0x40000000) return 0x7FFFFFFF;
+        return n << 1;
     }
 
     //
@@ -98,77 +127,61 @@ final class TomlTableBranch implements TomlTableNode {
     }
 
     public @Nullable TomlTableNode get(@NotNull String label) {
-        TomlTableNode next;
-        int cmp;
-        for (int i=0; i < this.len; i++) {
-            next = this.nodes[i];
-            cmp = label.compareTo(this.labels[i]);
-            if (cmp < 0) {
-                break;
-            } else if (cmp == 0) {
-                return next;
-            }
-        }
-        return null;
+        return binarySearch(
+                label,
+                this.labels,
+                this.len,
+                (int i) -> this.nodes[i],
+                (int ignored) -> null
+        );
     }
 
     public @Nullable TomlTableNode put(@NotNull String label, @NotNull TomlTableNode node) {
-        int idx = this.len;
-        boolean shift = false;
-
-        if (node.isBranch())
-            node.asBranch().addParent(this);
-
-        TomlTableNode next;
-        int cmp;
-        for (int i=0; i < this.len; i++) {
-            next = this.nodes[i];
-            cmp = label.compareTo(this.labels[i]);
-            if (cmp == 0) {
-                // clobber
-                this.nodes[i] = node;
-                this.modifyEntryCount(node.entryCount() - next.entryCount());
-                return next;
-            } else if (cmp < 0) {
-                // insert
-                idx = i;
-                shift = true;
-                break;
-            }
-        }
-
-        this.ensureSpace();
-        if (shift) {
-            System.arraycopy(this.nodes, idx, this.nodes, idx + 1, this.len - idx);
-            System.arraycopy(this.labels, idx, this.labels, idx + 1, this.len - idx);
-        }
-        this.nodes[idx] = node;
-        this.labels[idx] = label;
-        this.len++;
-        this.modifyEntryCount(node.entryCount());
-        return null;
+        return binarySearch(
+                label,
+                this.labels,
+                this.len,
+                (int i) -> {
+                    // clobber
+                    TomlTableNode old = this.nodes[i];
+                    this.nodes[i] = node;
+                    if (old.isBranch()) this.tryUnparent(old.asBranch());
+                    if (node.isBranch()) node.asBranch().addParent(this);
+                    this.modifyEntryCount(node.entryCount() - old.entryCount());
+                    return old;
+                },
+                (int i) -> {
+                    // insert
+                    this.ensureSpace();
+                    System.arraycopy(this.nodes, i, this.nodes, i + 1, this.len - i);
+                    System.arraycopy(this.labels, i, this.labels, i + 1, this.len - i);
+                    this.nodes[i] = node;
+                    this.labels[i] = label;
+                    this.len++;
+                    if (node.isBranch()) node.asBranch().addParent(this);
+                    this.modifyEntryCount(node.entryCount());
+                    return null;
+                }
+        );
     }
 
     public @Nullable TomlTableNode remove(@NotNull String label) {
-        TomlTableNode next;
-        int cmp;
-        for (int i=0; i < this.len; i++) {
-            next = this.nodes[i];
-            cmp = label.compareTo(this.labels[i]);
-            if (cmp != 0) {
-                if (cmp > 0) break;
-                continue;
-            }
-            if (next.isBranch())
-                next.asBranch().removeParent(this);
-            this.len--;
-            this.modifyEntryCount(-next.entryCount());
-            System.arraycopy(this.nodes, i + 1, this.nodes, i, this.len - i);
-            System.arraycopy(this.labels, i + 1, this.labels, i, this.len - i);
-            this.tryShrink();
-            return next;
-        }
-        return null;
+        return binarySearch(
+                label,
+                this.labels,
+                this.len,
+                (int i) -> {
+                    TomlTableNode node = this.nodes[i];
+                    this.len--;
+                    this.modifyEntryCount(-node.entryCount());
+                    System.arraycopy(this.nodes, i + 1, this.nodes, i, this.len - i);
+                    System.arraycopy(this.labels, i + 1, this.labels, i, this.len - i);
+                    if (node.isBranch()) this.tryUnparent(node.asBranch());
+                    this.tryShrink();
+                    return node;
+                },
+                (int ignored) -> null
+        );
     }
 
     private void modifyEntryCount(int mod) {
@@ -195,6 +208,13 @@ final class TomlTableBranch implements TomlTableNode {
         this.parents.remove(parent);
     }
 
+    private void tryUnparent(@NotNull TomlTableBranch child) {
+        for (int i = 0; i < this.len; i++) {
+            if (child.sameIdentity(this.nodes[i])) return;
+        }
+        child.removeParent(this);
+    }
+
     private void resize(int tc) {
         TomlTableNode[] nn = new TomlTableNode[tc];
         System.arraycopy(this.nodes, 0, nn, 0, this.len);
@@ -208,14 +228,19 @@ final class TomlTableBranch implements TomlTableNode {
     }
 
     private void ensureSpace() {
-        if (this.len < this.capacity) return;
-        this.resize(this.capacity << 1);
+        int cap = this.capacity;
+        if (this.len < cap) return;
+        this.resize(grow(cap));
     }
 
     private void tryShrink() {
         int tc = this.capacity >> 1;
         if (this.len > tc) return;
         this.resize(tc);
+    }
+
+    private boolean sameIdentity(Object other) {
+        return super.equals(other);
     }
 
     // START Node Super
@@ -248,5 +273,28 @@ final class TomlTableBranch implements TomlTableNode {
     }
 
     // END Node Super
+
+    @Override
+    public int hashCode() {
+        int h = 7;
+        for (int i = 0; i < this.len; i++) {
+            h = 31 * h + this.labels[i].hashCode();
+            h = 31 * h + this.nodes[i].hashCode();
+        }
+        return h;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof TomlTableBranch)) return false;
+        int len = this.len;
+        TomlTableBranch other = (TomlTableBranch) obj;
+        if (len != other.len) return false;
+        for (int i = 0; i < len; i++) {
+            if (!Objects.equals(this.labels[i], other.labels[i])) return false;
+            if (!Objects.equals(this.nodes[i], other.nodes[i])) return false;
+        }
+        return true;
+    }
 
 }

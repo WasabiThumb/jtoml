@@ -62,12 +62,23 @@ public interface TomlIssue {
 
     //
 
+    /**
+     * Reports the line at which this issue was encountered,
+     * starting from 0.
+     */
     @Contract(pure = true)
     int line();
 
+    /**
+     * Reports the column at which this issue was encountered,
+     * starting from 0. This is measured in Java (UTF-16) characters.
+     */
     @Contract(pure = true)
     int column();
 
+    /**
+     * Reports a human-readable description of the issue encountered.
+     */
     @Contract(pure = true)
     @NotNull String message();
 

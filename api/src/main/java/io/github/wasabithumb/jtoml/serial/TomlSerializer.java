@@ -48,6 +48,8 @@ import org.jetbrains.annotations.NotNull;
  *             {@link TomlSerializable},
  *             {@link java.util.Map Map&lt;String, ?&gt;},
  *             {@link java.util.List List&lt;?&gt;},
+ *             {@link java.util.Set Set&lt;?&gt;},
+ *             enums,
  *             <a href="https://openjdk.org/jeps/395">records</a>,
  *             primitives (boxed and unboxed) and
  *             arrays
@@ -57,15 +59,36 @@ import org.jetbrains.annotations.NotNull;
  */
 public interface TomlSerializer<I, O> {
 
+    /**
+     * Reports the narrowest public supertype
+     * of values than can be passed to
+     * {@link #toToml(Object)}.
+     */
     @ApiStatus.OverrideOnly
     @NotNull Class<I> inType();
 
+    /**
+     * Reports the narrowest public supertype
+     * of values than can be yielded by
+     * {@link #fromToml(TomlTable)}.
+     */
     @ApiStatus.OverrideOnly
     @NotNull Class<O> outType();
 
+    /**
+     * Performs an implementation-specific conversion
+     * between the given table and a Java object
+     * of type {@link #outType() outType}.
+     */
     @ApiStatus.AvailableSince("1.2.1")
     @NotNull O fromToml(@NotNull TomlTable table);
 
+    /**
+     * Performs an implementation-specific conversion
+     * between the given Java object of type
+     * {@link #inType() inType} and a new
+     * TOML table.
+     */
     @ApiStatus.AvailableSince("1.2.1")
     @NotNull TomlTable toToml(@NotNull I data);
 
@@ -73,10 +96,15 @@ public interface TomlSerializer<I, O> {
 
     /**
      * A {@link TomlSerializer} which serializes and deserializes
-     * the same type
+     * the same type ({@link #inType() inType} and {@link #outType() outType} are identical).
      */
     interface Symmetric<T> extends TomlSerializer<T, T> {
 
+        /**
+         * Reports the shared value of both {@link #inType()} and
+         * {@link #outType()}, required to be identical by the
+         * {@link Symmetric Symmetric} superinterface.
+         */
         @ApiStatus.OverrideOnly
         @NotNull Class<T> serialType();
 
