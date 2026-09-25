@@ -21,6 +21,13 @@ be the ultimate solution for all things TOML, fully recreating its type system w
  </picture>
 </a>
 
+## Pledge
+Code and documentation written by core team members will never and have
+never employed  the use of large language models (LLMs) either local or
+remote to any extent. PRs or issues suspected of containing AI-generated text,
+code or graphics may be closed by project maintainers with no additional 
+stated reason.
+
 ## License
 ```text
 Copyright 2026 Xavier Pedraza
