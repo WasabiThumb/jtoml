@@ -18,7 +18,9 @@ package io.github.wasabithumb.jtoml.io.source;
 
 import io.github.wasabithumb.jtoml.except.TomlException;
 import io.github.wasabithumb.jtoml.except.TomlIOException;
+import io.github.wasabithumb.jtoml.except.parse.TomlTruncatedException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
 import java.io.Closeable;
@@ -28,9 +30,20 @@ public interface CharSource extends Closeable {
 
     @Range(from=-1, to=0xFFFF) int next() throws TomlException;
 
+    /**
+     * @apiNote Prefer {@link #nextChar(String)} unless the presence of a
+     * character is an invariant
+     */
     default char nextChar() throws TomlException {
+        return this.nextChar(null);
+    }
+
+    default char nextChar(@Nullable String expectation) throws TomlException {
         int n = this.next();
-        if (n == -1) TomlIOException.rethrow(new EOFException("Unexpected end of stream"));
+        if (n == -1) {
+            if (expectation == null) expectation = "a character";
+            throw new TomlTruncatedException("Expected " + expectation + ", got end of document");
+        }
         return (char) n;
     }
 
