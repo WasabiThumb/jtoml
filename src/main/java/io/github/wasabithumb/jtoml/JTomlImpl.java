@@ -34,7 +34,6 @@ import io.github.wasabithumb.jtoml.option.JTomlOption;
 import io.github.wasabithumb.jtoml.option.JTomlOptions;
 import io.github.wasabithumb.jtoml.option.prop.OrderMarkPolicy;
 import io.github.wasabithumb.jtoml.serial.TomlSerializerFactory;
-import io.github.wasabithumb.jtoml.serial.TomlSerializerService;
 import io.github.wasabithumb.jtoml.util.Pinned;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import org.jetbrains.annotations.ApiStatus;
@@ -52,17 +51,10 @@ final class JTomlImpl implements JToml {
 
     private static final List<TomlSerializerFactory> SERIALIZER_FACTORIES;
     static {
-        List<TomlSerializerFactory> factories = new LinkedList<>();
-
-        // Legacy support: eventually remove this
-        for (TomlSerializerService tomlSerializerService : stubbornServiceLoader(TomlSerializerService.class))
-            factories.add(TomlSerializerFactory.of(tomlSerializerService));
-
-        // New serializers
+        List<TomlSerializerFactory> factories = new ArrayList<>();
         for (TomlSerializerFactory tomlSerializerFactory : stubbornServiceLoader(TomlSerializerFactory.class))
             factories.add(tomlSerializerFactory);
-
-        SERIALIZER_FACTORIES = Collections.unmodifiableList(new ArrayList<>(factories));
+        SERIALIZER_FACTORIES = Collections.unmodifiableList(factories);
     }
 
     private static <T> @NotNull ServiceLoader<T> stubbornServiceLoader(@NotNull Class<T> type) {

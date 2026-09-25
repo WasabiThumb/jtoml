@@ -28,25 +28,10 @@ import java.util.function.Supplier;
  * Creates {@link TomlSerializer} instances
  * for some set of Java types. Intended
  * to be instantiated through the service
- * loading mechanism. Replaces the deprecated
- * {@link TomlSerializerService}.
+ * loading mechanism.
  */
 @ApiStatus.AvailableSince("1.6.0")
 public abstract class TomlSerializerFactory {
-
-    /**
-     * Compatibility bridge for the deprecated
-     * {@link TomlSerializerService} class. This method will be
-     * removed when the class is removed.
-     */
-    @Deprecated
-    @ApiStatus.ScheduledForRemoval
-    @Contract("_ -> new")
-    public static @NotNull TomlSerializerFactory of(@NotNull TomlSerializerService legacy) {
-        return new LegacyAdapter(legacy);
-    }
-
-    //
 
     /**
      * Attempts to facilitate the creation of a serializer which
@@ -152,32 +137,6 @@ public abstract class TomlSerializerFactory {
                 throw new UnsupportedOperationException("cannot get serializer from invalid result");
             }
 
-        }
-
-    }
-
-    @Deprecated
-    @ApiStatus.ScheduledForRemoval
-    private static final class LegacyAdapter extends TomlSerializerFactory {
-
-        private final TomlSerializerService handle;
-
-        private LegacyAdapter(TomlSerializerService handle) {
-            this.handle = handle;
-        }
-
-        //
-
-        @Override
-        public <T> Result<?, T> fromToml(JToml instance, Class<T> outType) {
-            if (!this.handle.canSerializeTo(outType)) return Result.invalid("rejected by " + this.handle);
-            return Result.valid(this.handle.getSerializer(instance, outType));
-        }
-
-        @Override
-        public <T> Result<T, ?> toToml(JToml instance, Class<T> inType) {
-            if (!this.handle.canDeserializeFrom(inType)) return Result.invalid("rejected by " + this.handle);
-            return Result.valid(this.handle.getDeserializer(instance, inType));
         }
 
     }
