@@ -20,6 +20,8 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 /**
  * An immutable map of {@link JTomlOption}s and their associated values.
  * If a mapping does not exist, the {@link JTomlOption#defaultValue() default value} for
@@ -29,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public final class JTomlOptions {
 
+    private static final JTomlOption<?>[] UNIVERSE = JTomlOption.values();
     private static final JTomlOptions DEFAULTS = new JTomlOptions(new Object[0]);
 
     @Contract(pure = true)
@@ -44,6 +47,7 @@ public final class JTomlOptions {
     //
 
     private final Object[] values;
+
     private JTomlOptions(@Nullable Object @NotNull [] values) {
         this.values = values;
     }
@@ -64,13 +68,32 @@ public final class JTomlOptions {
     }
 
     @Override
+    public int hashCode() {
+        int h = 7;
+        for (JTomlOption<?> opt : UNIVERSE) {
+            h = 31 * h + Objects.hashCode(this.get(opt));
+        }
+        return h;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof JTomlOptions)) return false;
+        if (this == obj) return true;
+        JTomlOptions qual = (JTomlOptions) obj;
+        for (JTomlOption<?> opt : UNIVERSE) {
+            if (!Objects.equals(this.get(opt), qual.get(opt))) return false;
+        }
+        return true;
+    }
+
+    @Override
     public @NotNull String toString() {
         StringBuilder sb = new StringBuilder("JTomlOptions[");
-        JTomlOption<?>[] opts = JTomlOption.values();
         JTomlOption<?> opt;
-        for (int i=0; i < opts.length; i++) {
+        for (int i = 0; i < UNIVERSE.length; i++) {
             if (i != 0) sb.append(",");
-            opt = opts[i];
+            opt = UNIVERSE[i];
             sb.append("\n\t")
                     .append(opt.name())
                     .append(" = ")
@@ -84,11 +107,7 @@ public final class JTomlOptions {
 
     public static final class Builder {
 
-        private static final int CAPACITY = JTomlOption.values().length;
-
-        //
-
-        private final Object[] values = new Object[CAPACITY];
+        private final Object[] values = new Object[UNIVERSE.length];
         private int max               = -1;
         private Builder() { }
 
@@ -97,7 +116,7 @@ public final class JTomlOptions {
         @Contract(value = "_, _ -> this", mutates = "this")
         public <T> @NotNull Builder set(@NotNull JTomlOption<T> key, @Nullable T value) throws IllegalArgumentException {
             final int idx = key.ordinal();
-            if (idx < 0 || idx >= CAPACITY) {
+            if (idx < 0 || idx >= UNIVERSE.length) {
                 throw new IllegalStateException("Illegal ordinal (" + idx + ")");
             }
             if (value != null && !key.isLegal(value)) {

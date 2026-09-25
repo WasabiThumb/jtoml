@@ -30,6 +30,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Objects;
 
 /**
  * Entry point for JToml
@@ -46,7 +47,7 @@ public interface JToml {
      */
     @Contract("_ -> new")
     static @NotNull JToml jToml(@NotNull JTomlOptions options) {
-        return JTomlService.get().createInstance(options);
+        return JTomlProvider.get().instance(Objects.requireNonNull(options, "options must not be null"));
     }
 
     /**
@@ -54,7 +55,7 @@ public interface JToml {
      */
     @Contract(pure = true)
     static @NotNull JToml jToml() {
-        return JTomlService.get().defaultInstance();
+        return JTomlProvider.get().instance();
     }
 
     //

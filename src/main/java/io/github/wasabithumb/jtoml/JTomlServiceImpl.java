@@ -20,19 +20,23 @@ import io.github.wasabithumb.jtoml.option.JTomlOptions;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * @deprecated No longer in use.
+ *             If you were using this class to avoid the service
+ *             loading mechanism, don't. It no longer exists.
+ */
+@Deprecated
 @ApiStatus.Internal
-public final class JTomlServiceImpl extends JTomlService {
+public final class JTomlServiceImpl {
 
     private static final JTomlImpl WITH_DEFAULTS = new JTomlImpl(JTomlOptions.defaults());
 
     public JTomlServiceImpl() { }
 
-    @Override
     public @NotNull JToml defaultInstance() {
         return WITH_DEFAULTS;
     }
 
-    @Override
     public @NotNull JToml createInstance(@NotNull JTomlOptions options) {
         return new JTomlImpl(options);
     }
