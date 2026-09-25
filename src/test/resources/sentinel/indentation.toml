@@ -1,0 +1,9 @@
+
+[main]
+main = "yes"
+
+	[main.nested]
+	hello = true
+
+		[main.nested.super-nested]
+		y-char = 121
