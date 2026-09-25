@@ -61,14 +61,4 @@ public final class PlainTextTomlSerializer implements TomlSerializer.Symmetric<S
         return this.instance.readFromString(data);
     }
 
-    @Override
-    public @NotNull String serialize(@NotNull TomlTable table) {
-        return this.fromToml(table);
-    }
-
-    @Override
-    public @NotNull TomlTable deserialize(@NotNull String data) {
-        return this.toToml(data);
-    }
-
 }

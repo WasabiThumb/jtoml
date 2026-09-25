@@ -151,27 +151,6 @@ fun <T: Any> JToml.toToml(type: KClass<T>, data: T): TomlTable {
     return this.toToml(type.java, data)
 }
 
-/**
- * Serializes the given TOML table to the given type,
- * if an appropriate serializer is present in the classpath
- */
-@Deprecated("Replaced by fromToml")
-@Throws(TomlException::class, IllegalArgumentException::class)
-fun <T: Any> JToml.serialize(type: KClass<T>, table: TomlTable): T {
-    return this.serialize(type.java, table)
-}
-
-/**
- * Deserializes a TOML table from the given type,
- * if an appropriate deserializer is present in the classpath
- */
-@Deprecated("Replaced by toToml")
-@Throws(TomlException::class, IllegalArgumentException::class)
-fun <T: Any> JToml.deserialize(type: KClass<T>, data: T): TomlTable {
-    return this.deserialize(type.java, data)
-}
-
-
 // Value Coercion
 
 /**

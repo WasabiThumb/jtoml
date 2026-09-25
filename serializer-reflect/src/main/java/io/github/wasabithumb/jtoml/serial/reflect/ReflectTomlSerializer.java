@@ -232,16 +232,6 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
         );
     }
 
-    @Override
-    public @NotNull T serialize(@NotNull TomlTable table) {
-        return this.fromToml(table);
-    }
-
-    @Override
-    public @NotNull TomlTable deserialize(@NotNull T data) {
-        return this.toToml(data);
-    }
-
     //
 
     private <E> @NotNull E serializeValue(
