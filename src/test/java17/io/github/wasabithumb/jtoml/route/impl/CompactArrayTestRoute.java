@@ -48,7 +48,6 @@ public final class CompactArrayTestRoute implements TestRoute.Configuring {
 
         // Serialize
         String doc = instance.writeToString(table);
-        System.out.println(doc);
 
         // Deserialize and check
         TomlTable out = instance.readFromString(doc);

@@ -348,7 +348,7 @@ public final class TableWriter implements Closeable {
 
         if (doNewlines) {
             this.out.put(newline);
-            this.indentLevel++;
+            this.indentLevel += this.options.get(JTomlOption.INDENTATION).elementIndent();
         } else {
             for (int i=0; i < padding.arrayPadding(); i++)
                 this.out.put(' ');
@@ -405,7 +405,7 @@ public final class TableWriter implements Closeable {
         }
 
         if (doNewlines) {
-            this.indentLevel--;
+            this.indentLevel -= this.options.get(JTomlOption.INDENTATION).elementIndent();
             this.writeIndent();
         } else {
             for (int i=0; i < padding.arrayPadding(); i++)
