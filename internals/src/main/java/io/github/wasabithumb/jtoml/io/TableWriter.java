@@ -70,14 +70,6 @@ public final class TableWriter implements Closeable {
                 table,
                 false
         );
-
-        if (writeComments) {
-            for (Comment c : comments.get(CommentPosition.POST)) {
-                this.out.put("# ");
-                this.out.put(c.content());
-                this.out.put(newline);
-            }
-        }
     }
 
     private void writeIndent() {
@@ -99,7 +91,7 @@ public final class TableWriter implements Closeable {
         int ks = key.size();
         if (ks > 1) this.indentLevel += (ks * indentation.variableIndent());
 
-        for (int i = 0; i < spacing.preTable(); i++) this.out.put(newline);
+        for (int i = 0; i < spacing.preHeader(); i++) this.out.put(newline);
         if (comments != null) {
             for (Comment c : comments.get(CommentPosition.PRE)) {
                 this.writeIndent();
@@ -136,7 +128,7 @@ public final class TableWriter implements Closeable {
                 this.out.put(newline);
             }
         }
-        for (int i=0; i < spacing.postTable(); i++) this.out.put(newline);
+        for (int i=0; i < spacing.postHeader(); i++) this.out.put(newline);
 
         this.indentLevel += indentation.postIndent();
     }
@@ -163,6 +155,7 @@ public final class TableWriter implements Closeable {
             @NotNull TomlTable table,
             boolean andHeader
     ) throws TomlException {
+        final LineSeparator newline = this.options.get(JTomlOption.LINE_SEPARATOR);
         List<TypedKey> keys = this.deconstruct(table);
 
         if (andHeader) {
@@ -209,6 +202,18 @@ public final class TableWriter implements Closeable {
                     this.writeInlineTable(key, value.asTable());
                     break;
             }
+        }
+
+        if (this.options.get(JTomlOption.WRITE_COMMENTS)) {
+            for (Comment c : table.comments().get(CommentPosition.POST)) {
+                this.out.put("# ");
+                this.out.put(c.content());
+                this.out.put(newline);
+            }
+        }
+
+        for (int i = 0; i < this.options.get(JTomlOption.SPACING).postBlock(); i++) {
+            this.out.put(newline);
         }
     }
 

@@ -16,62 +16,111 @@
 
 package io.github.wasabithumb.jtoml.option.prop;
 
+import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
+import java.lang.annotation.*;
+import java.util.Arrays;
+
 /**
  * Determines how newlines should be inserted to separate
- * TOML elements
+ * TOML elements. Reference the example below for how
+ * each attribute applies.
+ * <pre>{@code
+ * # preHeader
+ * [table]
+ * # postHeader
+ * # preStatement
+ * x = "foo"
+ * # postStatement
+ * # preStatement
+ * y = "bar"
+ * # postStatement
+ * # postBlock
+ * }</pre>
  */
 public final class SpacingPolicy {
 
     /** No spacing */
-    public static final SpacingPolicy NONE     = new SpacingPolicy(0x00000000);
+    public static final SpacingPolicy NONE;
 
-    /** Put 1 newline before each table */
-    public static final SpacingPolicy STANDARD = new SpacingPolicy(0x01000000);
+    /** Places 1 newline before each header, no spacing otherwise */
+    public static final SpacingPolicy STANDARD;
 
     @Contract("-> new")
     public static @NotNull Builder builder() {
         return new Builder();
     }
 
+    static {
+        byte[] b1 = new byte[Kind.MAX];
+        byte[] b2 = new byte[Kind.MAX];
+        b2[0] = 1;
+        NONE = new SpacingPolicy(b1);
+        STANDARD = new SpacingPolicy(b2);
+    }
+
     //
 
-    private final int data;
+    private final byte[] data;
 
-    private SpacingPolicy(int data) {
+    private SpacingPolicy(byte[] data) {
         this.data = data;
     }
 
     //
 
-    public @Range(from=0, to=255) int preTable() {
-        return (this.data >> 24) & 0xFF;
+    private @Range(from = 0, to = 255) int get(@Kind int kind) {
+        return Byte.toUnsignedInt(this.data[kind]);
     }
 
+    /**
+     * @deprecated Deprecated alias for {@link #preHeader()}.
+     */
+    @Deprecated
+    public @Range(from=0, to=255) int preTable() {
+        return this.preHeader();
+    }
+
+    /**
+     * @deprecated Deprecated alias for {@link #postHeader()}.
+     */
+    @Deprecated
     public @Range(from=0, to=255) int postTable() {
-        return (this.data >> 16) & 0xFF;
+        return this.postHeader();
+    }
+
+    public @Range(from=0, to=255) int preHeader() {
+        return this.get(Kind.PRE_HEADER);
+    }
+
+    public @Range(from=0, to=255) int postHeader() {
+        return this.get(Kind.POST_HEADER);
     }
 
     public @Range(from=0, to=255) int preStatement() {
-        return (this.data >> 8) & 0xFF;
+        return this.get(Kind.PRE_STATEMENT);
     }
 
     public @Range(from=0, to=255) int postStatement() {
-        return this.data & 0xFF;
+        return this.get(Kind.POST_STATEMENT);
+    }
+
+    public @Range(from = 0, to = 255) int postBlock() {
+        return this.get(Kind.POST_BLOCK);
     }
 
     @Override
     public int hashCode() {
-        return Integer.hashCode(this.data);
+        return Arrays.hashCode(this.data);
     }
 
     @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof SpacingPolicy)) return false;
-        return this.data == ((SpacingPolicy) obj).data;
+        return Arrays.equals(this.data, ((SpacingPolicy) obj).data);
     }
 
     @Override
@@ -80,6 +129,7 @@ public final class SpacingPolicy {
                 ", postTable=" + this.postTable() +
                 ", preStatement=" + this.preStatement() +
                 ", postStatement=" + this.postStatement() +
+                ", postBlock=" + this.postBlock() +
                 "]";
     }
 
@@ -87,46 +137,84 @@ public final class SpacingPolicy {
 
     public static final class Builder {
 
-        private final int[] values = new int[4];
+        private final byte[] data = new byte[Kind.MAX];
 
         //
 
         @Contract("_, _ -> this")
-        private @NotNull Builder set(int index, int value) {
+        private @NotNull Builder set(@Kind int kind, int value) {
             if (value < 0) throw new IllegalArgumentException("Spacing may not be negative");
             if (value > 255) throw new IllegalArgumentException("Spacing is too large (" + value + " > 255)");
-            this.values[index] = value;
+            this.data[kind] = (byte) value;
             return this;
         }
 
+        /**
+         * @deprecated Use {@link #preHeader(int) preHeader} instead.
+         */
+        @Deprecated
         @Contract("_ -> this")
-        public @NotNull Builder preTable(@Range(from=0, to=255) int spacing) {
-            return this.set(0, spacing);
+        public @NotNull Builder preTable(@Range(from = 0, to = 255) int spacing) {
+            return this.preHeader(spacing);
+        }
+
+        /**
+         * @deprecated Use {@link #postHeader(int) postHeader} instead.
+         */
+        @Deprecated
+        @Contract("_ -> this")
+        public @NotNull Builder postTable(@Range(from=0, to=255) int spacing) {
+            return this.postHeader(spacing);
         }
 
         @Contract("_ -> this")
-        public @NotNull Builder postTable(@Range(from=0, to=255) int spacing) {
-            return this.set(1, spacing);
+        public @NotNull Builder preHeader(@Range(from = 0, to = 255) int spacing) {
+            return this.set(Kind.PRE_HEADER, spacing);
+        }
+
+        @Contract("_ -> this")
+        public @NotNull Builder postHeader(@Range(from=0, to=255) int spacing) {
+            return this.set(Kind.POST_HEADER, spacing);
         }
 
         @Contract("_ -> this")
         public @NotNull Builder preStatement(@Range(from=0, to=255) int spacing) {
-            return this.set(2, spacing);
+            return this.set(Kind.PRE_STATEMENT, spacing);
         }
 
         @Contract("_ -> this")
         public @NotNull Builder postStatement(@Range(from=0, to=255) int spacing) {
-            return this.set(3, spacing);
+            return this.set(Kind.POST_STATEMENT, spacing);
+        }
+
+        @Contract("_ -> this")
+        public @NotNull Builder postBlock(@Range(from=0, to=255) int spacing) {
+            return this.set(Kind.POST_BLOCK, spacing);
         }
 
         @Contract("-> new")
         public @NotNull SpacingPolicy build() {
-            return new SpacingPolicy(
-                    (this.values[0] << 24) | (this.values[1] << 16) |
-                            (this.values[2] << 8) | this.values[3]
-            );
+            return new SpacingPolicy(Arrays.copyOf(this.data, Kind.MAX));
         }
 
+    }
+
+    /**
+     * Indices in the {@link SpacingPolicy}'s
+     * internal array for each kind of spacing
+     */
+    @Documented
+    @Retention(RetentionPolicy.SOURCE)
+    @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.LOCAL_VARIABLE, ElementType.METHOD})
+    @MagicConstant(valuesFromClass = Kind.class)
+    private @interface Kind {
+        int PRE_HEADER = 0;
+        int POST_HEADER = 1;
+        int PRE_STATEMENT = 2;
+        int POST_STATEMENT = 3;
+        int POST_BLOCK = 4;
+        //
+        int MAX = 5;
     }
 
 }
