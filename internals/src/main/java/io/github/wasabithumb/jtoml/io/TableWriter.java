@@ -70,19 +70,12 @@ public final class TableWriter implements Closeable {
                 table,
                 false
         );
-
-        if (writeComments) {
-            for (Comment c : comments.get(CommentPosition.POST)) {
-                this.out.put("# ");
-                this.out.put(c.content());
-                this.out.put(newline);
-            }
-        }
     }
 
     private void writeIndent() {
         final char c = this.options.get(JTomlOption.INDENTATION).indentChar();
-        for (int i=0; i < this.indentLevel; i++) this.out.put(c);
+        if (c == '\0') return;
+        for (int i = 0; i < this.indentLevel; i++) this.out.put(c);
     }
 
     private void writeTableHeader0(
@@ -97,9 +90,9 @@ public final class TableWriter implements Closeable {
 
         this.indentLevel = indentation.globalIndent() + indentation.constantIndent();
         int ks = key.size();
-        if (ks > 1) this.indentLevel += (ks * indentation.variableIndent());
+        if (ks > 1) this.indentLevel += ((ks - 1) * indentation.variableIndent());
 
-        for (int i = 0; i < spacing.preTable(); i++) this.out.put(newline);
+        for (int i = 0; i < spacing.preHeader(); i++) this.out.put(newline);
         if (comments != null) {
             for (Comment c : comments.get(CommentPosition.PRE)) {
                 this.writeIndent();
@@ -136,7 +129,7 @@ public final class TableWriter implements Closeable {
                 this.out.put(newline);
             }
         }
-        for (int i=0; i < spacing.postTable(); i++) this.out.put(newline);
+        for (int i=0; i < spacing.postHeader(); i++) this.out.put(newline);
 
         this.indentLevel += indentation.postIndent();
     }
@@ -163,6 +156,7 @@ public final class TableWriter implements Closeable {
             @NotNull TomlTable table,
             boolean andHeader
     ) throws TomlException {
+        final LineSeparator newline = this.options.get(JTomlOption.LINE_SEPARATOR);
         List<TypedKey> keys = this.deconstruct(table);
 
         if (andHeader) {
@@ -209,6 +203,18 @@ public final class TableWriter implements Closeable {
                     this.writeInlineTable(key, value.asTable());
                     break;
             }
+        }
+
+        if (this.options.get(JTomlOption.WRITE_COMMENTS)) {
+            for (Comment c : table.comments().get(CommentPosition.POST)) {
+                this.out.put("# ");
+                this.out.put(c.content());
+                this.out.put(newline);
+            }
+        }
+
+        for (int i = 0; i < this.options.get(JTomlOption.SPACING).postBlock(); i++) {
+            this.out.put(newline);
         }
     }
 
@@ -347,7 +353,7 @@ public final class TableWriter implements Closeable {
 
         if (doNewlines) {
             this.out.put(newline);
-            this.indentLevel++;
+            this.indentLevel += this.options.get(JTomlOption.INDENTATION).elementIndent();
         } else {
             for (int i=0; i < padding.arrayPadding(); i++)
                 this.out.put(' ');
@@ -404,7 +410,7 @@ public final class TableWriter implements Closeable {
         }
 
         if (doNewlines) {
-            this.indentLevel--;
+            this.indentLevel -= this.options.get(JTomlOption.INDENTATION).elementIndent();
             this.writeIndent();
         } else {
             for (int i=0; i < padding.arrayPadding(); i++)

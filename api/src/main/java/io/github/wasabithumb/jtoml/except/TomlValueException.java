@@ -16,6 +16,7 @@
 
 package io.github.wasabithumb.jtoml.except;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.LocalDate;
@@ -40,6 +41,14 @@ public final class TomlValueException extends TomlException {
 
     private static final long serialVersionUID = -8613996824890651456L;
 
+    /**
+     * Internal utility for ensuring dates entering JToml
+     * are compatible with the TOML specification.
+     * @param date An object with date information
+     * @throws TomlValueException The specified date is illegal per the TOML specification
+     * @throws java.time.DateTimeException A required field could not be read from the given object
+     */
+    @ApiStatus.Internal
     public static void checkDate(@NotNull TemporalAccessor date) {
         final int year = date.get(ChronoField.YEAR);
         if (0 <= year && year <= 9999) return;

@@ -87,16 +87,6 @@ public final class GsonTomlSerializer implements TomlSerializer.Symmetric<JsonOb
         return ret;
     }
 
-    @Override
-    public @NotNull JsonObject serialize(@NotNull TomlTable table) {
-        return this.fromToml(table);
-    }
-
-    @Override
-    public @NotNull TomlTable deserialize(@NotNull JsonObject data) {
-        return this.toToml(data);
-    }
-
     //
 
     private @NotNull JsonElement serializeValue(@NotNull TomlValue value) {

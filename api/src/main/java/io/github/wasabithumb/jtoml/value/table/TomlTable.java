@@ -21,12 +21,20 @@ import io.github.wasabithumb.jtoml.value.TomlValue;
 import io.github.wasabithumb.jtoml.value.primitive.TomlPrimitive;
 import org.jetbrains.annotations.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 /**
- * TOML key-values
+ * TOML key-values, essentially a
+ * {@code Map<TomlKey, TomlValue>}
+ * with special functionality
+ * relating to the tree structure
+ * of TOML documents.
  * @see #create()
  * @see #copyOf(TomlTable)
  */
@@ -148,8 +156,60 @@ public interface TomlTable extends TomlValue {
      * The value is wrapped into a {@link TomlPrimitive}
      * before being placed into the map.
      * @return The value previously mapped to the given key, or null the entry was newly created
+     * @throws NullPointerException The value is null
      */
     default @Nullable TomlValue put(@NotNull TomlKey key, @NotNull String value) {
+        return this.put(key, TomlPrimitive.of(value));
+    }
+
+    /**
+     * Updates the value mapped to the given key, creating a
+     * new entry if one does not exist.
+     * The value is wrapped into a {@link TomlPrimitive}
+     * before being placed into the map.
+     * @return The value previously mapped to the given key, or null the entry was newly created
+     * @throws NullPointerException The value is null
+     * @throws io.github.wasabithumb.jtoml.except.TomlValueException The provided value is not representable as a TOML primitive
+     */
+    default @Nullable TomlValue put(@NotNull TomlKey key, @NotNull OffsetDateTime value) {
+        return this.put(key, TomlPrimitive.of(value));
+    }
+
+    /**
+     * Updates the value mapped to the given key, creating a
+     * new entry if one does not exist.
+     * The value is wrapped into a {@link TomlPrimitive}
+     * before being placed into the map.
+     * @return The value previously mapped to the given key, or null the entry was newly created
+     * @throws NullPointerException The value is null
+     * @throws io.github.wasabithumb.jtoml.except.TomlValueException The provided value is not representable as a TOML primitive
+     */
+    default @Nullable TomlValue put(@NotNull TomlKey key, @NotNull LocalDateTime value) {
+        return this.put(key, TomlPrimitive.of(value));
+    }
+
+    /**
+     * Updates the value mapped to the given key, creating a
+     * new entry if one does not exist.
+     * The value is wrapped into a {@link TomlPrimitive}
+     * before being placed into the map.
+     * @return The value previously mapped to the given key, or null the entry was newly created
+     * @throws NullPointerException The value is null
+     * @throws io.github.wasabithumb.jtoml.except.TomlValueException The provided value is not representable as a TOML primitive
+     */
+    default @Nullable TomlValue put(@NotNull TomlKey key, @NotNull LocalDate value) {
+        return this.put(key, TomlPrimitive.of(value));
+    }
+
+    /**
+     * Updates the value mapped to the given key, creating a
+     * new entry if one does not exist.
+     * The value is wrapped into a {@link TomlPrimitive}
+     * before being placed into the map.
+     * @return The value previously mapped to the given key, or null the entry was newly created
+     * @throws NullPointerException The value is null
+     */
+    default @Nullable TomlValue put(@NotNull TomlKey key, @NotNull LocalTime value) {
         return this.put(key, TomlPrimitive.of(value));
     }
 
@@ -215,6 +275,7 @@ public interface TomlTable extends TomlValue {
      * before being placed into the map. The key is parsed
      * as specified by {@link TomlKey#parse(CharSequence)}.
      * @return The value previously mapped to the given key, or null the entry was newly created
+     * @throws NullPointerException The value is null
      * @see #put(TomlKey, String)
      */
     default @Nullable TomlValue put(@NotNull CharSequence key, @NotNull String value) {
@@ -283,6 +344,65 @@ public interface TomlTable extends TomlValue {
      * @see #put(TomlKey, float)
      */
     default @Nullable TomlValue put(@NotNull CharSequence key, float value) {
+        return this.put(key, TomlPrimitive.of(value));
+    }
+
+    /**
+     * Updates the value mapped to the given key, creating a
+     * new entry if one does not exist.
+     * The value is wrapped into a {@link TomlPrimitive}
+     * before being placed into the map. The key is parsed
+     * as specified by {@link TomlKey#parse(CharSequence)}.
+     * @return The value previously mapped to the given key, or null the entry was newly created
+     * @throws NullPointerException The value is null
+     * @throws io.github.wasabithumb.jtoml.except.TomlValueException The provided value is not representable as a TOML primitive
+     * @see #put(TomlKey, OffsetDateTime)
+     */
+    default @Nullable TomlValue put(@NotNull CharSequence key, @NotNull OffsetDateTime value) {
+        return this.put(key, TomlPrimitive.of(value));
+    }
+
+    /**
+     * Updates the value mapped to the given key, creating a
+     * new entry if one does not exist.
+     * The value is wrapped into a {@link TomlPrimitive}
+     * before being placed into the map. The key is parsed
+     * as specified by {@link TomlKey#parse(CharSequence)}.
+     * @return The value previously mapped to the given key, or null the entry was newly created
+     * @throws NullPointerException The value is null
+     * @throws io.github.wasabithumb.jtoml.except.TomlValueException The provided value is not representable as a TOML primitive
+     * @see #put(TomlKey, LocalDateTime)
+     */
+    default @Nullable TomlValue put(@NotNull CharSequence key, @NotNull LocalDateTime value) {
+        return this.put(key, TomlPrimitive.of(value));
+    }
+
+    /**
+     * Updates the value mapped to the given key, creating a
+     * new entry if one does not exist.
+     * The value is wrapped into a {@link TomlPrimitive}
+     * before being placed into the map. The key is parsed
+     * as specified by {@link TomlKey#parse(CharSequence)}.
+     * @return The value previously mapped to the given key, or null the entry was newly created
+     * @throws NullPointerException The value is null
+     * @throws io.github.wasabithumb.jtoml.except.TomlValueException The provided value is not representable as a TOML primitive
+     * @see #put(TomlKey, LocalDate)
+     */
+    default @Nullable TomlValue put(@NotNull CharSequence key, @NotNull LocalDate value) {
+        return this.put(key, TomlPrimitive.of(value));
+    }
+
+    /**
+     * Updates the value mapped to the given key, creating a
+     * new entry if one does not exist.
+     * The value is wrapped into a {@link TomlPrimitive}
+     * before being placed into the map. The key is parsed
+     * as specified by {@link TomlKey#parse(CharSequence)}.
+     * @return The value previously mapped to the given key, or null the entry was newly created
+     * @throws NullPointerException The value is null
+     * @see #put(TomlKey, LocalTime)
+     */
+    default @Nullable TomlValue put(@NotNull CharSequence key, @NotNull LocalTime value) {
         return this.put(key, TomlPrimitive.of(value));
     }
 

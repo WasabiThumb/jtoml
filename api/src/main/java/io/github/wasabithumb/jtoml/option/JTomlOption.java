@@ -30,13 +30,23 @@ import static io.github.wasabithumb.jtoml.option.ObjectJTomlOption.of;
 import static io.github.wasabithumb.jtoml.option.BooleanJTomlOption.of;
 
 /**
- * An enum-like option key for JToml
+ * An enum-like option key for JToml.
+ * Each option has a non-null default value.
+ * To change an option's value, it must be
+ * reflected in the {@link JTomlOptions}
+ * provided when creating the
+ * {@link io.github.wasabithumb.jtoml.JToml JToml}
+ * instance.
  */
 @ApiStatus.NonExtendable
 public interface JTomlOption<T> {
 
     /**
-     * Indentation to apply when writing
+     * Indentation to apply when writing.
+     * This refers to whitespace placed at the
+     * beginning of lines.
+     * Defaults to {@link IndentationPolicy#STANDARD STANDARD}.
+     * @see IndentationPolicy
      */
     JTomlOption<IndentationPolicy> INDENTATION = of(
             "INDENTATION",
@@ -45,7 +55,11 @@ public interface JTomlOption<T> {
     );
 
     /**
-     * Spacing to apply when writing
+     * Spacing to apply when writing.
+     * This refers to newlines placed around
+     * symbols.
+     * Defaults to {@link SpacingPolicy#STANDARD STANDARD}.
+     * @see SpacingPolicy
      */
     JTomlOption<SpacingPolicy> SPACING = of(
             "SPACING",
@@ -54,7 +68,12 @@ public interface JTomlOption<T> {
     );
 
     /**
-     * Padding to apply when writing
+     * Padding to apply when writing.
+     * This refers to whitespace placed
+     * within symbols, such as between the
+     * braces and key of a table header.
+     * Defaults to {@link PaddingPolicy#STANDARD STANDARD}.
+     * @see PaddingPolicy
      */
     JTomlOption<PaddingPolicy> PADDING = of(
             "PADDING",
@@ -66,7 +85,11 @@ public interface JTomlOption<T> {
      * Zone offset to use when reading a <a href="https://toml.io/en/v1.1.0#local-date-time">Local Date-Time</a>
      * as an {@link java.time.OffsetDateTime OffsetDateTime}
      * and when writing a {@link java.time.LocalDateTime LocalDateTime} as an
-     * <a href="https://toml.io/en/v1.1.0#offset-date-time">Offset Date-Time</a>
+     * <a href="https://toml.io/en/v1.1.0#offset-date-time">Offset Date-Time</a>.
+     * Since a zone is being demanded where it is not specified, JToml looks to this option to select one.
+     * Defaults to {@link ZoneOffset#UTC} for consistent behavior.
+     * To respect the local time zone, set this to {@link ZoneOffset#systemDefault()}
+     * (or don't perform any such ambiguous operation in the first place).
      */
     JTomlOption<ZoneOffset> TIME_ZONE = of(
             "TIME_ZONE",
@@ -92,7 +115,10 @@ public interface JTomlOption<T> {
     );
 
     /**
-     * Determines if a BOM should be written
+     * Determines if a BOM should be written.
+     * Defaults to {@link OrderMarkPolicy#IF_PRESENT IF_PRESENT}
+     * which typically does nothing unless {@link #READ_BOM} is also
+     * configured.
      */
     JTomlOption<OrderMarkPolicy> WRITE_BOM = of(
             "WRITE_BOM",
@@ -103,7 +129,7 @@ public interface JTomlOption<T> {
     /**
      * The line separator to use when writing and normalizing,
      * either {@link LineSeparator#LF LF} or {@link LineSeparator#CRLF CRLF}.
-     * Default is determined by {@link System#lineSeparator()}.
+     * Defaults to {@link LineSeparator#SYSTEM SYSTEM}.
      * Both line endings can always be read, irrespective of the value of this option.
      */
     JTomlOption<LineSeparator> LINE_SEPARATOR = of(
@@ -113,8 +139,9 @@ public interface JTomlOption<T> {
     );
 
     /**
-     * If true, {@link io.github.wasabithumb.jtoml.except.parse.TomlExtensionException static extension} is
+     * If {@code true}, {@link io.github.wasabithumb.jtoml.except.parse.TomlExtensionException static extension} is
      * prohibited. This is required for the parser to be fully TOML-compliant.
+     * Defaults to {@code true}.
      */
     Bool EXTENSION_GUARD = of(
             "EXTENSION_GUARD",
@@ -122,8 +149,9 @@ public interface JTomlOption<T> {
     );
 
     /**
-     * If true, table headers will be written even if they do not
+     * If {@code true}, table headers will be written even if they do not
      * contain any key-values or comments.
+     * Defaults to {@code false}.
      */
     @ApiStatus.AvailableSince("0.2.3")
     Bool WRITE_EMPTY_TABLES = of(
@@ -132,8 +160,11 @@ public interface JTomlOption<T> {
     );
 
     /**
-     * If true, comments will be stored in the resulting document
-     * (rather than ignored) when reading
+     * If {@code true}, comments will be stored in the resulting document
+     * (rather than ignored) when reading. When {@code false}, creation of
+     * {@link io.github.wasabithumb.jtoml.comment.Comments Comments} objects is
+     * not prevented, however such objects within read documents will be empty.
+     * Defaults to {@code true}.
      */
     @ApiStatus.AvailableSince("0.6.0")
     Bool READ_COMMENTS = of(
@@ -142,7 +173,8 @@ public interface JTomlOption<T> {
     );
 
     /**
-     * If true, comments defined on values will be written.
+     * If {@code true}, comments defined on values will be written.
+     * Defaults to {@code true}.
      */
     @ApiStatus.AvailableSince("0.6.0")
     Bool WRITE_COMMENTS = of(
@@ -152,7 +184,8 @@ public interface JTomlOption<T> {
 
     /**
      * Determines how non-table arrays should be written;
-     * specifically when elements should receive a newline
+     * specifically when elements should receive a newline.
+     * Defaults to {@link ArrayStrategy#DYNAMIC DYNAMIC}.
      */
     @ApiStatus.AvailableSince("0.6.0")
     JTomlOption<ArrayStrategy> ARRAY_STRATEGY = of(
@@ -162,8 +195,8 @@ public interface JTomlOption<T> {
     );
 
     /**
-     * Determines how keys are sorted within a table
-     * when writing.
+     * Determines the order of keys within a block
+     * when writing. Defaults to {@link SortMethod#STRATIFIED STRATIFIED}.
      */
     @ApiStatus.AvailableSince("1.3.0")
     JTomlOption<SortMethod> SORTING = of(
@@ -207,6 +240,7 @@ public interface JTomlOption<T> {
      * This also disables the protection implemented in the
      * reflect serializer which prevents fields in supertypes
      * which do not implement the marker from being modified.
+     * Defaults to {@code false}.
      */
     @ApiStatus.AvailableSince("1.6.0")
     Bool IGNORE_SERIALIZABLE_MARKER = of(
@@ -217,6 +251,7 @@ public interface JTomlOption<T> {
     /**
      * If {@code true}, permits the usage of {@code sun.misc.Unsafe} to
      * instantiate classes without a no-args constructor.
+     * Defaults to {@code false}.
      */
     @ApiStatus.AvailableSince("1.6.0")
     Bool PERMIT_UNSAFE = of(
@@ -255,8 +290,8 @@ public interface JTomlOption<T> {
             Object obj;
             try {
                 obj = field.get(null);
-            } catch (ReflectiveOperationException | SecurityException e) {
-                throw new AssertionError("Failed to read field (" + field.getName() + ")", e);
+            } catch (IllegalAccessException e) {
+                throw new IllegalStateException("Failed to read interface field (" + field.getName() + ")", e);
             }
             ret[head++] = (JTomlOption<?>) obj;
         }
@@ -290,21 +325,54 @@ public interface JTomlOption<T> {
 
     //
 
+    /**
+     * Reports an arbitrary positive integer value
+     * which is unique to this option constant,
+     * exactly like {@link Enum#ordinal() Enum#ordinal}.
+     * @apiNote This is considered stable API, but you probably have no good reason to use it.
+     */
     @ApiStatus.Internal
     int ordinal();
 
+    /**
+     * Reports a name for this option constant, exactly equal to
+     * the name of the field in the {@link JTomlOption} class
+     * with the same value as this object by convention.
+     */
     @NotNull String name();
 
+    /**
+     * Reports the type that values associated with this option
+     * constant must be an instance of.
+     */
     @NotNull Class<T> valueClass();
 
+    /**
+     * Reports the default value associated with this option
+     * constant.
+     */
     @NotNull T defaultValue();
 
+    /**
+     * Returns true if the given instance of {@link #valueClass() the value class}
+     * can be associated with this option. This exists so that
+     * options can place restrictions on option values finer than
+     * their type.
+     * @param value The value to check
+     * @return True if the value is legal for this option
+     * @apiNote Currently always returns true
+     */
     default boolean isLegal(@NotNull T value) {
         return true;
     }
 
     //
 
+    /**
+     * An additional marker interface implemented by
+     * {@link JTomlOption} implementation(s) when their {@link JTomlOption#valueClass() value class}
+     * is known to be {@code Boolean.class}, increasing API flexibility.
+     */
     @ApiStatus.NonExtendable
     interface Bool extends JTomlOption<Boolean> {
 

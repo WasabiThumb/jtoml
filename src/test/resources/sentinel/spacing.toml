@@ -1,0 +1,49 @@
+
+
+
+# Pre-header spacing of 3
+[a]
+
+
+
+
+
+
+
+
+
+# Post-header spacing of 7 and pre-statement spacing of 2
+a = "a"
+
+
+
+
+
+
+# Post-statement spacing of 4 and pre-statement spacing of 2
+b = "b"
+
+
+
+
+
+
+
+
+# Post-statement spacing of 4, post-block spacing of 1 and pre-header spacing of 3
+[b]
+
+
+
+
+
+
+
+
+
+# Post-header spacing of 7 and pre-statement spacing of 2
+c = "c"
+
+
+
+

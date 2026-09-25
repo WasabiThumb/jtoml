@@ -16,30 +16,61 @@
 
 package io.github.wasabithumb.jtoml.except;
 
+import io.github.wasabithumb.jtoml.except.parse.TomlCodingException;
+import io.github.wasabithumb.jtoml.except.parse.TomlTruncatedException;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.EOFException;
 import java.io.IOException;
+import java.nio.charset.CharacterCodingException;
 import java.util.Objects;
 
 /**
- * Wrapper for {@link IOException}
+ * Wrapper for {@link IOException}. This should only be thrown
+ * when an issue arises in the underlying stream <i>not</i>
+ * related to parsing. The {@link #rethrow(IOException) rethrow} utility
+ * will only generate a {@link TomlIOException} if the provided
+ * {@link IOException} is not a {@link CharacterCodingException}
+ * (generates {@link io.github.wasabithumb.jtoml.except.parse.TomlCodingException TomlCodingException}),
+ * and is not an {@link EOFException}
+ * (generates {@link io.github.wasabithumb.jtoml.except.parse.TomlTruncatedException TomlTruncatedException}).
  */
 public final class TomlIOException extends TomlException {
 
     private static final long serialVersionUID = -4876355186588461257L;
 
+    /**
+     * A utility for handling low-level {@link IOException}s, throwing
+     * the appropriate {@link TomlException} (which is not always {@link TomlIOException}).
+     * Not meant for use outside of library internals.
+     */
     @ApiStatus.Internal
     @Contract("_ -> fail")
-    public static void rethrow(@NotNull IOException cause) {
-        throw new TomlIOException("Generic IO exception", cause);
+    public static void rethrow(@NotNull IOException cause) throws TomlException {
+        if (cause instanceof EOFException) {
+            throw new TomlTruncatedException(
+                    "Unexpected end of document",
+                    (EOFException) cause
+            );
+        } else if (cause instanceof CharacterCodingException) {
+            throw new TomlCodingException(
+                    "Underlying reader failed to encode/decode text (is the source and reader UTF-8?)",
+                    (CharacterCodingException) cause
+            );
+        } else {
+            throw new TomlIOException(
+                    "Underlying stream raised an exception",
+                    cause
+            );
+        }
     }
 
     //
 
     @Contract("_, null -> fail")
-    public TomlIOException(@NotNull String message, IOException cause) {
+    private TomlIOException(@NotNull String message, IOException cause) {
         super(message, Objects.requireNonNull(cause));
     }
 

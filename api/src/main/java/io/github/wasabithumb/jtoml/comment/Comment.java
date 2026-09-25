@@ -35,23 +35,44 @@ import java.lang.annotation.*;
 @ApiStatus.AvailableSince("0.6.0")
 public interface Comment {
 
+    /**
+     * Creates a new comment.
+     * @param position Position of the comment
+     * @param content Content of the comment
+     * @return A new object representing a TOML comment
+     */
     @Contract("_, _ -> new")
     static @NotNull Comment of(@NotNull CommentPosition position, @NotNull String content) {
         return new CommentImpl(position, content);
     }
 
+    /**
+     * Creates a new comment in the {@link CommentPosition#PRE PRE} position.
+     * @param content Content of the comment
+     * @return A new object representing a TOML comment
+     */
     @Contract("_ -> new")
     @ApiStatus.AvailableSince("1.5.0")
     static @NotNull Comment pre(@NotNull String content) {
         return of(CommentPosition.PRE, content);
     }
 
+    /**
+     * Creates a new comment in the {@link CommentPosition#POST POST} position.
+     * @param content Content of the comment
+     * @return A new object representing a TOML comment
+     */
     @Contract("_ -> new")
     @ApiStatus.AvailableSince("1.5.0")
     static @NotNull Comment post(@NotNull String content) {
         return of(CommentPosition.POST, content);
     }
 
+    /**
+     * Creates a new comment in the {@link CommentPosition#INLINE INLINE} position.
+     * @param content Content of the comment
+     * @return A new object representing a TOML comment
+     */
     @Contract("_ -> new")
     @ApiStatus.AvailableSince("1.5.0")
     static @NotNull Comment inline(@NotNull String content) {

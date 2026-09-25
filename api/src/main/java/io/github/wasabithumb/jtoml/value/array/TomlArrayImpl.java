@@ -19,15 +19,16 @@ package io.github.wasabithumb.jtoml.value.array;
 import io.github.wasabithumb.jtoml.comment.Comments;
 import io.github.wasabithumb.jtoml.value.TomlValue;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 @ApiStatus.Internal
-final class TomlArrayImpl implements TomlArray {
+final class TomlArrayImpl
+        extends AbstractList<TomlValue>
+        implements TomlArray
+{
 
     static @NotNull TomlArrayImpl copyOf(@NotNull Iterable<? extends TomlValue> src) {
         TomlArrayImpl ret;
@@ -104,9 +105,10 @@ final class TomlArrayImpl implements TomlArray {
     }
 
     @Override
-    public void add(TomlValue value) {
+    public boolean add(TomlValue value) {
         if (value == null) throw new NullPointerException("Cannot add null to TomlArray");
         this.backing.add(value);
+        return true;
     }
 
     @Override
@@ -135,4 +137,5 @@ final class TomlArrayImpl implements TomlArray {
         sb.append("]");
         return sb.toString();
     }
+
 }

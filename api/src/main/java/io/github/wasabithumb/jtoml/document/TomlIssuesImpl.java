@@ -20,6 +20,7 @@ import io.github.wasabithumb.jtoml.except.TomlException;
 import io.github.wasabithumb.jtoml.except.parse.TomlLocalParseException;
 import io.github.wasabithumb.jtoml.except.parse.TomlMultiParseException;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -63,6 +64,14 @@ final class TomlIssuesImpl
         List<TomlLocalParseException> ex = new ArrayList<>(len);
         for (TomlIssue issue : this.array) ex.add(issue.toException());
         throw TomlMultiParseException.create(ex);
+    }
+
+    @Override
+    @Contract(" -> new")
+    public @NotNull Builder toBuilder() {
+        Builder ret = new Builder();
+        ret.set.addAll(Arrays.asList(this.array));
+        return ret;
     }
 
     //

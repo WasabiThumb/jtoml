@@ -17,9 +17,9 @@
 package io.github.wasabithumb.jtoml;
 
 import io.github.wasabithumb.jtoml.document.TomlDocument;
-import io.github.wasabithumb.jtoml.except.TomlException;
 import io.github.wasabithumb.jtoml.except.TomlIOException;
 import io.github.wasabithumb.jtoml.except.TomlValueException;
+import io.github.wasabithumb.jtoml.except.parse.TomlParseException;
 import io.github.wasabithumb.jtoml.option.JTomlOptions;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import org.jetbrains.annotations.ApiStatus;
@@ -30,6 +30,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Objects;
 
 /**
  * Entry point for JToml
@@ -46,7 +47,7 @@ public interface JToml {
      */
     @Contract("_ -> new")
     static @NotNull JToml jToml(@NotNull JTomlOptions options) {
-        return JTomlService.get().createInstance(options);
+        return JTomlProvider.get().instance(Objects.requireNonNull(options, "options must not be null"));
     }
 
     /**
@@ -54,7 +55,7 @@ public interface JToml {
      */
     @Contract(pure = true)
     static @NotNull JToml jToml() {
-        return JTomlService.get().defaultInstance();
+        return JTomlProvider.get().instance();
     }
 
     //
@@ -76,17 +77,21 @@ public interface JToml {
     /**
      * Reads a TOML table from a string
      * @param toml A string containing a TOML document
-     * @throws TomlException String is not valid TOML
+     * @throws TomlParseException String is not valid TOML and
+     *                            {@link io.github.wasabithumb.jtoml.option.JTomlOption#ERROR_RECOVERY error recovery}
+     *                            is not enabled.
      */
-    @NotNull TomlDocument readFromString(@NotNull String toml) throws TomlException;
+    @NotNull TomlDocument readFromString(@NotNull String toml) throws TomlParseException;
 
     /**
      * Reads a TOML table from a stream
      * @param in Stream to read from
      * @throws TomlIOException The underlying stream raised an exception
-     * @throws TomlException Data is not valid TOML
+     * @throws TomlParseException Data is not valid TOML and
+     *                            {@link io.github.wasabithumb.jtoml.option.JTomlOption#ERROR_RECOVERY error recovery}
+     *                            is not enabled.
      */
-    @NotNull TomlDocument read(@NotNull InputStream in) throws TomlException;
+    @NotNull TomlDocument read(@NotNull InputStream in) throws TomlIOException, TomlParseException;
 
     /**
      * Reads a TOML table from a reader. A reader that is configured to use
@@ -94,20 +99,24 @@ public interface JToml {
      * may fail to read some valid TOML documents, so this method should be used with care.
      * @param reader Reader to read from
      * @throws TomlIOException The underlying reader raised an exception
-     * @throws TomlException Data is not valid TOML
+     * @throws TomlParseException Text is not valid TOML and
+     *                            {@link io.github.wasabithumb.jtoml.option.JTomlOption#ERROR_RECOVERY error recovery}
+     *                            is not enabled.
      * @see #read(InputStream)
      */
     @ApiStatus.AvailableSince("0.3.0")
-    @NotNull TomlDocument read(@NotNull Reader reader) throws TomlException;
+    @NotNull TomlDocument read(@NotNull Reader reader) throws TomlIOException, TomlParseException;
 
     /**
      * Reads a TOML table from the filesystem
      * @param file Path to the TOML file
-     * @throws TomlIOException The filesystem raised an exception
-     * @throws TomlException File is not valid TOML
+     * @throws TomlIOException The underlying stream raised an exception
+     * @throws TomlParseException File is not valid TOML and
+     *                            {@link io.github.wasabithumb.jtoml.option.JTomlOption#ERROR_RECOVERY error recovery}
+     *                            is not enabled.
      * @see #read(InputStream)
      */
-    default @NotNull TomlDocument read(@NotNull Path file) throws TomlException {
+    default @NotNull TomlDocument read(@NotNull Path file) throws TomlIOException, TomlParseException {
         try (InputStream is = Files.newInputStream(file, StandardOpenOption.READ)) {
             return this.read(is);
         } catch (IOException e) {
@@ -119,11 +128,13 @@ public interface JToml {
     /**
      * Reads a TOML table from the filesystem
      * @param file Path to the TOML file
-     * @throws TomlIOException The filesystem raised an exception
-     * @throws TomlException File is not valid TOML
+     * @throws TomlIOException The underlying stream raised an exception
+     * @throws TomlParseException File is not valid TOML and
+     *                            {@link io.github.wasabithumb.jtoml.option.JTomlOption#ERROR_RECOVERY error recovery}
+     *                            is not enabled.
      * @see #read(InputStream)
      */
-    default @NotNull TomlDocument read(@NotNull File file) throws TomlException {
+    default @NotNull TomlDocument read(@NotNull File file) throws TomlIOException, TomlParseException {
         return this.read(file.toPath());
     }
 
@@ -196,20 +207,6 @@ public interface JToml {
     //
 
     /**
-     * Serializes the given TOML table to the given type,
-     * if an appropriate serializer is present in the classpath.
-     * A list of serializers can be found {@link io.github.wasabithumb.jtoml.serial.TomlSerializer here}.
-     * @param type The type to serialize to
-     * @param table The table to serialize
-     * @throws IllegalArgumentException No serializer is registered for the given type
-     * @deprecated Use {@link #fromToml(Class, TomlTable)}
-     */
-    @Deprecated
-    default <T> @NotNull T serialize(@NotNull Class<T> type, @NotNull TomlTable table) throws IllegalArgumentException {
-        return this.fromToml(type, table);
-    }
-
-    /**
      * Converts the given TOML table to the given type,
      * if an appropriate serializer is present in the classpath.
      * A list of serializers can be found {@link io.github.wasabithumb.jtoml.serial.TomlSerializer here}.
@@ -219,20 +216,6 @@ public interface JToml {
      */
     @ApiStatus.AvailableSince("1.2.1")
     <T> @NotNull T fromToml(@NotNull Class<T> type, @NotNull TomlTable table) throws IllegalArgumentException;
-
-    /**
-     * Deserializes a given TOML table from the given type,
-     * if an appropriate deserializer is present in the classpath.
-     * A list of serializers can be found {@link io.github.wasabithumb.jtoml.serial.TomlSerializer here}.
-     * @param type The type to deserialize from
-     * @param data The data to deserialize into a TOML table
-     * @throws IllegalArgumentException No deserializer is registered for the given type
-     * @deprecated Use {@link #toToml(Class, Object)}
-     */
-    @Deprecated
-    default <T> @NotNull TomlTable deserialize(@NotNull Class<T> type, @NotNull T data) throws IllegalArgumentException {
-        return this.toToml(type, data);
-    }
 
     /**
      * Converts the given type to a TOML table,

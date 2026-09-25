@@ -21,24 +21,40 @@ import org.jetbrains.annotations.*;
 import java.util.List;
 
 /**
- * Holds a mutable collection of comments bound to a
+ * Holds a collection of comments bound to a
  * specific TOML expression
  */
 @ApiStatus.NonExtendable
 @ApiStatus.AvailableSince("0.6.0")
 public interface Comments {
 
+    /**
+     * Creates a new mutable {@link Comments} instance.
+     * @return A new mutable {@link Comments} instance
+     */
     @Contract("-> new")
     static @NotNull Comments empty() {
         return new CommentsImpl();
     }
 
+    /**
+     * Creates a new mutable {@link Comments} instance containing the
+     * content of the given instance at the moment of invocation.
+     * @param other The object to copy comments from.
+     * @return A new mutable {@link Comments} instance
+     */
     @Contract("_ -> new")
     @ApiStatus.AvailableSince("0.6.4")
     static @NotNull Comments copyOf(@NotNull Comments other) {
         return CommentsImpl.copyOf(other);
     }
 
+    /**
+     * Creates a new mutable {@link Comments} instance initially
+     * containing only the given comments.
+     * @param src The comments to populate the new instance with
+     * @return A new mutable {@link Comments} instance
+     */
     @Contract("_ -> new")
     @ApiStatus.AvailableSince("1.5.0")
     static @NotNull Comments comments(@NotNull Comment @NotNull ... src) {

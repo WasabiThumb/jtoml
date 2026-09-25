@@ -57,7 +57,15 @@ public enum SpecVersion {
 
     //
 
-    @ApiStatus.Experimental
+    /**
+     * Utility for determining feature support
+     * for the target {@link SpecVersion}.
+     * @param major The required major version number.
+     * @param minor The required minor version number.
+     * @return True if this {@link SpecVersion} represents a version
+     *         that is greater than or equal to the version represented by
+     *         {@code <major>.<minor>}.
+     */
     public boolean isAtLeast(int major, int minor) {
         if (major > 1) return false;
         return minor <= this.minor;

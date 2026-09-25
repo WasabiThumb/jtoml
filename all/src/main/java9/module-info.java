@@ -5,6 +5,7 @@ module io.github.wasabithumb.jtoml {
     exports io.github.wasabithumb.jtoml.except;
     exports io.github.wasabithumb.jtoml.except.parse;
     exports io.github.wasabithumb.jtoml.key;
+    exports io.github.wasabithumb.jtoml.key.convention;
     exports io.github.wasabithumb.jtoml.option;
     exports io.github.wasabithumb.jtoml.option.prop;
     exports io.github.wasabithumb.jtoml.serial;

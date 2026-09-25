@@ -28,25 +28,10 @@ import java.util.function.Supplier;
  * Creates {@link TomlSerializer} instances
  * for some set of Java types. Intended
  * to be instantiated through the service
- * loading mechanism. Replaces the deprecated
- * {@link TomlSerializerService}.
+ * loading mechanism.
  */
 @ApiStatus.AvailableSince("1.6.0")
 public abstract class TomlSerializerFactory {
-
-    /**
-     * Compatibility bridge for the deprecated
-     * {@link TomlSerializerService} class. This method will be
-     * removed when the class is removed.
-     */
-    @Deprecated
-    @ApiStatus.ScheduledForRemoval
-    @Contract("_ -> new")
-    public static @NotNull TomlSerializerFactory of(@NotNull TomlSerializerService legacy) {
-        return new LegacyAdapter(legacy);
-    }
-
-    //
 
     /**
      * Attempts to facilitate the creation of a serializer which
@@ -70,6 +55,14 @@ public abstract class TomlSerializerFactory {
 
     //
 
+    /**
+     * Result of a call to {@link #fromToml(JToml, Class) fromToml}
+     * or {@link #toToml(JToml, Class) toToml}. If the result
+     * is {@link #valid() valid}, a serializer can be obtained
+     * through the {@link #serializer()} method. Otherwise,
+     * an issue described by the {@link #issue()} method may
+     * be read.
+     */
     @ApiStatus.NonExtendable
     public static abstract class Result<I, O> {
 
@@ -92,10 +85,28 @@ public abstract class TomlSerializerFactory {
 
         //
 
+        /**
+         * Reports the validity of this result.
+         * @return True if valid.
+         * @see #serializer()
+         * @see #issue()
+         */
         public abstract boolean valid();
 
+        /**
+         * Reports the issue message stored
+         * in this result if it is not valid.
+         * @return The stored issue message.
+         * @throws UnsupportedOperationException This result is {@link #valid() valid}.
+         */
         public abstract @NotNull String issue() throws UnsupportedOperationException;
 
+        /**
+         * Reports the {@link TomlSerializer serializer} stored
+         * in this result if it is valid.
+         * @return The stored {@link TomlSerializer serializer}.
+         * @throws UnsupportedOperationException This result is not {@link #valid() valid}.
+         */
         public abstract @NotNull TomlSerializer<I, O> serializer() throws UnsupportedOperationException;
 
         //
@@ -152,32 +163,6 @@ public abstract class TomlSerializerFactory {
                 throw new UnsupportedOperationException("cannot get serializer from invalid result");
             }
 
-        }
-
-    }
-
-    @Deprecated
-    @ApiStatus.ScheduledForRemoval
-    private static final class LegacyAdapter extends TomlSerializerFactory {
-
-        private final TomlSerializerService handle;
-
-        private LegacyAdapter(TomlSerializerService handle) {
-            this.handle = handle;
-        }
-
-        //
-
-        @Override
-        public <T> Result<?, T> fromToml(JToml instance, Class<T> outType) {
-            if (!this.handle.canSerializeTo(outType)) return Result.invalid("rejected by " + this.handle);
-            return Result.valid(this.handle.getSerializer(instance, outType));
-        }
-
-        @Override
-        public <T> Result<T, ?> toToml(JToml instance, Class<T> inType) {
-            if (!this.handle.canDeserializeFrom(inType)) return Result.invalid("rejected by " + this.handle);
-            return Result.valid(this.handle.getDeserializer(instance, inType));
         }
 
     }

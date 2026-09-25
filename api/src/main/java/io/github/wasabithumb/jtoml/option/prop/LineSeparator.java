@@ -19,6 +19,13 @@ package io.github.wasabithumb.jtoml.option.prop;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Value of the {@link io.github.wasabithumb.jtoml.option.JTomlOption#LINE_SEPARATOR LINE_SEPARATOR}
+ * option. Determines the newline sequence to use between lines
+ * of written documents. Does not change which newline sequences
+ * are accepted by the parser. Must be one of {@link #LF} or {@link #CRLF}
+ * per the spec. {@link #SYSTEM} is also provided as a utility.
+ */
 public enum LineSeparator implements CharSequence {
     /**
      * UNIX newline ({@code \n}, {@code 0x0A})
@@ -34,7 +41,9 @@ public enum LineSeparator implements CharSequence {
 
     /**
      * The system line separator, determined by
-     * {@link System#lineSeparator()}
+     * {@link System#lineSeparator()}. This is
+     * either {@link #LF} or {@link #CRLF} exactly,
+     * not a separate third constant.
      */
     public static final LineSeparator SYSTEM;
     static {

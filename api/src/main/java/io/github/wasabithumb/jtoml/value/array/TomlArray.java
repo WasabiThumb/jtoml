@@ -23,15 +23,21 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Array;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.util.Collection;
+import java.util.List;
 import java.util.RandomAccess;
 
 /**
- * A list of {@link TomlValue TOML values}
+ * A list of {@link TomlValue TOML values}.
  * @see #create(int)
  * @see #create()
  */
 @ApiStatus.NonExtendable
-public interface TomlArray extends Iterable<TomlValue>, RandomAccess, TomlValue {
+public interface TomlArray extends List<TomlValue>, RandomAccess, TomlValue {
 
     /** Creates a new TomlArray with the specified initial capacity */
     @Contract("_ -> new")
@@ -58,26 +64,30 @@ public interface TomlArray extends Iterable<TomlValue>, RandomAccess, TomlValue 
     //
 
     /**
-     * Reports the number of elements in this array
+     * Reports the number of elements in this array.
      */
+    @Override
     @Contract(pure = true)
     int size();
 
     /**
-     * Returns the Nth element in this array
+     * Returns the Nth element in this array.
      * @throws IndexOutOfBoundsException Index is less than 0 or not less than {@link #size()}
      */
+    @Override
+    @Contract(pure = true)
     @NotNull TomlValue get(int index) throws IndexOutOfBoundsException;
 
     /**
-     * Adds a new element to this array
+     * Adds a new element to this array.
      * @throws NullPointerException Value is null
      */
-    @Contract(value = "null -> fail", mutates = "this")
-    void add(TomlValue value);
+    @Override
+    @Contract(value = "null -> fail; !null -> true", mutates = "this")
+    boolean add(TomlValue value);
 
     /**
-     * Adds a new element to this array after wrapping it into a {@link TomlPrimitive}
+     * Adds a new element to this array after wrapping it into a {@link TomlPrimitive}.
      * @throws NullPointerException Value is null
      * @see TomlPrimitive#of(String)
      */
@@ -87,7 +97,7 @@ public interface TomlArray extends Iterable<TomlValue>, RandomAccess, TomlValue 
     }
 
     /**
-     * Adds a new element to this array after wrapping it into a {@link TomlPrimitive}
+     * Adds a new element to this array after wrapping it into a {@link TomlPrimitive}.
      * @see TomlPrimitive#of(boolean)
      */
     @Contract(mutates = "this")
@@ -96,7 +106,7 @@ public interface TomlArray extends Iterable<TomlValue>, RandomAccess, TomlValue 
     }
 
     /**
-     * Adds a new element to this array after wrapping it into a {@link TomlPrimitive}
+     * Adds a new element to this array after wrapping it into a {@link TomlPrimitive}.
      * @see TomlPrimitive#of(long)
      */
     @Contract(mutates = "this")
@@ -105,7 +115,7 @@ public interface TomlArray extends Iterable<TomlValue>, RandomAccess, TomlValue 
     }
 
     /**
-     * Adds a new element to this array after wrapping it into a {@link TomlPrimitive}
+     * Adds a new element to this array after wrapping it into a {@link TomlPrimitive}.
      * @see TomlPrimitive#of(int)
      */
     @Contract(mutates = "this")
@@ -114,7 +124,7 @@ public interface TomlArray extends Iterable<TomlValue>, RandomAccess, TomlValue 
     }
 
     /**
-     * Adds a new element to this array after wrapping it into a {@link TomlPrimitive}
+     * Adds a new element to this array after wrapping it into a {@link TomlPrimitive}.
      * @see TomlPrimitive#of(double)
      */
     @Contract(mutates = "this")
@@ -123,7 +133,7 @@ public interface TomlArray extends Iterable<TomlValue>, RandomAccess, TomlValue 
     }
 
     /**
-     * Adds a new element to this array after wrapping it into a {@link TomlPrimitive}
+     * Adds a new element to this array after wrapping it into a {@link TomlPrimitive}.
      * @see TomlPrimitive#of(float)
      */
     @Contract(mutates = "this")
@@ -132,24 +142,61 @@ public interface TomlArray extends Iterable<TomlValue>, RandomAccess, TomlValue 
     }
 
     /**
-     * Adds to this array all the values
-     * contained within {@code source}
+     * Adds a new element to this array after wrapping it into a {@link TomlPrimitive}.
+     * @see TomlPrimitive#of(OffsetDateTime)
+     * @throws NullPointerException Value is null
      */
+    @Contract(mutates = "this")
+    default void add(@NotNull OffsetDateTime value) {
+        this.add(TomlPrimitive.of(value));
+    }
+
+    /**
+     * Adds a new element to this array after wrapping it into a {@link TomlPrimitive}.
+     * @see TomlPrimitive#of(LocalDateTime)
+     * @throws NullPointerException Value is null
+     */
+    @Contract(mutates = "this")
+    default void add(@NotNull LocalDateTime value) {
+        this.add(TomlPrimitive.of(value));
+    }
+
+    /**
+     * Adds a new element to this array after wrapping it into a {@link TomlPrimitive}.
+     * @see TomlPrimitive#of(LocalDate)
+     * @throws NullPointerException Value is null
+     */
+    @Contract(mutates = "this")
+    default void add(@NotNull LocalDate value) {
+        this.add(TomlPrimitive.of(value));
+    }
+
+    /**
+     * Adds a new element to this array after wrapping it into a {@link TomlPrimitive}.
+     * @see TomlPrimitive#of(LocalTime)
+     * @throws NullPointerException Value is null
+     */
+    @Contract(mutates = "this")
+    default void add(@NotNull LocalTime value) {
+        this.add(TomlPrimitive.of(value));
+    }
+
+    /**
+     * Adds to this array all the values
+     * contained within {@code source}.
+     * @deprecated Use {@link #addAll(Collection)}.
+     */
+    @Deprecated
     default void addAll(@NotNull Iterable<? extends TomlValue> source) {
         for (TomlValue tv : source) this.add(tv);
     }
 
     /**
-     * Returns true if the given value is present within the array
+     * Returns true if the given value is present within the array.
      */
+    @Override
     @Contract("null -> false")
-    default boolean contains(TomlValue value) {
-        if (value == null) return false;
-        for (int i=0; i < this.size(); i++) {
-            if (this.get(i).equals(value)) return true;
-        }
-        return false;
-    }
+    boolean contains(Object value);
 
     /**
      * Removes the Nth element from this array
@@ -163,36 +210,18 @@ public interface TomlArray extends Iterable<TomlValue>, RandomAccess, TomlValue 
      * Removes the first occurrence of the specified value from this array
      * @return True if any element was removed
      */
+    @Override
     @Contract(value = "null -> false", mutates = "this")
-    default boolean remove(TomlValue value) {
-        if (value == null) return false;
-        for (int i=0; i < this.size(); i++) {
-            if (this.get(i).equals(value)) {
-                this.remove(i);
-                return true;
-            }
-        }
-        return false;
-    }
+    boolean remove(Object value);
 
     /**
      * Sets the Nth element of this array to the given value
      * @return The value previously set at this index
      * @throws IndexOutOfBoundsException Index is less than 0 or not less than {@link #size()}
+     * @throws NullPointerException Value is null
      */
     @Contract(value = "_, null -> fail", mutates = "this")
     @NotNull TomlValue set(int index, TomlValue value) throws IndexOutOfBoundsException;
-
-    /**
-     * Returns a new array with the same length and values as this object
-     */
-    @Contract("-> new")
-    default @NotNull TomlValue @NotNull [] toArray() {
-        final int len = this.size();
-        TomlValue[] vs = new TomlValue[len];
-        for (int i=0; i < len; i++) vs[i] = this.get(i);
-        return vs;
-    }
 
     /**
      * Returns a new array with the same length and values as this object,

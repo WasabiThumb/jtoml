@@ -21,6 +21,8 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 @ApiStatus.Internal
 final class TomlTableLeaf implements TomlTableNode {
 
@@ -37,7 +39,6 @@ final class TomlTableLeaf implements TomlTableNode {
     }
 
     // START Node Super
-
 
     @Override
     public int entryCount() {
@@ -67,5 +68,16 @@ final class TomlTableLeaf implements TomlTableNode {
     }
 
     // END Node Super
+
+    @Override
+    public int hashCode() {
+        return this.value.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof TomlTableLeaf &&
+                Objects.equals(this.value, ((TomlTableLeaf) obj).value);
+    }
 
 }

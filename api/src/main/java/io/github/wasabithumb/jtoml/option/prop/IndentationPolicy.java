@@ -16,12 +16,17 @@
 
 package io.github.wasabithumb.jtoml.option.prop;
 
+import io.github.wasabithumb.jtoml.util.Buildable;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
+import java.lang.annotation.*;
+import java.util.Arrays;
+
 /**
+ * Value of the {@link io.github.wasabithumb.jtoml.option.JTomlOption#INDENTATION INDENTATION} option.
  * Determines how a TOML document should be indented
  * when writing.
  * <h2>Rules</h2>
@@ -45,60 +50,134 @@ import org.jetbrains.annotations.Range;
  *         The indentation level is incremented by {@link #postIndent()} directly after each table
  *         declaration.
  *     </li>
+ *     <li>
+ *         The indentation level is incremented/decremented by {@link #elementIndent()} before/after
+ *         each value in an array.
+ *     </li>
  * </ul>
+ * @see #NONE
+ * @see #STANDARD
+ * @see #builder()
  */
-public final class IndentationPolicy {
+public final class IndentationPolicy implements Buildable<IndentationPolicy> {
 
     /** No indentation */
-    public static final IndentationPolicy NONE = new IndentationPolicy('\0', 0x00000000);
+    public static final IndentationPolicy NONE;
 
     /**
-     * indentationLevel is initialized to 0.
-     * Table headers set indentationLevel to {@code key.size() - 1}.
-     * Each line is preceded by "indentationLevel" TAB characters.
+     * A basic sensible indentation policy
+     * with {@code '\t'} (TAB) as the indent character,
+     * a {@link #variableIndent() variable indent} of {@code 1}
+     * and an {@link #elementIndent() element indent} of {@code 1}.
      */
-    public static final IndentationPolicy STANDARD = new IndentationPolicy('\t', 0x00000100);
+    public static final IndentationPolicy STANDARD;
 
+    /**
+     * Creates a new {@link Builder} for
+     * producing custom {@link IndentationPolicy} instances.
+     */
     @Contract("-> new")
     public static @NotNull Builder builder() {
         return new Builder();
     }
 
-    //
-
-    private final char indentChar;
-    private final int data;
-
-    private IndentationPolicy(char indentChar, int data) {
-        this.indentChar = indentChar;
-        this.data = data;
+    static {
+        byte[] i0 = new byte[Kind.MAX];
+        byte[] i1 = new byte[Kind.MAX];
+        i1[Kind.VARIABLE] = 1;
+        i1[Kind.ELEMENT] = 1;
+        NONE = new IndentationPolicy('\0', i0);
+        STANDARD = new IndentationPolicy('\t', i1);
     }
 
     //
 
+    private final char indentChar;
+    private final byte[] indentation;
+
+    private IndentationPolicy(char indentChar, byte[] indentation) {
+        this.indentChar = indentChar;
+        this.indentation = indentation;
+    }
+
+    //
+
+    private @Range(from = 0, to = 255) int indentation(@Kind int kind) {
+        return Byte.toUnsignedInt(this.indentation[kind]);
+    }
+
+    /**
+     * The character to use for indentation.
+     * When indentation is enabled, must be either {@code '\t'} (TAB) or {@code ' '} (space).
+     * The {@link #NONE} policy may use {@code '\0'} (NUL) for optimization purposes
+     * and to ensure the policy is being respected, logically prohibiting that
+     * NUL character from being written into a document.
+     */
     public char indentChar() {
         return this.indentChar;
     }
 
+    /**
+     * The initial indentation for each line,
+     * up to 255.
+     */
     public @Range(from=0, to=255) int globalIndent() {
-        return (this.data >> 24) & 0xFF;
+        return this.indentation(Kind.GLOBAL);
     }
 
+    /**
+     * The indentation to apply before each header
+     * irrespective of how many parts the header
+     * key contains, up to 255.
+     */
     public @Range(from=0, to=255) int constantIndent() {
-        return (this.data >> 16) & 0xFF;
+        return this.indentation(Kind.CONSTANT);
     }
 
+    /**
+     * The indentation to apply before each header,
+     * as a factor of how many additional (more than 1)
+     * parts the header key contains, up to 255.
+     */
     public @Range(from=0, to=255) int variableIndent() {
-        return (this.data >> 8) & 0xFF;
+        return this.indentation(Kind.VARIABLE);
     }
 
+    /**
+     * The indentation to apply after each header,
+     * up to 255.
+     */
     public @Range(from=0, to=255) int postIndent() {
-        return this.data & 0xFF;
+        return this.indentation(Kind.POST);
+    }
+
+    /**
+     * THe indentation to apply before each array
+     * element, up to 255. This only affects output
+     * when an array spans multiple lines, a decision
+     * based on the content of the document and the
+     * {@link ArrayStrategy}.
+     */
+    public @Range(from=0, to=255) int elementIndent() {
+        return this.indentation(Kind.ELEMENT);
+    }
+
+    @Override
+    @Contract("-> new")
+    public Builder toBuilder() {
+        Builder ret = new Builder();
+        ret.indentChar = this.indentChar;
+        System.arraycopy(this.indentation, 0, ret.indentation, 0, Kind.MAX);
+        return ret;
     }
 
     @Override
     public int hashCode() {
-        return Integer.hashCode(this.data);
+        int h = 7;
+        h = 31 * h + (int) this.indentChar;
+        for (int i = 0; i < Kind.MAX; i++)
+            h = 31 * h + (int) this.indentation[i];
+        return h;
     }
 
     @Override
@@ -106,7 +185,7 @@ public final class IndentationPolicy {
         if (!(obj instanceof IndentationPolicy)) return false;
         IndentationPolicy other = (IndentationPolicy) obj;
         if (this.indentChar != other.indentChar) return false;
-        return this.data == other.data;
+        return Arrays.equals(this.indentation, other.indentation);
     }
 
     @Override
@@ -123,19 +202,33 @@ public final class IndentationPolicy {
                 this.variableIndent() +
                 ", postIndent=" +
                 this.postIndent() +
+                ", elementIndent=" +
+                this.elementIndent() +
                 "]";
     }
 
     //
 
-    public static final class Builder {
+    /**
+     * Facilitates the creation
+     * of an {@link IndentationPolicy}.
+     */
+    public static final class Builder
+            implements Buildable.Builder<IndentationPolicy>
+    {
 
-        private final int[] values = new int[] { 0, 0, 0, 0 };
         private char indentChar    = '\t';
+        private final byte[] indentation = new byte[Kind.MAX];
 
         //
 
-        @Contract("_ -> this")
+        /**
+         * Sets the {@link IndentationPolicy#indentChar() indentChar}
+         * of the resultant {@link IndentationPolicy}.
+         * @param indentChar The indentation character to use.
+         * @throws IllegalArgumentException {@code indentChar} is not {@code '\t'} or {@code ' '}.
+         */
+        @Contract(value = "_ -> this", mutates = "this")
         public @NotNull Builder indentChar(
                 @MagicConstant(intValues = { ' ', '\t' }) char indentChar
         ) {
@@ -146,42 +239,84 @@ public final class IndentationPolicy {
             return this;
         }
 
-        @Contract("_, _ -> this")
-        private @NotNull Builder setValue(int index, int value) {
+        @Contract(value = "_, _ -> this", mutates = "this")
+        private @NotNull Builder indentation(@Kind int kind, int value) {
             if (value < 0) throw new IllegalArgumentException("Indentation level may not be negative");
             if (value > 255) throw new IllegalArgumentException("Indentation level is too large (" + value + " > 255)");
-            this.values[index] = value;
+            this.indentation[kind] = (byte) value;
             return this;
         }
 
-        @Contract("_ -> this")
+        /**
+         * Sets the {@link IndentationPolicy#globalIndent() globalIndent}
+         * of the resultant {@link IndentationPolicy}.
+         * @param indent The indent level to use.
+         * @throws IllegalArgumentException Indent level is less than 0 or more than 255.
+         */
+        @Contract(value = "_ -> this", mutates = "this")
         public @NotNull Builder globalIndent(@Range(from=0, to=255) int indent) {
-            return this.setValue(0, indent);
+            return this.indentation(Kind.GLOBAL, indent);
         }
 
-        @Contract("_ -> this")
+        /**
+         * Sets the {@link IndentationPolicy#constantIndent() constantIndent}
+         * of the resultant {@link IndentationPolicy}.
+         * @param indent The indent level to use.
+         * @throws IllegalArgumentException Indent level is less than 0 or more than 255.
+         */
+        @Contract(value = "_ -> this", mutates = "this")
         public @NotNull Builder constantIndent(@Range(from=0, to=255) int indent) {
-            return this.setValue(1, indent);
+            return this.indentation(Kind.CONSTANT, indent);
         }
 
-        @Contract("_ -> this")
+        /**
+         * Sets the {@link IndentationPolicy#variableIndent() variableIndent}
+         * of the resultant {@link IndentationPolicy}.
+         * @param indent The indent level to use.
+         * @throws IllegalArgumentException Indent level is less than 0 or more than 255.
+         */
+        @Contract(value = "_ -> this", mutates = "this")
         public @NotNull Builder variableIndent(@Range(from=0, to=255) int indent) {
-            return this.setValue(2, indent);
+            return this.indentation(Kind.VARIABLE, indent);
         }
 
-        @Contract("_ -> this")
+        /**
+         * Sets the {@link IndentationPolicy#postIndent() postIndent}
+         * of the resultant {@link IndentationPolicy}.
+         * @param indent The indent level to use.
+         * @throws IllegalArgumentException Indent level is less than 0 or more than 255.
+         */
+        @Contract(value = "_ -> this", mutates = "this")
         public @NotNull Builder postIndent(@Range(from=0, to=255) int indent) {
-            return this.setValue(3, indent);
+            return this.indentation(Kind.POST, indent);
         }
 
-        @Contract("_ -> this")
+        /**
+         * Sets the {@link IndentationPolicy#elementIndent() elementIndent}
+         * of the resultant {@link IndentationPolicy}.
+         * @param indent The indent level to use.
+         * @throws IllegalArgumentException Indent level is less than 0 or more than 255.
+         */
+        @Contract(value = "_ -> this", mutates = "this")
+        public @NotNull Builder elementIndent(@Range(from=0, to=255) int indent) {
+            return this.indentation(Kind.ELEMENT, indent);
+        }
+
+        /**
+         * Scales all indentation levels retained in this builder by
+         * the given amount.
+         * @param amount The multiplication factor.
+         * @throws IllegalArgumentException Multiplication factor is negative or too large,
+         *                                  causing any indentation level to exceed 255.
+         */
+        @Contract(value = "_ -> this", mutates = "this")
         public @NotNull Builder scale(int amount) {
             if (amount < 0) throw new IllegalArgumentException("Scale may not be negative");
 
             int cur;
             int product;
-            for (int i=0; i < 4; i++) {
-                cur = this.values[i];
+            for (int i = 0; i < Kind.MAX; i++) {
+                cur = Byte.toUnsignedInt(this.indentation[i]);
                 try {
                     product = Math.multiplyExact(cur, amount);
                     if (product > 255) product = -1;
@@ -191,23 +326,44 @@ public final class IndentationPolicy {
                 if (product == -1) {
                     throw new IllegalArgumentException("Scale is too large (" + cur + " * " + amount + " > 255)");
                 }
-                this.values[i] = product;
+                this.indentation[i] = (byte) product;
             }
 
             return this;
         }
 
-        //
-
+        /**
+         * Creates a new immutable {@link IndentationPolicy} using
+         * the immediate state of this builder. Future modifications to this builder
+         * will not affect this resultant object.
+         * @return A new {@link IndentationPolicy}.
+         */
+        @Override
         @Contract("-> new")
         public @NotNull IndentationPolicy build() {
             return new IndentationPolicy(
                     this.indentChar,
-                    (this.values[0] << 24) | (this.values[1] << 16) |
-                            (this.values[2] << 8) | (this.values[3])
+                    Arrays.copyOf(this.indentation, Kind.MAX)
             );
         }
 
+    }
+
+    /**
+     * Indices in the {@link IndentationPolicy}'s
+     * internal array for each kind of indentation
+     */
+    @Documented
+    @Retention(RetentionPolicy.SOURCE)
+    @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.LOCAL_VARIABLE, ElementType.METHOD})
+    @MagicConstant(valuesFromClass = Kind.class)
+    private @interface Kind {
+        int GLOBAL = 0;
+        int CONSTANT = 1;
+        int VARIABLE = 2;
+        int POST = 3;
+        int ELEMENT = 4;
+        int MAX = 5;
     }
 
 }
