@@ -97,7 +97,7 @@ public final class TableWriter implements Closeable {
 
         this.indentLevel = indentation.globalIndent() + indentation.constantIndent();
         int ks = key.size();
-        if (ks > 1) this.indentLevel += (ks * indentation.variableIndent());
+        if (ks > 1) this.indentLevel += ((ks - 1) * indentation.variableIndent());
 
         for (int i = 0; i < spacing.preTable(); i++) this.out.put(newline);
         if (comments != null) {
