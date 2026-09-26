@@ -19,11 +19,9 @@ package io.github.wasabithumb.jtoml.value.primitive;
 import io.github.wasabithumb.jtoml.comment.Comments;
 import io.github.wasabithumb.jtoml.except.TomlValueException;
 import io.github.wasabithumb.jtoml.value.TomlValue;
-import org.intellij.lang.annotations.Pattern;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Serializable;
 import java.time.*;
@@ -43,7 +41,7 @@ public interface TomlPrimitive extends TomlValue {
      * @throws NullPointerException Value is null
      */
     @Contract("null -> fail; !null -> new")
-    static @NotNull TomlPrimitive of(String value) {
+    static TomlPrimitive of(String value) {
         return new StringTomlPrimitive(Objects.requireNonNull(value));
     }
 
@@ -52,7 +50,7 @@ public interface TomlPrimitive extends TomlValue {
      * wrapping the given boolean value
      */
     @Contract("_ -> new")
-    static @NotNull TomlPrimitive of(boolean value) {
+    static TomlPrimitive of(boolean value) {
         return new BooleanTomlPrimitive(value);
     }
 
@@ -61,7 +59,7 @@ public interface TomlPrimitive extends TomlValue {
      * wrapping the given long value
      */
     @Contract("_ -> new")
-    static @NotNull TomlPrimitive of(long value) {
+    static TomlPrimitive of(long value) {
         return new IntegerTomlPrimitive(value);
     }
 
@@ -70,7 +68,7 @@ public interface TomlPrimitive extends TomlValue {
      * wrapping the given integer value after a widening conversion to {@link Long}
      */
     @Contract("_ -> new")
-    static @NotNull TomlPrimitive of(int value) {
+    static TomlPrimitive of(int value) {
         return of((long) value);
     }
 
@@ -78,7 +76,7 @@ public interface TomlPrimitive extends TomlValue {
      * Creates a primitive of type {@link TomlPrimitiveType#FLOAT FLOAT}
      * wrapping the given double value
      */
-    static @NotNull TomlPrimitive of(double value) {
+    static TomlPrimitive of(double value) {
         return new FloatTomlPrimitive(value);
     }
 
@@ -86,7 +84,7 @@ public interface TomlPrimitive extends TomlValue {
      * Creates a primitive of type {@link TomlPrimitiveType#FLOAT FLOAT}
      * wrapping the given float value after a widening conversion to {@link Double}
      */
-    static @NotNull TomlPrimitive of(float value) {
+    static TomlPrimitive of(float value) {
         return of((double) value);
     }
 
@@ -97,7 +95,7 @@ public interface TomlPrimitive extends TomlValue {
      * @throws TomlValueException Provided date has a year outside the range 0 to 9999
      */
     @Contract("null -> fail; !null -> new")
-    static @NotNull TomlPrimitive of(OffsetDateTime value) throws TomlValueException {
+    static TomlPrimitive of(OffsetDateTime value) throws TomlValueException {
         return new OffsetDateTimeTomlPrimitive(Objects.requireNonNull(value));
     }
 
@@ -111,7 +109,7 @@ public interface TomlPrimitive extends TomlValue {
      * @throws TomlValueException Provided date has a year outside the range 0 to 9999
      */
     @Contract("null, _ -> fail; !null, _ -> new")
-    static @NotNull TomlPrimitive of(LocalDateTime value, @Nullable ZoneOffset offset) throws TomlValueException {
+    static TomlPrimitive of(LocalDateTime value, @Nullable ZoneOffset offset) throws TomlValueException {
         return new LocalDateTimeTomlPrimitive(
                 Objects.requireNonNull(value),
                 (offset == null) ? ZoneOffset.UTC : offset
@@ -126,7 +124,7 @@ public interface TomlPrimitive extends TomlValue {
      * @see #of(LocalDateTime, ZoneOffset)
      */
     @Contract("null -> fail; !null -> new")
-    static @NotNull TomlPrimitive of(LocalDateTime value) throws TomlValueException {
+    static TomlPrimitive of(LocalDateTime value) throws TomlValueException {
         return of(value, null);
     }
 
@@ -140,7 +138,7 @@ public interface TomlPrimitive extends TomlValue {
      * @throws TomlValueException Provided date has a year outside the range 0 to 9999
      */
     @Contract("null, _ -> fail; !null, _ -> new")
-    static @NotNull TomlPrimitive of(LocalDate value, @Nullable ZoneOffset offset) throws TomlValueException {
+    static TomlPrimitive of(LocalDate value, @Nullable ZoneOffset offset) throws TomlValueException {
         return new LocalDateTomlPrimitive(
                 Objects.requireNonNull(value),
                 (offset == null) ? ZoneOffset.UTC : offset
@@ -155,7 +153,7 @@ public interface TomlPrimitive extends TomlValue {
      * @see #of(LocalDate, ZoneOffset)
      */
     @Contract("null -> fail; !null -> new")
-    static @NotNull TomlPrimitive of(LocalDate value) throws TomlValueException {
+    static TomlPrimitive of(LocalDate value) throws TomlValueException {
         return of(value, null);
     }
 
@@ -169,7 +167,7 @@ public interface TomlPrimitive extends TomlValue {
      * @throws TomlValueException Provided date has a year outside the range 0 to 9999
      */
     @Contract("null, _ -> fail; !null, _ -> new")
-    static @NotNull TomlPrimitive of(LocalTime value, @Nullable ZoneOffset offset) {
+    static TomlPrimitive of(LocalTime value, @Nullable ZoneOffset offset) {
         return new LocalTimeTomlPrimitive(
                 Objects.requireNonNull(value),
                 (offset == null) ? ZoneOffset.UTC : offset
@@ -184,7 +182,7 @@ public interface TomlPrimitive extends TomlValue {
      * @see #of(LocalTime, ZoneOffset)
      */
     @Contract("null -> fail; !null -> new")
-    static @NotNull TomlPrimitive of(LocalTime value) {
+    static TomlPrimitive of(LocalTime value) {
         return of(value, null);
     }
 
@@ -194,7 +192,7 @@ public interface TomlPrimitive extends TomlValue {
      */
     @Contract("_ -> new")
     @ApiStatus.AvailableSince("0.6.4")
-    static @NotNull TomlPrimitive copyOf(@NotNull TomlPrimitive other) {
+    static TomlPrimitive copyOf(TomlPrimitive other) {
         Comments comments = Comments.copyOf(other.comments());
         switch (other.type()) {
             case BOOLEAN:
@@ -240,7 +238,7 @@ public interface TomlPrimitive extends TomlValue {
      */
     @ApiStatus.AvailableSince("1.3.0")
     @Contract("null -> fail; _ -> new")
-    static @NotNull TomlPrimitive parseFloat(
+    static TomlPrimitive parseFloat(
             CharSequence string
     ) throws IllegalArgumentException {
         if (string == null) throw new NullPointerException("Cannot parse null as float");
@@ -253,7 +251,7 @@ public interface TomlPrimitive extends TomlValue {
      * The actual type of this primitive
      * @see #value()
      */
-    @NotNull TomlPrimitiveType type();
+    TomlPrimitiveType type();
 
     /**
      * The (boxed) value of this primitive. Will be one of
@@ -262,7 +260,7 @@ public interface TomlPrimitive extends TomlValue {
      * {@link LocalTime}.
      * @see #type()
      */
-    @NotNull Serializable value();
+    Serializable value();
 
     //
 
@@ -280,7 +278,7 @@ public interface TomlPrimitive extends TomlValue {
      * Coerces the {@link #value() value} of this
      * primitive to a string.
      */
-    @NotNull String asString();
+    String asString();
 
     //
 
@@ -425,7 +423,7 @@ public interface TomlPrimitive extends TomlValue {
      * Returns a {@link Instant} that represents the same moment in time
      * as the output of {@link #asOffsetDateTime()}.
      */
-    default @NotNull Instant asInstant() {
+    default Instant asInstant() {
         return this.asOffsetDateTime().toInstant();
     }
 
@@ -433,7 +431,7 @@ public interface TomlPrimitive extends TomlValue {
      * Returns a {@link Date} that represents the same moment in time
      * as the output of {@link #asOffsetDateTime()}.
      */
-    default @NotNull Date asDate() {
+    default Date asDate() {
         return Date.from(this.asInstant());
     }
 
@@ -448,7 +446,7 @@ public interface TomlPrimitive extends TomlValue {
      *     <li>For all other values, throws {@link UnsupportedOperationException}</li>
      * </ul>
      */
-    default @NotNull OffsetDateTime asOffsetDateTime() {
+    default OffsetDateTime asOffsetDateTime() {
         throw new UnsupportedOperationException();
     }
 
@@ -475,7 +473,7 @@ public interface TomlPrimitive extends TomlValue {
      *     <li>For all other values, throws {@link UnsupportedOperationException}</li>
      * </ul>
      */
-    default @NotNull LocalDateTime asLocalDateTime() {
+    default LocalDateTime asLocalDateTime() {
         throw new UnsupportedOperationException();
     }
 
@@ -501,7 +499,7 @@ public interface TomlPrimitive extends TomlValue {
      *     <li>For all other values, throws {@link UnsupportedOperationException}</li>
      * </ul>
      */
-    default @NotNull LocalDate asLocalDate() {
+    default LocalDate asLocalDate() {
         throw new UnsupportedOperationException();
     }
 
@@ -527,7 +525,7 @@ public interface TomlPrimitive extends TomlValue {
      *     <li>For all other values, throws {@link UnsupportedOperationException}</li>
      * </ul>
      */
-    default @NotNull LocalTime asLocalTime() {
+    default LocalTime asLocalTime() {
         throw new UnsupportedOperationException();
     }
 

@@ -17,7 +17,6 @@
 package io.github.wasabithumb.jtoml.serial.reflect.model;
 
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Propagates configuration from the ReflectTomlSerializer
@@ -66,7 +65,7 @@ public final class TypeModelOptions {
     }
 
     @Override
-    public @NotNull String toString() {
+    public String toString() {
         return "TypeModelOptions[" +
                 "ignoreMarker=" + this.ignoreMarker() + ", " +
                 "allowUnsafe=" + this.allowUnsafe() +

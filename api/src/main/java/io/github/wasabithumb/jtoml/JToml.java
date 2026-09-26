@@ -24,7 +24,6 @@ import io.github.wasabithumb.jtoml.option.JTomlOptions;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -46,7 +45,7 @@ public interface JToml {
      * @see JTomlOptions#builder()
      */
     @Contract("_ -> new")
-    static @NotNull JToml jToml(@NotNull JTomlOptions options) {
+    static JToml jToml(JTomlOptions options) {
         return JTomlProvider.get().instance(Objects.requireNonNull(options, "options must not be null"));
     }
 
@@ -54,7 +53,7 @@ public interface JToml {
      * Provides the default JToml instance
      */
     @Contract(pure = true)
-    static @NotNull JToml jToml() {
+    static JToml jToml() {
         return JTomlProvider.get().instance();
     }
 
@@ -65,14 +64,14 @@ public interface JToml {
      * in the form of {@code MAJOR.MINOR.PATCH} or {@code MAJOR.MINOR.PATCH-COMMIT}.
      */
     @ApiStatus.AvailableSince("1.4.2")
-    @NotNull String version();
+    String version();
 
     /**
      * Reports the configured options of this
      * JToml instance. This is immutable, you cannot
      * modify the options of a created instance.
      */
-    @NotNull JTomlOptions options();
+    JTomlOptions options();
 
     /**
      * Reads a TOML table from a string
@@ -81,7 +80,7 @@ public interface JToml {
      *                            {@link io.github.wasabithumb.jtoml.option.JTomlOption#ERROR_RECOVERY error recovery}
      *                            is not enabled.
      */
-    @NotNull TomlDocument readFromString(@NotNull String toml) throws TomlParseException;
+    TomlDocument readFromString(String toml) throws TomlParseException;
 
     /**
      * Reads a TOML table from a stream
@@ -91,7 +90,7 @@ public interface JToml {
      *                            {@link io.github.wasabithumb.jtoml.option.JTomlOption#ERROR_RECOVERY error recovery}
      *                            is not enabled.
      */
-    @NotNull TomlDocument read(@NotNull InputStream in) throws TomlIOException, TomlParseException;
+    TomlDocument read(InputStream in) throws TomlIOException, TomlParseException;
 
     /**
      * Reads a TOML table from a reader. A reader that is configured to use
@@ -105,7 +104,7 @@ public interface JToml {
      * @see #read(InputStream)
      */
     @ApiStatus.AvailableSince("0.3.0")
-    @NotNull TomlDocument read(@NotNull Reader reader) throws TomlIOException, TomlParseException;
+    TomlDocument read(Reader reader) throws TomlIOException, TomlParseException;
 
     /**
      * Reads a TOML table from the filesystem
@@ -116,7 +115,7 @@ public interface JToml {
      *                            is not enabled.
      * @see #read(InputStream)
      */
-    default @NotNull TomlDocument read(@NotNull Path file) throws TomlIOException, TomlParseException {
+    default TomlDocument read(Path file) throws TomlIOException, TomlParseException {
         try (InputStream is = Files.newInputStream(file, StandardOpenOption.READ)) {
             return this.read(is);
         } catch (IOException e) {
@@ -134,7 +133,7 @@ public interface JToml {
      *                            is not enabled.
      * @see #read(InputStream)
      */
-    default @NotNull TomlDocument read(@NotNull File file) throws TomlIOException, TomlParseException {
+    default TomlDocument read(File file) throws TomlIOException, TomlParseException {
         return this.read(file.toPath());
     }
 
@@ -146,7 +145,7 @@ public interface JToml {
      * @throws TomlValueException The TOML spec does not allow for lossless serialization of the table data.
      * See exception docs for more details.
      */
-    @NotNull String writeToString(@NotNull TomlTable table) throws TomlValueException;
+    String writeToString(TomlTable table) throws TomlValueException;
 
     /**
      * Writes a TOML table to a stream
@@ -156,7 +155,7 @@ public interface JToml {
      * See exception docs for more details.
      * @throws TomlIOException The underlying stream raised an exception
      */
-    void write(@NotNull OutputStream out, @NotNull TomlTable table) throws TomlValueException, TomlIOException;
+    void write(OutputStream out, TomlTable table) throws TomlValueException, TomlIOException;
 
     /**
      * Writes a TOML table to a writer. If the writer is configured to use any encoding other than
@@ -169,7 +168,7 @@ public interface JToml {
      * @throws TomlIOException The underlying writer raised an exception
      */
     @ApiStatus.AvailableSince("0.3.0")
-    void write(@NotNull Writer writer, @NotNull TomlTable table) throws TomlValueException, TomlIOException;
+    void write(Writer writer, TomlTable table) throws TomlValueException, TomlIOException;
 
     /**
      * Writes a TOML table to a file
@@ -180,7 +179,7 @@ public interface JToml {
      * @throws TomlIOException The underlying filesystem raised an exception
      * @see #write(OutputStream, TomlTable)
      */
-    default void write(@NotNull Path file, @NotNull TomlTable table) throws TomlValueException, TomlIOException {
+    default void write(Path file, TomlTable table) throws TomlValueException, TomlIOException {
         try (OutputStream os = Files.newOutputStream(
                 file,
                 StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING
@@ -200,7 +199,7 @@ public interface JToml {
      * @throws TomlIOException The underlying filesystem raised an exception
      * @see #write(OutputStream, TomlTable)
      */
-    default void write(@NotNull File file, @NotNull TomlTable table) throws TomlValueException, TomlIOException {
+    default void write(File file, TomlTable table) throws TomlValueException, TomlIOException {
         this.write(file.toPath(), table);
     }
 
@@ -215,7 +214,7 @@ public interface JToml {
      * @throws IllegalArgumentException No serializer is registered for the given type
      */
     @ApiStatus.AvailableSince("1.2.1")
-    <T> @NotNull T fromToml(@NotNull Class<T> type, @NotNull TomlTable table) throws IllegalArgumentException;
+    <T> T fromToml(Class<T> type, TomlTable table) throws IllegalArgumentException;
 
     /**
      * Converts the given type to a TOML table,
@@ -226,7 +225,7 @@ public interface JToml {
      * @throws IllegalArgumentException No deserializer is registered for the given type
      */
     @ApiStatus.AvailableSince("1.2.1")
-    <T> @NotNull TomlTable toToml(@NotNull Class<T> type, @NotNull T data) throws IllegalArgumentException;
+    <T> TomlTable toToml(Class<T> type, T data) throws IllegalArgumentException;
 
     /**
      * Converts the given object to a TOML table.
@@ -235,6 +234,6 @@ public interface JToml {
      * @throws IllegalArgumentException No known deserializer can handle objects of the given type
      */
     @ApiStatus.AvailableSince("1.4.1")
-    @NotNull TomlTable toToml(@NotNull Object data) throws IllegalArgumentException;
+    TomlTable toToml(Object data) throws IllegalArgumentException;
 
 }

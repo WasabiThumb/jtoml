@@ -18,7 +18,6 @@ package io.github.wasabithumb.jtoml.serial.reflect.model.array;
 
 import io.github.wasabithumb.jtoml.util.ParameterizedClass;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -29,22 +28,22 @@ final class ListArrayTypeModel<T extends List<E>, E> extends CollectionArrayType
 
     @SuppressWarnings("unchecked")
     static <IT extends List<IE>, IE> ListArrayTypeModel<IT, IE> create(
-            @NotNull Class<IT> listType,
-            @NotNull ParameterizedClass<?> elementType
+            Class<IT> listType,
+            ParameterizedClass<?> elementType
     ) {
         return new ListArrayTypeModel<>(listType, (ParameterizedClass<IE>) elementType);
     }
 
     //
 
-    private ListArrayTypeModel(@NotNull Class<T> type, @NotNull ParameterizedClass<E> elementType) {
+    private ListArrayTypeModel(Class<T> type, ParameterizedClass<E> elementType) {
         super(type, elementType);
     }
 
     //
 
     @Override
-    public @NotNull T createNew(int length) {
+    public T createNew(int length) {
         if (this.type.isAssignableFrom(ArrayList.class))
             return this.type.cast(new ArrayList<E>(length));
 

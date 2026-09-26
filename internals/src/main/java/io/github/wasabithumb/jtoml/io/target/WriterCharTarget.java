@@ -18,20 +18,19 @@ package io.github.wasabithumb.jtoml.io.target;
 
 import io.github.wasabithumb.jtoml.except.TomlException;
 import io.github.wasabithumb.jtoml.except.TomlIOException;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 
 public final class WriterCharTarget extends FilterWriter implements CharTarget {
 
-    public static @NotNull WriterCharTarget of(@NotNull OutputStream out) {
+    public static WriterCharTarget of(OutputStream out) {
         return new WriterCharTarget(new OutputStreamWriter(out, StandardCharsets.UTF_8));
     }
 
     //
 
-    public WriterCharTarget(@NotNull Writer out) {
+    public WriterCharTarget(Writer out) {
         super(out);
     }
 
@@ -52,7 +51,7 @@ public final class WriterCharTarget extends FilterWriter implements CharTarget {
     }
 
     @Override
-    public void put(@NotNull CharSequence cs) throws TomlException {
+    public void put(CharSequence cs) throws TomlException {
         try {
             if (cs instanceof String) {
                 this.out.write((String) cs);

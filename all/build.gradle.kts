@@ -63,6 +63,10 @@ configurations {
 }
 
 dependencies {
+    // Annotations
+    api(libs.annotations)
+    api(libs.jspecify)
+
     // Dependencies for configurate
     "configurateApi"(platform(libs.configurate.bom))
     "configurateApi"("org.spongepowered:configurate-core")

@@ -20,16 +20,19 @@ import io.github.wasabithumb.jtoml.value.primitive.TomlPrimitive;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Range;
+import org.jetbrains.annotations.UnknownNullability;
+import org.jspecify.annotations.NullMarked;
 
 import java.lang.reflect.Field;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+@NullMarked
 @ApiStatus.Experimental
 public final class UnsafePrimitives {
 
-    private static final Class<?> TEMPORAL_CLASS;
-    private static final Field TEMPORAL_MIN_NANO_RESOLUTION;
+    private static final @UnknownNullability Class<?> TEMPORAL_CLASS;
+    private static final @UnknownNullability Field TEMPORAL_MIN_NANO_RESOLUTION;
     static {
         Class<?> temporalClass = null;
         Field temporalMinNanoResolution = null;

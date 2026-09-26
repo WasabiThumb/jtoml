@@ -3,7 +3,7 @@ import tasks.FetchTestsTask
 allprojects {
     apply(plugin = "java-library")
     group = "io.github.wasabithumb"
-    version = "1.8.0"
+    version = "1.8.1"
 
     // Optimize compilation
     tasks.withType(JavaCompile::class) {
@@ -61,7 +61,8 @@ sourceSets.test {
 }
 
 dependencies {
-    compileOnly(libs.annotations)
+    api(libs.annotations)
+    api(libs.jspecify)
     api(project(":api"))
     implementation(project(":internals"))
 

@@ -18,8 +18,9 @@ package io.github.wasabithumb.jtoml.util;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.UnknownNullability;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -38,6 +39,7 @@ import java.lang.ref.WeakReference;
  * This is entirely intended, as the strict equality of objects is
  * the only important property for handling recursion.
  */
+@NullMarked
 @ApiStatus.Internal
 public final class ReferenceHolder {
 
@@ -45,7 +47,7 @@ public final class ReferenceHolder {
     private static final double LOAD_FACTOR = 0.75d;
 
     private static final boolean SUPPORTS_REFERS_TO;
-    private static final MethodHandle REFERS_TO;
+    private static final @UnknownNullability MethodHandle REFERS_TO;
     static {
         SUPPORTS_REFERS_TO = (REFERS_TO = findRefRefersTo()) != null;
     }
@@ -65,7 +67,7 @@ public final class ReferenceHolder {
         }
     }
 
-    private static boolean refEqual(@NotNull Object value, @NotNull WeakReference<Object> ref) {
+    private static boolean refEqual(Object value, WeakReference<Object> ref) {
         if (!SUPPORTS_REFERS_TO) {
             return value.equals(ref.get());
         }
@@ -79,7 +81,7 @@ public final class ReferenceHolder {
     }
 
     @Contract("_ -> new")
-    public static @NotNull ReferenceHolder copyOf(@NotNull ReferenceHolder other) {
+    public static ReferenceHolder copyOf(ReferenceHolder other) {
         final int capacity = other.capacity;
         ReferenceHolder ret = new ReferenceHolder(capacity);
         System.arraycopy(other.buckets, 0, ret.buckets, 0, capacity);
@@ -90,7 +92,7 @@ public final class ReferenceHolder {
     //
 
     private int capacity;
-    private Bucket[] buckets;
+    private @Nullable Bucket[] buckets;
     private int size;
 
     private ReferenceHolder(int capacity) {
@@ -130,7 +132,7 @@ public final class ReferenceHolder {
         this.size = newSize;
     }
 
-    public boolean add(@NotNull Object object) {
+    public boolean add(Object object) {
         int hash = hash(object, this.capacity);
         final Bucket root = this.buckets[hash];
         Bucket next = root;
@@ -147,7 +149,7 @@ public final class ReferenceHolder {
         return true;
     }
 
-    public boolean contains(@NotNull Object object) {
+    public boolean contains(Object object) {
         int hash = hash(object, this.capacity);
         Bucket next = this.buckets[hash];
         while (next != null) {
@@ -157,7 +159,7 @@ public final class ReferenceHolder {
         return false;
     }
 
-    private static int hash(@NotNull Object object, int mod) {
+    private static int hash(Object object, int mod) {
         return Integer.remainderUnsigned(System.identityHashCode(object), mod);
     }
 
@@ -166,9 +168,9 @@ public final class ReferenceHolder {
     private static final class Bucket {
 
         WeakReference<Object> value;
-        Bucket next;
+        @Nullable Bucket next;
 
-        Bucket(@NotNull WeakReference<Object> value, @Nullable Bucket next) {
+        Bucket(WeakReference<Object> value, @Nullable Bucket next) {
             this.value = value;
             this.next = next;
         }

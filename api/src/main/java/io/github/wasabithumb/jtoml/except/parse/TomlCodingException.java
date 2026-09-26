@@ -16,8 +16,7 @@
 
 package io.github.wasabithumb.jtoml.except.parse;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.nio.charset.CharacterCodingException;
 
@@ -32,11 +31,11 @@ public final class TomlCodingException extends TomlParseException {
 
     //
 
-    public TomlCodingException(@NotNull String message) {
+    public TomlCodingException(String message) {
         super(message);
     }
 
-    public TomlCodingException(@NotNull String message, @Nullable CharacterCodingException cause) {
+    public TomlCodingException(String message, @Nullable CharacterCodingException cause) {
         super(message, cause);
     }
 

@@ -18,8 +18,7 @@ package io.github.wasabithumb.jtoml.option;
 
 import io.github.wasabithumb.jtoml.util.Buildable;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -41,7 +40,7 @@ public final class JTomlOptions implements Buildable<JTomlOptions> {
      * for any option.
      */
     @Contract(pure = true)
-    public static @NotNull JTomlOptions defaults() {
+    public static JTomlOptions defaults() {
         return DEFAULTS;
     }
 
@@ -50,22 +49,22 @@ public final class JTomlOptions implements Buildable<JTomlOptions> {
      * of creating a custom {@link JTomlOptions} instance.
      */
     @Contract("-> new")
-    public static @NotNull Builder builder() {
+    public static Builder builder() {
         return new Builder();
     }
 
     //
 
-    private final Object[] values;
+    private final @Nullable Object[] values;
 
-    private JTomlOptions(@Nullable Object @NotNull [] values) {
+    private JTomlOptions(@Nullable Object [] values) {
         this.values = values;
     }
 
     //
 
     @Contract(pure = true)
-    public <T> @NotNull T get(@NotNull JTomlOption<T> option) {
+    public <T> T get(JTomlOption<T> option) {
         final int o = option.ordinal();
         if (o < 0 || o >= this.values.length) return option.defaultValue();
         Object obj = this.values[o];
@@ -73,7 +72,7 @@ public final class JTomlOptions implements Buildable<JTomlOptions> {
     }
 
     @Contract(pure = true)
-    public boolean get(@NotNull JTomlOption.Bool option) {
+    public boolean get(JTomlOption.Bool option) {
         return this.get((JTomlOption<Boolean>) option);
     }
 
@@ -112,7 +111,7 @@ public final class JTomlOptions implements Buildable<JTomlOptions> {
     }
 
     @Override
-    public @NotNull String toString() {
+    public String toString() {
         StringBuilder sb = new StringBuilder("JTomlOptions[");
         JTomlOption<?> opt;
         for (int i = 0; i < UNIVERSE.length; i++) {
@@ -131,14 +130,14 @@ public final class JTomlOptions implements Buildable<JTomlOptions> {
 
     public static final class Builder implements Buildable.Builder<JTomlOptions> {
 
-        private final Object[] values = new Object[UNIVERSE.length];
+        private final @Nullable Object[] values = new Object[UNIVERSE.length];
         private int max               = -1;
         private Builder() { }
 
         //
 
         @Contract(value = "_, _ -> this", mutates = "this")
-        public <T> @NotNull Builder set(@NotNull JTomlOption<T> key, @Nullable T value) throws IllegalArgumentException {
+        public <T> Builder set(JTomlOption<T> key, @Nullable T value) throws IllegalArgumentException {
             final int idx = key.ordinal();
             if (idx < 0 || idx >= UNIVERSE.length) {
                 throw new IllegalStateException("Illegal ordinal (" + idx + ")");
@@ -164,13 +163,13 @@ public final class JTomlOptions implements Buildable<JTomlOptions> {
         }
 
         @Contract(value = "_ -> this", mutates = "this")
-        public @NotNull Builder unset(@NotNull JTomlOption<?> key) {
+        public Builder unset(JTomlOption<?> key) {
             return this.set(key, null);
         }
 
         @Contract("-> new")
         @Override
-        public @NotNull JTomlOptions build() {
+        public JTomlOptions build() {
             int count = this.max + 1;
             Object[] cpy = new Object[count];
             System.arraycopy(this.values, 0, cpy, 0, count);

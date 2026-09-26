@@ -35,8 +35,7 @@ import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import io.github.wasabithumb.recsup.RecordSupport;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.annotation.*;
 import java.lang.reflect.Modifier;
@@ -55,7 +54,7 @@ import java.util.Objects;
 public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<T> {
 
     static @Nullable String anyTypeError(
-            @NotNull Class<?> type,
+            Class<?> type,
             @Feature.Set int features
     ) {
         if (RecordSupport.isRecord(type)) return null;
@@ -76,7 +75,7 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
     }
 
     private static void checkType(
-            @NotNull Class<?> type,
+            Class<?> type,
             @Feature.Set int features
     ) throws IllegalArgumentException {
         String detail = anyTypeError(type, features);
@@ -86,7 +85,7 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
                 " (" + detail + ")");
     }
 
-    private static @NotNull TypeModelOptions modelOptions(@Feature.Set int features) {
+    private static TypeModelOptions modelOptions(@Feature.Set int features) {
         return new TypeModelOptions(
                 (features & Feature.IGNORE_MARKER) == Feature.IGNORE_MARKER,
                 (features & Feature.ALLOW_UNSAFE) == Feature.ALLOW_UNSAFE
@@ -110,7 +109,7 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
      * @throws IllegalArgumentException The given type is not serializable.
      */
     public ReflectTomlSerializer(
-            @NotNull Class<T> type
+            Class<T> type
     ) throws IllegalArgumentException {
         this(type, TypeAdapters.standard());
     }
@@ -124,8 +123,8 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
      * @throws IllegalArgumentException The given type is not serializable.
      */
     public ReflectTomlSerializer(
-            @NotNull Class<T> type,
-            @NotNull TypeAdapters adapters
+            Class<T> type,
+            TypeAdapters adapters
     ) throws IllegalArgumentException {
         this(type, adapters, StandardKeyConvention.LITERAL);
     }
@@ -139,8 +138,8 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
      * @throws IllegalArgumentException The given type is not serializable.
      */
     public ReflectTomlSerializer(
-            @NotNull Class<T> type,
-            @NotNull KeyConvention defaultConvention
+            Class<T> type,
+            KeyConvention defaultConvention
     ) throws IllegalArgumentException {
         this(type, TypeAdapters.standard(), defaultConvention);
     }
@@ -154,9 +153,9 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
      * @throws IllegalArgumentException The given type is not serializable.
      */
     public ReflectTomlSerializer(
-            @NotNull Class<T> type,
-            @NotNull TypeAdapters adapters,
-            @NotNull KeyConvention defaultConvention
+            Class<T> type,
+            TypeAdapters adapters,
+            KeyConvention defaultConvention
     ) throws IllegalArgumentException {
         this(type, adapters, defaultConvention, false, false);
     }
@@ -172,9 +171,9 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
      * @throws IllegalArgumentException The given type is not serializable.
      */
     public ReflectTomlSerializer(
-            @NotNull Class<T> type,
-            @NotNull TypeAdapters adapters,
-            @NotNull KeyConvention defaultConvention,
+            Class<T> type,
+            TypeAdapters adapters,
+            KeyConvention defaultConvention,
             boolean ignoreMarker,
             boolean allowUnsafe
     ) throws IllegalArgumentException {
@@ -190,9 +189,9 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
     }
 
     ReflectTomlSerializer(
-            @NotNull Class<T> type,
-            @NotNull TypeAdapters adapters,
-            @NotNull KeyConvention defaultConvention,
+            Class<T> type,
+            TypeAdapters adapters,
+            KeyConvention defaultConvention,
             @Feature.Set int features
     ) {
         checkType(type, features);
@@ -207,12 +206,12 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
     //
 
     @Override
-    public @NotNull Class<T> serialType() {
+    public Class<T> serialType() {
         return this.model.type();
     }
 
     @Override
-    public @NotNull T fromToml(@NotNull TomlTable table) {
+    public T fromToml(TomlTable table) {
         if ((this.features & Feature.SUPPORTS_FROM_TOML) == 0) throw new UnsupportedOperationException();
         return this.serializeTable(
                 this.model,
@@ -221,7 +220,7 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
     }
 
     @Override
-    public @NotNull TomlTable toToml(@NotNull T data) {
+    public TomlTable toToml(T data) {
         if ((this.features & Feature.SUPPORTS_TO_TOML) == 0) throw new UnsupportedOperationException();
         ReferenceHolder parents = new ReferenceHolder();
         parents.add(this);
@@ -234,9 +233,9 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
 
     //
 
-    private <E> @NotNull E serializeValue(
-            @NotNull TypeModel<E> model,
-            @NotNull TomlValue value
+    private <E> E serializeValue(
+            TypeModel<E> model,
+            TomlValue value
     ) {
         TypeAdapter<E> adapter = this.adapters.get(model.type());
         if (adapter != null) return adapter.toJava(value.asPrimitive());
@@ -245,9 +244,9 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
         throw new IllegalArgumentException("No adapter for type " + model.type().getName());
     }
 
-    private <E> @NotNull E serializeArray(
-            @NotNull ArrayTypeModel<E> model,
-            @NotNull TomlArray array
+    private <E> E serializeArray(
+            ArrayTypeModel<E> model,
+            TomlArray array
     ) {
         final int len = array.size();
         E ret = model.createNew(len);
@@ -262,9 +261,9 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
         return ret;
     }
 
-    private <E> @NotNull E serializeTable(
-            @NotNull TableTypeModel<E> model,
-            @NotNull TomlTable table
+    private <E> E serializeTable(
+            TableTypeModel<E> model,
+            TomlTable table
     ) {
         TableTypeModel.Mapper mapper = model.mapper(this.defaultConvention);
         TableTypeModel.Builder<E> builder = model.create();
@@ -311,18 +310,18 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
     //
 
     @SuppressWarnings("unchecked")
-    private <E> @NotNull TomlValue deserializeValueUnsafe(
-            @NotNull ReferenceHolder parents,
-            @NotNull TypeModel<E> model,
-            @NotNull Object value
+    private <E> TomlValue deserializeValueUnsafe(
+            ReferenceHolder parents,
+            TypeModel<E> model,
+            Object value
     ) {
         return this.deserializeValue(parents, model, (E) value);
     }
 
-    private <E> @NotNull TomlValue deserializeValue(
-            @NotNull ReferenceHolder parents,
-            @NotNull TypeModel<E> model,
-            @NotNull E value
+    private <E> TomlValue deserializeValue(
+            ReferenceHolder parents,
+            TypeModel<E> model,
+            E value
     ) {
         if (!parents.add(value))
             throw new IllegalArgumentException("Cannot deserialize recursive data (" + value + " refers to itself)");
@@ -335,10 +334,10 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
         throw new IllegalArgumentException("No adapter for type " + model.type().getName());
     }
 
-    private <E> @NotNull TomlArray deserializeArray(
-            @NotNull ReferenceHolder parents,
-            @NotNull ArrayTypeModel<E> model,
-            @NotNull E value
+    private <E> TomlArray deserializeArray(
+            ReferenceHolder parents,
+            ArrayTypeModel<E> model,
+            E value
     ) {
         final int size = model.size(value);
         TomlArray ret = TomlArray.create(size);
@@ -360,10 +359,10 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
         return ret;
     }
 
-    private <E> @NotNull TomlTable deserializeTable(
-            @NotNull ReferenceHolder parents,
-            @NotNull TableTypeModel<E> model,
-            @NotNull E value
+    private <E> TomlTable deserializeTable(
+            ReferenceHolder parents,
+            TableTypeModel<E> model,
+            E value
     ) {
         TomlTable ret = TomlTable.create();
 

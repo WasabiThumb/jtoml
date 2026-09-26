@@ -17,14 +17,11 @@
 package io.github.wasabithumb.jtoml.io.source;
 
 import io.github.wasabithumb.jtoml.except.TomlException;
-import io.github.wasabithumb.jtoml.except.TomlIOException;
 import io.github.wasabithumb.jtoml.except.parse.TomlTruncatedException;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
-import java.io.EOFException;
 
 public interface CharSource extends Closeable {
 
@@ -47,7 +44,7 @@ public interface CharSource extends Closeable {
         return (char) n;
     }
 
-    default int next(char @NotNull [] dest) throws TomlException {
+    default int next(char[] dest) throws TomlException {
         int count = 0;
         int c;
         while (count < dest.length) {

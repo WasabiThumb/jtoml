@@ -21,12 +21,13 @@ import io.github.wasabithumb.jtoml.key.TomlKey;
 import io.github.wasabithumb.jtoml.value.TomlValue;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Set;
 
+@NullMarked
 @ApiStatus.Internal
 public final class TomlDocumentImpl implements TomlDocument {
 
@@ -36,18 +37,18 @@ public final class TomlDocumentImpl implements TomlDocument {
     private boolean orderMarked = false;
 
     public TomlDocumentImpl(
-            @NotNull TomlTable backing,
-            @NotNull TomlIssues issues
+            TomlTable backing,
+            TomlIssues issues
     ) {
         this.creationTime = System.nanoTime();
         this.backing = backing;
         this.issues = issues;
     }
 
-    // START Metadata
+    //
 
     @Override
-    public @NotNull @Unmodifiable TomlIssues issues() {
+    public @Unmodifiable TomlIssues issues() {
         return this.issues;
     }
 
@@ -58,10 +59,6 @@ public final class TomlDocumentImpl implements TomlDocument {
     public void setOrderMarked(boolean orderMarked) {
         this.orderMarked = orderMarked;
     }
-
-    // END Metadata
-
-    // START Super
 
     @Override
     public long creationTime() {
@@ -74,13 +71,13 @@ public final class TomlDocumentImpl implements TomlDocument {
     }
 
     @Override
-    public @NotNull TomlDocument flags(int flags) {
+    public TomlDocument flags(int flags) {
         this.backing.flags(flags);
         return this;
     }
 
     @Override
-    public @NotNull Comments comments() {
+    public Comments comments() {
         return this.backing.comments();
     }
 
@@ -100,30 +97,28 @@ public final class TomlDocumentImpl implements TomlDocument {
     }
 
     @Override
-    public @NotNull @Unmodifiable Set<TomlKey> keys(boolean deep) {
+    public @Unmodifiable Set<TomlKey> keys(boolean deep) {
         return this.backing.keys(deep);
     }
 
     @Override
-    public boolean contains(@NotNull TomlKey key) {
+    public boolean contains(TomlKey key) {
         return this.backing.contains(key);
     }
 
     @Override
-    public @Nullable TomlValue get(@NotNull TomlKey key) {
+    public @Nullable TomlValue get(TomlKey key) {
         return this.backing.get(key);
     }
 
     @Override
-    public @Nullable TomlValue put(@NotNull TomlKey key, @NotNull TomlValue value) {
+    public @Nullable TomlValue put(TomlKey key, TomlValue value) {
         return this.backing.put(key, value);
     }
 
     @Override
-    public @Nullable TomlValue remove(@NotNull TomlKey key) {
+    public @Nullable TomlValue remove(TomlKey key) {
         return this.backing.remove(key);
     }
-
-    // END Super
 
 }

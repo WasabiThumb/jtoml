@@ -18,7 +18,6 @@ package io.github.wasabithumb.jtoml.document;
 
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * The top-level table read from a TOML file/string.
@@ -35,6 +34,6 @@ public interface TomlDocument extends TomlTable {
      * is enabled.
      */
     @ApiStatus.AvailableSince("1.7.0")
-    @NotNull TomlIssues issues();
+    TomlIssues issues();
 
 }

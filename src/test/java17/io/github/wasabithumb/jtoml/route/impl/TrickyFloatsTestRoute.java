@@ -20,12 +20,13 @@ import io.github.wasabithumb.jtoml.JToml;
 import io.github.wasabithumb.jtoml.route.TestRoute;
 import io.github.wasabithumb.jtoml.value.TomlValue;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Created to cover #76 */
+@NullMarked
 public final class TrickyFloatsTestRoute implements TestRoute {
 
     @Override

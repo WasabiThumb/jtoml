@@ -17,14 +17,13 @@
 package io.github.wasabithumb.jtoml.comment;
 
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
 @ApiStatus.Internal
 final class CommentImpl implements Comment {
 
-    private static void checkForInvalidChars(@NotNull String content) {
+    private static void checkForInvalidChars(String content) {
         final int len = content.length();
         char c;
         for (int i=0; i < len; i++) {
@@ -45,7 +44,7 @@ final class CommentImpl implements Comment {
     private final CommentPosition position;
     private final String content;
 
-    CommentImpl(@NotNull CommentPosition position, @NotNull String content) {
+    CommentImpl(CommentPosition position, String content) {
         checkForInvalidChars(content);
         this.position = position;
         this.content = content;
@@ -54,12 +53,12 @@ final class CommentImpl implements Comment {
     //
 
     @Override
-    public @NotNull CommentPosition position() {
+    public CommentPosition position() {
         return this.position;
     }
 
     @Override
-    public @NotNull String content() {
+    public String content() {
         return this.content;
     }
 
@@ -77,7 +76,7 @@ final class CommentImpl implements Comment {
     }
 
     @Override
-    public @NotNull String toString() {
+    public String toString() {
         return "Comment[position=" + this.position.name() + ", content=" + this.content + "]";
     }
 

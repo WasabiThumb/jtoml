@@ -19,7 +19,6 @@ package io.github.wasabithumb.jtoml.serial;
 import io.github.wasabithumb.jtoml.JToml;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -41,7 +40,7 @@ public abstract class TomlSerializerFactory {
      * If this factory does not support the given type,
      * returns an {@link Result#valid() invalid} result.
      */
-    public abstract <T> @NotNull Result<?, T> fromToml(@NotNull JToml instance, @NotNull Class<T> outType);
+    public abstract <T> Result<?, T> fromToml(JToml instance, Class<T> outType);
 
     /**
      * Attempts to facilitate the creation of a serializer which
@@ -51,7 +50,7 @@ public abstract class TomlSerializerFactory {
      * If this factory does not support the given type,
      * returns an {@link Result#valid() invalid} result.
      */
-    public abstract <T> @NotNull Result<T, ?> toToml(@NotNull JToml instance, @NotNull Class<T> inType);
+    public abstract <T> Result<T, ?> toToml(JToml instance, Class<T> inType);
 
     //
 
@@ -67,19 +66,19 @@ public abstract class TomlSerializerFactory {
     public static abstract class Result<I, O> {
 
         @Contract("_ -> new")
-        public static <II, OO> Result<II, OO> valid(@NotNull Supplier<TomlSerializer<II, OO>> supplier) {
+        public static <II, OO> Result<II, OO> valid(Supplier<TomlSerializer<II, OO>> supplier) {
             Objects.requireNonNull(supplier, "supplier");
             return new Valid<>(supplier);
         }
 
         @Contract("_ -> new")
-        public static <II, OO> Result<II, OO> valid(@NotNull TomlSerializer<II, OO> serializer) {
+        public static <II, OO> Result<II, OO> valid(TomlSerializer<II, OO> serializer) {
             Objects.requireNonNull(serializer, "serializer");
             return new Valid<>(() -> serializer);
         }
 
         @Contract("_ -> new")
-        public static <II, OO> Result<II, OO> invalid(@NotNull String issue) {
+        public static <II, OO> Result<II, OO> invalid(String issue) {
             return new Invalid<>(issue);
         }
 
@@ -99,7 +98,7 @@ public abstract class TomlSerializerFactory {
          * @return The stored issue message.
          * @throws UnsupportedOperationException This result is {@link #valid() valid}.
          */
-        public abstract @NotNull String issue() throws UnsupportedOperationException;
+        public abstract String issue() throws UnsupportedOperationException;
 
         /**
          * Reports the {@link TomlSerializer serializer} stored
@@ -107,7 +106,7 @@ public abstract class TomlSerializerFactory {
          * @return The stored {@link TomlSerializer serializer}.
          * @throws UnsupportedOperationException This result is not {@link #valid() valid}.
          */
-        public abstract @NotNull TomlSerializer<I, O> serializer() throws UnsupportedOperationException;
+        public abstract TomlSerializer<I, O> serializer() throws UnsupportedOperationException;
 
         //
 
@@ -127,7 +126,7 @@ public abstract class TomlSerializerFactory {
             }
 
             @Override
-            public @NotNull String issue() {
+            public String issue() {
                 throw new UnsupportedOperationException("valid result has no issue");
             }
 
@@ -142,7 +141,7 @@ public abstract class TomlSerializerFactory {
 
             private final String issue;
 
-            private Invalid(@NotNull String issue) {
+            private Invalid(String issue) {
                 this.issue = issue;
             }
 
@@ -154,7 +153,7 @@ public abstract class TomlSerializerFactory {
             }
 
             @Override
-            public @NotNull String issue() {
+            public String issue() {
                 return this.issue;
             }
 

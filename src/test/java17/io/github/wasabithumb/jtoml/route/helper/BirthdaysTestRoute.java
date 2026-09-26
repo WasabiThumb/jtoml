@@ -18,12 +18,14 @@ package io.github.wasabithumb.jtoml.route.helper;
 
 import io.github.wasabithumb.jtoml.route.TestRoute;
 import io.github.wasabithumb.jtoml.serial.reflect.Convention;
+import org.jspecify.annotations.NullMarked;
 
 import java.time.LocalDate;
 import java.util.function.IntFunction;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@NullMarked
 public abstract class BirthdaysTestRoute implements TestRoute {
 
     private static final int PEOPLE_COUNT = 8;

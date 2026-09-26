@@ -19,20 +19,19 @@ package io.github.wasabithumb.jtoml.expression;
 import io.github.wasabithumb.jtoml.key.TomlKey;
 import io.github.wasabithumb.jtoml.value.TomlValue;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface Expression {
 
-    static @NotNull EmptyExpression empty() {
+    static EmptyExpression empty() {
         return new EmptyExpression();
     }
 
-    static @NotNull KeyValueExpression keyValue(@NotNull TomlKey key, @NotNull TomlValue value) {
+    static KeyValueExpression keyValue(TomlKey key, TomlValue value) {
         return new KeyValueExpression(key, value);
     }
 
-    static @NotNull TableExpression table(@NotNull TomlKey key, boolean isArray) {
+    static TableExpression table(TomlKey key, boolean isArray) {
         return new TableExpression(key, isArray);
     }
 
@@ -47,7 +46,7 @@ public interface Expression {
     }
 
     @Contract("-> this")
-    default @NotNull EmptyExpression asEmpty() {
+    default EmptyExpression asEmpty() {
         return (EmptyExpression) this;
     }
 
@@ -56,7 +55,7 @@ public interface Expression {
     }
 
     @Contract("-> this")
-    default @NotNull KeyValueExpression asKeyValue() {
+    default KeyValueExpression asKeyValue() {
         return (KeyValueExpression) this;
     }
 
@@ -65,7 +64,7 @@ public interface Expression {
     }
 
     @Contract("-> this")
-    default @NotNull TableExpression asTable() {
+    default TableExpression asTable() {
         return (TableExpression) this;
     }
 

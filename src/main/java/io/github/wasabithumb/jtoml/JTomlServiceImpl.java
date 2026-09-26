@@ -18,13 +18,14 @@ package io.github.wasabithumb.jtoml;
 
 import io.github.wasabithumb.jtoml.option.JTomlOptions;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * @deprecated No longer in use.
  *             If you were using this class to avoid the service
  *             loading mechanism, don't. It no longer exists.
  */
+@NullMarked
 @Deprecated
 @ApiStatus.Internal
 public final class JTomlServiceImpl {
@@ -33,11 +34,11 @@ public final class JTomlServiceImpl {
 
     public JTomlServiceImpl() { }
 
-    public @NotNull JToml defaultInstance() {
+    public JToml defaultInstance() {
         return WITH_DEFAULTS;
     }
 
-    public @NotNull JToml createInstance(@NotNull JTomlOptions options) {
+    public JToml createInstance(JTomlOptions options) {
         return new JTomlImpl(options);
     }
 

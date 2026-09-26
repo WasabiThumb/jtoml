@@ -19,6 +19,7 @@ package io.github.wasabithumb.jtoml.route;
 import io.github.wasabithumb.jtoml.JToml;
 import io.github.wasabithumb.jtoml.document.TomlDocument;
 import io.github.wasabithumb.jtoml.option.JTomlOptions;
+import org.jspecify.annotations.NullMarked;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.function.Executable;
 
@@ -33,6 +34,7 @@ import java.util.function.BiConsumer;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@NullMarked
 public record TestRouteRunner(
         TestRoute route
 ) implements Executable {

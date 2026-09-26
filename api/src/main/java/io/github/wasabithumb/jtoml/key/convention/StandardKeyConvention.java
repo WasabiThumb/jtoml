@@ -18,7 +18,6 @@ package io.github.wasabithumb.jtoml.key.convention;
 
 import io.github.wasabithumb.jtoml.key.TomlKey;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Function;
 
@@ -105,7 +104,7 @@ public enum StandardKeyConvention implements KeyConvention {
     //
 
     @Override
-    public @NotNull TomlKey toToml(@NotNull String key) {
+    public TomlKey toToml(String key) {
         return this.operator.apply(key);
     }
     

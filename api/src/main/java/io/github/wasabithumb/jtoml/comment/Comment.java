@@ -19,7 +19,6 @@ package io.github.wasabithumb.jtoml.comment;
 import org.intellij.lang.annotations.Pattern;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 
 import java.lang.annotation.*;
 
@@ -42,7 +41,7 @@ public interface Comment {
      * @return A new object representing a TOML comment
      */
     @Contract("_, _ -> new")
-    static @NotNull Comment of(@NotNull CommentPosition position, @NotNull String content) {
+    static Comment of(CommentPosition position, String content) {
         return new CommentImpl(position, content);
     }
 
@@ -53,7 +52,7 @@ public interface Comment {
      */
     @Contract("_ -> new")
     @ApiStatus.AvailableSince("1.5.0")
-    static @NotNull Comment pre(@NotNull String content) {
+    static Comment pre(String content) {
         return of(CommentPosition.PRE, content);
     }
 
@@ -64,7 +63,7 @@ public interface Comment {
      */
     @Contract("_ -> new")
     @ApiStatus.AvailableSince("1.5.0")
-    static @NotNull Comment post(@NotNull String content) {
+    static Comment post(String content) {
         return of(CommentPosition.POST, content);
     }
 
@@ -75,7 +74,7 @@ public interface Comment {
      */
     @Contract("_ -> new")
     @ApiStatus.AvailableSince("1.5.0")
-    static @NotNull Comment inline(@NotNull String content) {
+    static Comment inline(String content) {
         return of(CommentPosition.INLINE, content);
     }
 
@@ -84,12 +83,12 @@ public interface Comment {
     /**
      * Position of the comment
      */
-    @NotNull CommentPosition position();
+    CommentPosition position();
 
     /**
      * Raw text contained within the comment
      */
-    @NotNull String content();
+    String content();
 
     //
 
@@ -103,7 +102,7 @@ public interface Comment {
     @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD, ElementType.TYPE})
     @Repeatable(MultiComment.Pre.class)
     @interface Pre {
-        @NotNull @Pattern("^[^\\x00-\\x08\\x0A-\\x1F\\x7F]*$") String value();
+        @Pattern("^[^\\x00-\\x08\\x0A-\\x1F\\x7F]*$") String value();
     }
 
     /**
@@ -116,7 +115,7 @@ public interface Comment {
     @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD, ElementType.TYPE})
     @Repeatable(MultiComment.Inline.class)
     @interface Inline {
-        @NotNull @Pattern("^[^\\x00-\\x08\\x0A-\\x1F\\x7F]*$") String value();
+        @Pattern("^[^\\x00-\\x08\\x0A-\\x1F\\x7F]*$") String value();
     }
 
     /**
@@ -129,7 +128,7 @@ public interface Comment {
     @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD, ElementType.TYPE})
     @Repeatable(MultiComment.Post.class)
     @interface Post {
-        @NotNull @Pattern("^[^\\x00-\\x08\\x0A-\\x1F\\x7F]*$") String value();
+        @Pattern("^[^\\x00-\\x08\\x0A-\\x1F\\x7F]*$") String value();
     }
 
 }

@@ -20,9 +20,8 @@ import io.github.wasabithumb.jtoml.document.TomlIssue;
 import io.github.wasabithumb.jtoml.except.TomlException;
 import io.github.wasabithumb.jtoml.except.parse.TomlLocalParseException;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
+import org.jspecify.annotations.Nullable;
 
 public final class BufferedCharSource implements CharSource {
 
@@ -37,7 +36,7 @@ public final class BufferedCharSource implements CharSource {
     private int ln;
     private int cn;
 
-    public BufferedCharSource(@NotNull CharSource backing) {
+    public BufferedCharSource(CharSource backing) {
         this.backing = backing;
         this.buf = new char[BUFFER_SIZE];
         this.ir = 0;
@@ -123,17 +122,17 @@ public final class BufferedCharSource implements CharSource {
     }
 
     @Contract("_ -> new")
-    public TomlIssue newIssue(@NotNull String message) {
+    public TomlIssue newIssue(String message) {
         return TomlIssue.issue(this.ln, this.cn, message);
     }
 
     @Contract("_ -> fail")
-    public void raise(@NotNull String message) throws TomlLocalParseException {
+    public void raise(String message) throws TomlLocalParseException {
         throw new TomlLocalParseException(message, this.ln, this.cn);
     }
 
     @Contract("_, _ -> fail")
-    public void raise(@NotNull String message, @Nullable Throwable cause) throws TomlLocalParseException {
+    public void raise(String message, @Nullable Throwable cause) throws TomlLocalParseException {
         throw new TomlLocalParseException(message, cause, this.ln, this.cn);
     }
 

@@ -23,11 +23,13 @@ import io.github.wasabithumb.jtoml.route.TestRoute;
 import io.github.wasabithumb.jtoml.value.TomlValue;
 import io.github.wasabithumb.jtoml.value.primitive.TomlPrimitiveType;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
+import org.jspecify.annotations.NullMarked;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static io.github.wasabithumb.jtoml.comment.Comment.*;
 import static io.github.wasabithumb.jtoml.comment.Comments.comments;
 
+@NullMarked
 public final class ReadCommentsTestRoute implements TestRoute {
 
     @Sentinel("comments.toml")

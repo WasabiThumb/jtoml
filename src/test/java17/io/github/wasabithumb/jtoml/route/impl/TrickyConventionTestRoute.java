@@ -25,9 +25,11 @@ import io.github.wasabithumb.jtoml.route.Sentinel;
 import io.github.wasabithumb.jtoml.route.TestRoute;
 import io.github.wasabithumb.jtoml.serial.reflect.Convention;
 import io.github.wasabithumb.jtoml.serial.reflect.Key;
+import org.jspecify.annotations.NullMarked;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@NullMarked
 public final class TrickyConventionTestRoute implements TestRoute.Configuring {
 
     @Sentinel("tricky-convention.toml")

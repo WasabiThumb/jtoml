@@ -24,9 +24,11 @@ import io.github.wasabithumb.jtoml.route.Sentinel;
 import io.github.wasabithumb.jtoml.route.TestRoute;
 import io.github.wasabithumb.jtoml.value.TomlValue;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
+import org.jspecify.annotations.NullMarked;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@NullMarked
 public final class SpacingTestRoute implements TestRoute.Configuring {
 
     @Sentinel("spacing.toml")

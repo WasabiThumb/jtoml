@@ -17,7 +17,6 @@
 package io.github.wasabithumb.jtoml.option;
 
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 @ApiStatus.Internal
 abstract class AbstractJTomlOption<T> implements JTomlOption<T> {
@@ -33,7 +32,7 @@ abstract class AbstractJTomlOption<T> implements JTomlOption<T> {
     protected final String name;
     protected final T defaultValue;
 
-    protected AbstractJTomlOption(@NotNull String name, @NotNull T defaultValue) {
+    protected AbstractJTomlOption(String name, T defaultValue) {
         this.ordinal = nextOrdinal();
         this.name = name;
         this.defaultValue = defaultValue;
@@ -47,12 +46,12 @@ abstract class AbstractJTomlOption<T> implements JTomlOption<T> {
     }
 
     @Override
-    public @NotNull String name() {
+    public String name() {
         return this.name;
     }
 
     @Override
-    public @NotNull T defaultValue() {
+    public T defaultValue() {
         return this.defaultValue;
     }
 
@@ -68,7 +67,7 @@ abstract class AbstractJTomlOption<T> implements JTomlOption<T> {
     }
 
     @Override
-    public @NotNull String toString() {
+    public String toString() {
         return this.name();
     }
 

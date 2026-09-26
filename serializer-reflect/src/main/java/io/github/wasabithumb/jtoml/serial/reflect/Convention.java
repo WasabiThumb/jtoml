@@ -18,7 +18,6 @@ package io.github.wasabithumb.jtoml.serial.reflect;
 
 import io.github.wasabithumb.jtoml.key.convention.StandardKeyConvention;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 import java.lang.annotation.*;
 
@@ -39,7 +38,7 @@ import java.lang.annotation.*;
 @Target({ElementType.FIELD, ElementType.METHOD, ElementType.TYPE})
 @ApiStatus.AvailableSince("1.5.0")
 public @interface Convention {
-    @NotNull StandardKeyConvention value();
+    StandardKeyConvention value();
 
     //
 

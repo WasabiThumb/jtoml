@@ -19,7 +19,6 @@ package io.github.wasabithumb.jtoml.option.prop;
 import io.github.wasabithumb.jtoml.util.Buildable;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
 import java.lang.annotation.*;
@@ -58,7 +57,7 @@ public final class SpacingPolicy implements Buildable<SpacingPolicy> {
      * of creating a custom {@link SpacingPolicy} instance.
      */
     @Contract("-> new")
-    public static @NotNull Builder builder() {
+    public static Builder builder() {
         return new Builder();
     }
 
@@ -143,7 +142,7 @@ public final class SpacingPolicy implements Buildable<SpacingPolicy> {
 
     @Override
     @Contract("-> new")
-    public @NotNull Builder toBuilder() {
+    public Builder toBuilder() {
         Builder ret = new Builder();
         System.arraycopy(this.data, 0, ret.data, 0, Kind.MAX);
         return ret;
@@ -161,7 +160,7 @@ public final class SpacingPolicy implements Buildable<SpacingPolicy> {
     }
 
     @Override
-    public @NotNull String toString() {
+    public String toString() {
         return "SpacingPolicy[preHeader=" + this.preHeader() +
                 ", postHeader=" + this.postHeader() +
                 ", preStatement=" + this.preStatement() +
@@ -183,7 +182,7 @@ public final class SpacingPolicy implements Buildable<SpacingPolicy> {
         //
 
         @Contract("_, _ -> this")
-        private @NotNull Builder set(@Kind int kind, int value) {
+        private Builder set(@Kind int kind, int value) {
             if (value < 0) throw new IllegalArgumentException("Spacing may not be negative");
             if (value > 255) throw new IllegalArgumentException("Spacing is too large (" + value + " > 255)");
             this.data[kind] = (byte) value;
@@ -195,7 +194,7 @@ public final class SpacingPolicy implements Buildable<SpacingPolicy> {
          */
         @Deprecated
         @Contract("_ -> this")
-        public @NotNull Builder preTable(@Range(from = 0, to = 255) int spacing) {
+        public Builder preTable(@Range(from = 0, to = 255) int spacing) {
             return this.preHeader(spacing);
         }
 
@@ -204,7 +203,7 @@ public final class SpacingPolicy implements Buildable<SpacingPolicy> {
          */
         @Deprecated
         @Contract("_ -> this")
-        public @NotNull Builder postTable(@Range(from=0, to=255) int spacing) {
+        public Builder postTable(@Range(from=0, to=255) int spacing) {
             return this.postHeader(spacing);
         }
 
@@ -216,7 +215,7 @@ public final class SpacingPolicy implements Buildable<SpacingPolicy> {
          * @return This builder.
          */
         @Contract("_ -> this")
-        public @NotNull Builder preHeader(@Range(from = 0, to = 255) int spacing) {
+        public Builder preHeader(@Range(from = 0, to = 255) int spacing) {
             return this.set(Kind.PRE_HEADER, spacing);
         }
 
@@ -228,7 +227,7 @@ public final class SpacingPolicy implements Buildable<SpacingPolicy> {
          * @return This builder.
          */
         @Contract("_ -> this")
-        public @NotNull Builder postHeader(@Range(from=0, to=255) int spacing) {
+        public Builder postHeader(@Range(from=0, to=255) int spacing) {
             return this.set(Kind.POST_HEADER, spacing);
         }
 
@@ -240,7 +239,7 @@ public final class SpacingPolicy implements Buildable<SpacingPolicy> {
          * @return This builder.
          */
         @Contract("_ -> this")
-        public @NotNull Builder preStatement(@Range(from=0, to=255) int spacing) {
+        public Builder preStatement(@Range(from=0, to=255) int spacing) {
             return this.set(Kind.PRE_STATEMENT, spacing);
         }
 
@@ -252,7 +251,7 @@ public final class SpacingPolicy implements Buildable<SpacingPolicy> {
          * @return This builder.
          */
         @Contract("_ -> this")
-        public @NotNull Builder postStatement(@Range(from=0, to=255) int spacing) {
+        public Builder postStatement(@Range(from=0, to=255) int spacing) {
             return this.set(Kind.POST_STATEMENT, spacing);
         }
 
@@ -264,13 +263,13 @@ public final class SpacingPolicy implements Buildable<SpacingPolicy> {
          * @return This builder.
          */
         @Contract("_ -> this")
-        public @NotNull Builder postBlock(@Range(from=0, to=255) int spacing) {
+        public Builder postBlock(@Range(from=0, to=255) int spacing) {
             return this.set(Kind.POST_BLOCK, spacing);
         }
 
         @Override
         @Contract("-> new")
-        public @NotNull SpacingPolicy build() {
+        public SpacingPolicy build() {
             return new SpacingPolicy(Arrays.copyOf(this.data, Kind.MAX));
         }
 

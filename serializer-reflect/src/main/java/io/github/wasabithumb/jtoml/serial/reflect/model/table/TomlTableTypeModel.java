@@ -21,7 +21,9 @@ import io.github.wasabithumb.jtoml.key.convention.KeyConvention;
 import io.github.wasabithumb.jtoml.util.ParameterizedClass;
 import io.github.wasabithumb.jtoml.value.TomlValue;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.UnknownNullability;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.AbstractSet;
 import java.util.Collection;
@@ -36,32 +38,32 @@ final class TomlTableTypeModel extends AbstractTableTypeModel<TomlTable> {
     //
 
     @Override
-    public @NotNull Class<TomlTable> type() {
+    public Class<TomlTable> type() {
         return TomlTable.class;
     }
 
     @Override
-    public @NotNull TableTypeModel.Builder<TomlTable> create() {
+    public TableTypeModel.Builder<TomlTable> create() {
         return new Builder();
     }
 
     @Override
-    public @NotNull Mapper mapper(@NotNull KeyConvention defaultConvention) {
+    public Mapper mapper(KeyConvention defaultConvention) {
         return LiteralMapper.INSTANCE;
     }
 
     @Override
-    public @NotNull @Unmodifiable Collection<Key> keys(@NotNull TomlTable instance, @NotNull KeyConvention ignored) {
+    public @Unmodifiable Collection<Key> keys(TomlTable instance, KeyConvention ignored) {
         return new KeySet(instance.keys(false));
     }
 
     @Override
-    public @NotNull ParameterizedClass<?> elementType(@NotNull Key key) {
+    public ParameterizedClass<?> elementType(Key key) {
         return new ParameterizedClass<>(TomlValue.class);
     }
 
     @Override
-    public @UnknownNullability Object get(@NotNull TomlTable instance, @NotNull Key key) {
+    public @UnknownNullability Object get(TomlTable instance, Key key) {
         return instance.get(key.asTomlKey());
     }
 
@@ -72,12 +74,12 @@ final class TomlTableTypeModel extends AbstractTableTypeModel<TomlTable> {
         private final TomlTable table = TomlTable.create();
 
         @Override
-        public void set(@NotNull Key key, @NotNull Object value) {
+        public void set(Key key, Object value) {
             this.table.put(key.asTomlKey(), (TomlValue) value);
         }
 
         @Override
-        public @NotNull TomlTable build() {
+        public TomlTable build() {
             return this.table;
         }
 
@@ -87,14 +89,14 @@ final class TomlTableTypeModel extends AbstractTableTypeModel<TomlTable> {
 
         private final TomlKey value;
 
-        LiteralKey(@NotNull TomlKey value) {
+        LiteralKey(TomlKey value) {
             this.value = value;
         }
 
         //
 
         @Override
-        public @NotNull TomlKey asTomlKey() {
+        public TomlKey asTomlKey() {
             return this.value;
         }
 
@@ -105,7 +107,7 @@ final class TomlTableTypeModel extends AbstractTableTypeModel<TomlTable> {
         private static final LiteralMapper INSTANCE = new LiteralMapper();
 
         @Override
-        public @NotNull Key fromTomlKey(@NotNull TomlKey key) {
+        public Key fromTomlKey(TomlKey key) {
             return new LiteralKey(key);
         }
 
@@ -115,7 +117,7 @@ final class TomlTableTypeModel extends AbstractTableTypeModel<TomlTable> {
 
         private final Set<TomlKey> backing;
 
-        KeySet(@NotNull Set<TomlKey> backing) {
+        KeySet(Set<TomlKey> backing) {
             this.backing = backing;
         }
 

@@ -35,7 +35,6 @@ import io.github.wasabithumb.jtoml.value.TomlValue;
 import io.github.wasabithumb.jtoml.value.TomlValueFlags;
 import io.github.wasabithumb.jtoml.value.array.TomlArray;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.UnknownNullability;
 import org.jetbrains.annotations.Unmodifiable;
 
@@ -46,19 +45,19 @@ public final class TableReader extends ExpressionReader {
 
     private final TomlIssues.@UnknownNullability Builder issues;
 
-    public TableReader(@NotNull BufferedCharSource in, @NotNull JTomlOptions options) {
+    public TableReader(BufferedCharSource in, JTomlOptions options) {
         super(in, options);
         this.issues = options.get(JTomlOption.ERROR_RECOVERY) ? TomlIssues.builder() : null;
     }
 
     //
 
-    public @NotNull @Unmodifiable TomlIssues issues() {
+    public @Unmodifiable TomlIssues issues() {
         if (this.issues == null) return TomlIssues.empty();
         return this.issues.build();
     }
 
-    public @NotNull TomlTable readTable() {
+    public TomlTable readTable() {
         TomlTable ret = TomlTable.create();
         Context ctx = new Context(ret, this.options.get(JTomlOption.EXTENSION_GUARD));
         Expression next;
@@ -115,11 +114,11 @@ public final class TableReader extends ExpressionReader {
         private final TomlTable global;
         private final boolean extGuard;
         private boolean useSub;
-        private TomlKey subKey;
-        private TomlTable subTable;
+        private @UnknownNullability TomlKey subKey;
+        private @UnknownNullability TomlTable subTable;
 
         Context(
-                @NotNull TomlTable global,
+                TomlTable global,
                 boolean extGuard
         ) {
             this.global = global;
@@ -131,7 +130,7 @@ public final class TableReader extends ExpressionReader {
 
         //
 
-        @NotNull TomlTable applyTable(@NotNull TableExpression e) throws TomlException {
+        TomlTable applyTable(TableExpression e) throws TomlException {
             TomlValue head = this.global;
             TomlKey key = e.key();
             int ks = key.size();
@@ -236,7 +235,7 @@ public final class TableReader extends ExpressionReader {
             return newTable;
         }
 
-        @NotNull TomlValue applyKeyValue(@NotNull KeyValueExpression e) throws TomlException {
+        TomlValue applyKeyValue(KeyValueExpression e) throws TomlException {
             TomlTable target = this.useSub ? this.subTable : this.global;
             TomlKey key = e.key();
             TomlValue value = e.value();
@@ -277,7 +276,7 @@ public final class TableReader extends ExpressionReader {
             return value;
         }
 
-        private @NotNull TomlKey fullKey(@NotNull TomlKey key) {
+        private TomlKey fullKey(TomlKey key) {
             return this.useSub ?
                     TomlKey.join(this.subKey, key) :
                     key;

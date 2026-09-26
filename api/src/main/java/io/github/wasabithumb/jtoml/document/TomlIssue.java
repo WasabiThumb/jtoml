@@ -20,7 +20,6 @@ import io.github.wasabithumb.jtoml.except.TomlException;
 import io.github.wasabithumb.jtoml.except.parse.TomlLocalParseException;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
@@ -36,8 +35,8 @@ public interface TomlIssue {
     /**
      * Creates an issue wrapping the given
      * exception.
+     * @throws NullPointerException exception is null
      */
-    @Contract("null -> fail; !null -> new")
     static TomlIssue issue(TomlLocalParseException exception) {
         Objects.requireNonNull(exception, "exception must not be null");
         return new TomlIssueImpl(exception.getLineNumber(), exception.getColumnNumber(), exception.getRawMessage());
@@ -48,8 +47,9 @@ public interface TomlIssue {
      * @param line Line number of the issue (starting from 0)
      * @param column Column number of the issue (starting from 0)
      * @param message Message string of the issue
+     * @throws IllegalStateException line or column is less than 0
+     * @throws NullPointerException message is null
      */
-    @Contract("_, _, null -> fail; _, _, !null -> new")
     static TomlIssue issue(int line, int column, String message) {
         if (line < 0) throw new IllegalStateException("line must not be negative");
         if (column < 0) throw new IllegalStateException("column must not be negative");
@@ -80,7 +80,7 @@ public interface TomlIssue {
      * Reports a human-readable description of the issue encountered.
      */
     @Contract(pure = true)
-    @NotNull String message();
+    String message();
 
     /**
      * Creates a new {@link TomlLocalParseException}
@@ -89,7 +89,7 @@ public interface TomlIssue {
      * @see #unwrap()
      */
     @Contract("-> new")
-    default @NotNull TomlLocalParseException toException() {
+    default TomlLocalParseException toException() {
         return new TomlLocalParseException(this.message(), this.line(), this.column());
     }
 

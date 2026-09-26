@@ -17,7 +17,6 @@
 package io.github.wasabithumb.jtoml.option.prop;
 
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Value of the {@link io.github.wasabithumb.jtoml.option.JTomlOption#LINE_SEPARATOR LINE_SEPARATOR}
@@ -55,7 +54,7 @@ public enum LineSeparator implements CharSequence {
 
     private final char[] data;
 
-    LineSeparator(char @NotNull [] data) {
+    LineSeparator(char [] data) {
         this.data = data;
     }
 
@@ -73,12 +72,12 @@ public enum LineSeparator implements CharSequence {
 
     @Override
     @Contract("_, _ -> fail")
-    public @NotNull CharSequence subSequence(int start, int end) {
+    public CharSequence subSequence(int start, int end) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public @NotNull String toString() {
+    public String toString() {
         return new String(this.data);
     }
 

@@ -17,7 +17,6 @@
 package io.github.wasabithumb.jtoml.document;
 
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 @ApiStatus.Internal
 final class TomlIssueImpl implements TomlIssue {
@@ -29,7 +28,7 @@ final class TomlIssueImpl implements TomlIssue {
     TomlIssueImpl(
             int line,
             int column,
-            @NotNull String message
+            String message
     ) {
         this.line = line;
         this.column = column;
@@ -49,7 +48,7 @@ final class TomlIssueImpl implements TomlIssue {
     }
 
     @Override
-    public @NotNull String message() {
+    public String message() {
         return this.message;
     }
 

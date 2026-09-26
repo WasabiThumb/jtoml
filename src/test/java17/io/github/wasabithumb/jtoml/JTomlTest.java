@@ -17,6 +17,7 @@
 package io.github.wasabithumb.jtoml;
 
 import io.github.wasabithumb.jtoml.except.TomlException;
+import io.github.wasabithumb.jtoml.except.TomlIOException;
 import io.github.wasabithumb.jtoml.except.parse.TomlParseException;
 import io.github.wasabithumb.jtoml.key.TomlKey;
 import io.github.wasabithumb.jtoml.route.TestRouteRunner;
@@ -27,8 +28,12 @@ import io.github.wasabithumb.jtoml.value.TomlValue;
 import io.github.wasabithumb.jtoml.value.array.TomlArray;
 import io.github.wasabithumb.jtoml.value.primitive.TomlPrimitive;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
+import org.jetbrains.annotations.UnknownNullability;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 
 import java.io.IOException;
@@ -38,9 +43,17 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Entry point for JToml tests.
+ * This is the only class currently using
+ * JUnit injection annotations, the rest
+ * of the test source is fixtures that are
+ * inevitably used by this class.
+ */
+@NullMarked
 class JTomlTest {
 
-    private static JToml TOML;
+    private static @UnknownNullability JToml TOML;
 
     @BeforeAll
     static void setup() {
@@ -49,12 +62,85 @@ class JTomlTest {
 
     //
 
+    /**
+     * Tests that the rather optimized
+     * {@link TomlKey} APIs are
+     * functioning as intended.
+     */
+    @Test
+    void keys() {
+        // Make a key in a very contrived way
+        TomlKey key = TomlKey.join(
+                TomlKey.literal("a", "b"),
+                TomlKey.join(
+                        TomlKey.parse("c.'d'"),
+                        TomlKey.literal("e", "f")
+                ),
+                TomlKey.join(
+                        TomlKey.literal("g", "h"),
+                        TomlKey.parse("\"i\".j.k")
+                ),
+                TomlKey.literal("l.m.n.o.p"),
+                TomlKey.parse("q.r.s")
+        ).slice(2, 12);
+
+        // Ensure we got the right key
+        assertEquals(
+                TomlKey.parse("c.d.e.f.g.h.i.j.k.'l.m.n.o.p'"),
+                key
+        );
+
+        // Iterate maliciously
+        ListIterator<String> iter = key.listIterator(4);
+
+        assertTrue(iter.hasNext());
+        assertEquals(4, iter.nextIndex());
+        assertEquals("g", iter.next());
+
+        assertTrue(iter.hasPrevious());
+        assertEquals(4, iter.previousIndex());
+        assertEquals("g", iter.previous());
+
+        assertTrue(iter.hasPrevious());
+        assertEquals(3, iter.previousIndex());
+        assertEquals("f", iter.previous());
+
+        for (int i = 2; i >= 0; i--) {
+            assertTrue(iter.hasPrevious());
+            assertEquals(i, iter.previousIndex());
+            iter.previous();
+        }
+        assertFalse(iter.hasPrevious());
+
+        for (int i = 0; i < 9; i++) {
+            assertTrue(iter.hasNext());
+            assertEquals(i, iter.nextIndex());
+            iter.next();
+        }
+
+        assertTrue(iter.hasNext());
+        assertEquals(9, iter.nextIndex());
+        assertEquals("l.m.n.o.p", iter.next());
+        assertFalse(iter.hasNext());
+    }
+
+    /**
+     * Runs every test route in {@code io.github.wasabithumb.jtoml.route.impl}.
+     * Test routes are for testing library features, not language features,
+     * which should be covered by the official test suite.
+     */
     @TestFactory
     Stream<DynamicTest> routes() {
         return TestRoutes.stream()
                 .map(TestRouteRunner::newDynamicTest);
     }
 
+    /**
+     * Ensures that every valid and invalid test case in the official test
+     * suite (fetched by the {@code fetchTests} Gradle task and piped into
+     * {@code processTestRecourses}) either succeeds and matches the expected
+     * AST exactly or fails in the expected way.
+     */
     @TestFactory
     Stream<DynamicTest> read() {
         TestSpecs specs = assertDoesNotThrow(TestSpecs::load, "Failed to load test specs");
@@ -78,6 +164,13 @@ class JTomlTest {
 
     //
 
+    /**
+     * Ensures that every valid test case in the official test
+     * suite (fetched by the {@code fetchTests} Gradle task and piped into
+     * {@code processTestRecourses}) can be parsed, written, re-parsed,
+     * and that the parsed and re-parsed documents are semantically
+     * identical.
+     */
     @TestFactory
     Stream<DynamicTest> write() {
         TestSpecs specs = assertDoesNotThrow(TestSpecs::load, "Failed to load test specs");
@@ -123,7 +216,7 @@ class JTomlTest {
         assertEquals(p1.asString(), p2.asString());
     }
 
-    private void writeEqualsAny(TomlValue v1, TomlValue v2) {
+    private void writeEqualsAny(@Nullable TomlValue v1, @Nullable TomlValue v2) {
         if (v1 == null) {
             assertNull(v2);
             return;
@@ -148,6 +241,8 @@ class JTomlTest {
     private TomlTable parse(TestSpec spec) throws TomlException, IOException {
         try (InputStream in = spec.read()) {
             return TOML.read(in);
+        } catch (TomlIOException e) {
+            throw e.getCause();
         }
     }
 

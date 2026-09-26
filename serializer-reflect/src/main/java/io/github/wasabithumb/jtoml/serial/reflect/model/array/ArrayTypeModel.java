@@ -20,8 +20,7 @@ import io.github.wasabithumb.jtoml.serial.reflect.model.TypeModel;
 import io.github.wasabithumb.jtoml.util.ParameterizedClass;
 import io.github.wasabithumb.jtoml.value.array.TomlArray;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Iterator;
 import java.util.List;
@@ -31,7 +30,7 @@ import java.util.Set;
 public interface ArrayTypeModel<T> extends TypeModel<T> {
 
     @SuppressWarnings("unchecked")
-    static <O> @Nullable ArrayTypeModel<O> match(@NotNull ParameterizedClass<O> pc) {
+    static <O> @Nullable ArrayTypeModel<O> match(ParameterizedClass<O> pc) {
         Class<O> raw = pc.raw();
 
         // TomlArray
@@ -62,14 +61,14 @@ public interface ArrayTypeModel<T> extends TypeModel<T> {
 
     //
 
-    @NotNull ParameterizedClass<?> componentType();
+    ParameterizedClass<?> componentType();
 
-    @NotNull T createNew(int length);
+    T createNew(int length);
 
-    int size(@NotNull T instance);
+    int size(T instance);
 
-    @NotNull Iterator<?> iterator(@NotNull T instance);
+    Iterator<?> iterator(T instance);
 
-    void put(@NotNull T instance, @NotNull Object object);
+    void put(T instance, Object object);
 
 }

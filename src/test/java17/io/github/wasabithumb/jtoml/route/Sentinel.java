@@ -16,8 +16,11 @@
 
 package io.github.wasabithumb.jtoml.route;
 
+import org.jspecify.annotations.NullMarked;
+
 import java.lang.annotation.*;
 
+@NullMarked
 @Documented
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)

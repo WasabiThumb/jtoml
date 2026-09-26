@@ -18,7 +18,6 @@ package io.github.wasabithumb.jtoml.value.primitive;
 
 import io.github.wasabithumb.jtoml.comment.Comments;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -30,7 +29,7 @@ final class IntegerTomlPrimitive extends AbstractTomlPrimitive<Long> {
 
     private final long value;
 
-    public IntegerTomlPrimitive(@NotNull Comments comments, long value) {
+    public IntegerTomlPrimitive(Comments comments, long value) {
         super(comments);
         this.value = value;
     }
@@ -42,17 +41,17 @@ final class IntegerTomlPrimitive extends AbstractTomlPrimitive<Long> {
     //
 
     @Override
-    public @NotNull TomlPrimitiveType type() {
+    public TomlPrimitiveType type() {
         return TomlPrimitiveType.INTEGER;
     }
 
     @Override
-    public @NotNull Long value() {
+    public Long value() {
         return this.value;
     }
 
     @Override
-    public @NotNull String asString() {
+    public String asString() {
         return Long.toString(this.value);
     }
 
@@ -72,12 +71,12 @@ final class IntegerTomlPrimitive extends AbstractTomlPrimitive<Long> {
     }
 
     @Override
-    public @NotNull OffsetDateTime asOffsetDateTime() {
+    public OffsetDateTime asOffsetDateTime() {
         return Instant.ofEpochMilli(this.value).atOffset(ZoneOffset.UTC);
     }
 
     @Override
-    public @NotNull LocalDateTime asLocalDateTime() {
+    public LocalDateTime asLocalDateTime() {
         return LocalDateTime.ofEpochSecond(
                 this.value / 1000L,
                 ((int) (this.value % 1000)) * 1000000,
@@ -86,7 +85,7 @@ final class IntegerTomlPrimitive extends AbstractTomlPrimitive<Long> {
     }
 
     @Override
-    public @NotNull Instant asInstant() {
+    public Instant asInstant() {
         return Instant.ofEpochMilli(this.value);
     }
 

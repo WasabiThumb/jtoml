@@ -3,6 +3,7 @@ gson = "2.14.0"
 configurate = "4.2.0"
 recsup = "0.2.0"
 annotations = "26.1.0"
+jspecify = "1.0.1"
 indra = "4.1.0"
 
 [libraries]
@@ -10,6 +11,7 @@ gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 configurate-bom = { group = "org.spongepowered", name = "configurate-bom", version.ref = "configurate" }
 recsup = { group = "io.github.wasabithumb", name = "recsup", version.ref = "recsup" }
 annotations = { group = "org.jetbrains", name = "annotations", version.ref = "annotations" }
+jspecify = { group = "org.jspecify", name = "jspecify", version.ref = "jspecify" }
 
 [plugins]
 jvm = { id = "org.jetbrains.kotlin.jvm", version = "2.4.20" }

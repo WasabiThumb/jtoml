@@ -17,7 +17,11 @@
 package io.github.wasabithumb.jtoml.value.table;
 
 import io.github.wasabithumb.jtoml.value.TomlValue;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.UnknownNullability;
+import org.jetbrains.annotations.Unmodifiable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.IntFunction;
@@ -26,12 +30,12 @@ import java.util.function.IntFunction;
 final class TomlTableBranch implements TomlTableNode {
 
     @Contract("_ -> new")
-    public static @NotNull TomlTableBranch copyOf(@NotNull TomlTableBranch branch) {
+    public static TomlTableBranch copyOf(TomlTableBranch branch) {
         return copyOf(branch, null);
     }
 
     @Contract("_, _ -> new")
-    private static @NotNull TomlTableBranch copyOf(@NotNull TomlTableBranch branch, @Nullable TomlTableBranch parent) {
+    private static TomlTableBranch copyOf(TomlTableBranch branch, @Nullable TomlTableBranch parent) {
         TomlTableBranch ret = new TomlTableBranch(branch.capacity);
         ret.len = branch.len;
         ret.entryCount = branch.entryCount;
@@ -56,11 +60,11 @@ final class TomlTableBranch implements TomlTableNode {
     }
 
     private static <T> @UnknownNullability T binarySearch(
-            @NotNull String needle,
-            @NotNull String @NotNull [] haystack,
+            String needle,
+            String [] haystack,
             int len,
-            @NotNull IntFunction<T> hit,
-            @NotNull IntFunction<T> miss
+            IntFunction<@UnknownNullability T> hit,
+            IntFunction<@UnknownNullability T> miss
     ) {
         int off = 0;
         while (len > 0) {
@@ -92,7 +96,7 @@ final class TomlTableBranch implements TomlTableNode {
     private String[] labels;
     private TomlTableNode[] nodes;
     private int entryCount;
-    TomlValue attachedValue;
+    @Nullable TomlValue attachedValue;
 
     private TomlTableBranch(int capacity) {
         this.parents = Collections.newSetFromMap(new WeakHashMap<>());
@@ -111,7 +115,7 @@ final class TomlTableBranch implements TomlTableNode {
     //
 
     /** @implNote This is a shallow listing */
-    public @NotNull @Unmodifiable List<String> keys() {
+    public @Unmodifiable List<String> keys() {
         return Collections.unmodifiableList(Arrays.asList(this.labels).subList(0, this.len));
     }
 
@@ -126,7 +130,7 @@ final class TomlTableBranch implements TomlTableNode {
         this.modifyEntryCount(-this.entryCount);
     }
 
-    public @Nullable TomlTableNode get(@NotNull String label) {
+    public @Nullable TomlTableNode get(String label) {
         return binarySearch(
                 label,
                 this.labels,
@@ -136,7 +140,7 @@ final class TomlTableBranch implements TomlTableNode {
         );
     }
 
-    public @Nullable TomlTableNode put(@NotNull String label, @NotNull TomlTableNode node) {
+    public @Nullable TomlTableNode put(String label, TomlTableNode node) {
         return binarySearch(
                 label,
                 this.labels,
@@ -165,7 +169,7 @@ final class TomlTableBranch implements TomlTableNode {
         );
     }
 
-    public @Nullable TomlTableNode remove(@NotNull String label) {
+    public @Nullable TomlTableNode remove(String label) {
         return binarySearch(
                 label,
                 this.labels,
@@ -190,7 +194,7 @@ final class TomlTableBranch implements TomlTableNode {
             parent.modifyEntryCount(mod);
     }
 
-    private boolean isInHierarchy(@NotNull TomlTableBranch subject) {
+    private boolean isInHierarchy(TomlTableBranch subject) {
         if (this.equals(subject)) return true;
         for (TomlTableBranch parent : this.parents) {
             if (parent.isInHierarchy(subject)) return true;
@@ -198,17 +202,17 @@ final class TomlTableBranch implements TomlTableNode {
         return false;
     }
 
-    private void addParent(@NotNull TomlTableBranch parent) {
+    private void addParent(TomlTableBranch parent) {
         if (parent.isInHierarchy(this))
             throw new IllegalStateException("Attempt to create circular table relationship");
         this.parents.add(parent);
     }
 
-    private void removeParent(@NotNull TomlTableBranch parent) {
+    private void removeParent(TomlTableBranch parent) {
         this.parents.remove(parent);
     }
 
-    private void tryUnparent(@NotNull TomlTableBranch child) {
+    private void tryUnparent(TomlTableBranch child) {
         for (int i = 0; i < this.len; i++) {
             if (child.sameIdentity(this.nodes[i])) return;
         }
@@ -257,7 +261,7 @@ final class TomlTableBranch implements TomlTableNode {
 
     @Override
     @Contract("-> this")
-    public @NotNull TomlTableBranch asBranch() {
+    public TomlTableBranch asBranch() {
         return this;
     }
 
@@ -268,7 +272,7 @@ final class TomlTableBranch implements TomlTableNode {
 
     @Override
     @Contract("-> fail")
-    public @NotNull TomlTableLeaf asLeaf() {
+    public TomlTableLeaf asLeaf() {
         throw new UnsupportedOperationException();
     }
 

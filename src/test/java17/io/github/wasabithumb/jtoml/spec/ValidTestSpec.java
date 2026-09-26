@@ -26,6 +26,8 @@ import io.github.wasabithumb.jtoml.value.TomlValue;
 import io.github.wasabithumb.jtoml.value.array.TomlArray;
 import io.github.wasabithumb.jtoml.value.primitive.TomlPrimitive;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,6 +41,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@NullMarked
 final class ValidTestSpec extends AbstractTestSpec {
 
     private static final Gson GSON = new Gson();
@@ -66,7 +69,7 @@ final class ValidTestSpec extends AbstractTestSpec {
         this.validateTable(null, table, validator);
     }
 
-    private void validateTable(String descriptor, TomlTable table, JsonObject validator) {
+    private void validateTable(@Nullable String descriptor, TomlTable table, JsonObject validator) {
         String specifier;
         if (descriptor == null) {
             specifier = "Root table";

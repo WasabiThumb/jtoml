@@ -38,8 +38,9 @@ indraSpotlessLicenser {
 }
 
 dependencies {
-    compileOnly(libs.annotations)
-    implementation(project(":api"))
+    api(libs.annotations)
+    api(libs.jspecify)
+    api(project(":api"))
 }
 
 tasks.jar {

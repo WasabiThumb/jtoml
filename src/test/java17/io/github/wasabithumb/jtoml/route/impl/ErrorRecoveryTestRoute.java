@@ -24,11 +24,13 @@ import io.github.wasabithumb.jtoml.option.JTomlOptions;
 import io.github.wasabithumb.jtoml.route.Sentinel;
 import io.github.wasabithumb.jtoml.route.TestRoute;
 import io.github.wasabithumb.jtoml.value.primitive.TomlPrimitive;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@NullMarked
 public final class ErrorRecoveryTestRoute implements TestRoute.Configuring {
 
     @Sentinel("error-recovery.toml")

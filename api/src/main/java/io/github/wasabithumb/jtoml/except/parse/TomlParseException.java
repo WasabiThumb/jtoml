@@ -18,8 +18,7 @@ package io.github.wasabithumb.jtoml.except.parse;
 
 import io.github.wasabithumb.jtoml.except.TomlException;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Errors relating to TOML parsing
@@ -31,11 +30,11 @@ public abstract class TomlParseException extends TomlException {
 
     //
 
-    public TomlParseException(@NotNull String message) {
+    public TomlParseException(String message) {
         super(message);
     }
 
-    public TomlParseException(@NotNull String message, @Nullable Throwable cause) {
+    public TomlParseException(String message, @Nullable Throwable cause) {
         super(message, cause);
     }
 
