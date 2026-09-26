@@ -150,9 +150,7 @@ public interface TomlKey extends List<String>, Comparable<TomlKey> {
      * Alias for {@link #slice(int, int)}.
      */
     @Override
-    default @NotNull TomlKey subList(int fromIndex, int toIndex) {
-        return this.slice(fromIndex, toIndex);
-    }
+    @NotNull TomlKey subList(int fromIndex, int toIndex);
 
     /**
      * Serializes the key represented by this object
