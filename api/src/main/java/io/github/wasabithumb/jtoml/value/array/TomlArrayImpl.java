@@ -19,7 +19,6 @@ package io.github.wasabithumb.jtoml.value.array;
 import io.github.wasabithumb.jtoml.comment.Comments;
 import io.github.wasabithumb.jtoml.value.TomlValue;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -102,6 +101,12 @@ final class TomlArrayImpl
     @Override
     public @NotNull TomlValue get(int index) throws IndexOutOfBoundsException {
         return this.backing.get(index);
+    }
+
+    @Override
+    public void add(int index, TomlValue element) {
+        if (element == null) throw new NullPointerException("Cannot add null to TomlArray");
+        this.backing.add(index, element);
     }
 
     @Override

@@ -81,6 +81,15 @@ public interface TomlArray extends List<TomlValue>, RandomAccess, TomlValue {
     /**
      * Adds a new element to this array.
      * @throws NullPointerException Value is null
+     * @throws IndexOutOfBoundsException Index is less than 0 or not less than or equal to {@link #size()}
+     */
+    @Override
+    @Contract(value = "_, null -> fail", mutates = "this")
+    void add(int index, TomlValue element);
+
+    /**
+     * Adds a new element to this array.
+     * @throws NullPointerException Value is null
      */
     @Override
     @Contract(value = "null -> fail; !null -> true", mutates = "this")
