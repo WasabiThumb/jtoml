@@ -19,11 +19,13 @@ package io.github.wasabithumb.jtoml.route.impl;
 import io.github.wasabithumb.jtoml.JToml;
 import io.github.wasabithumb.jtoml.route.Sentinel;
 import io.github.wasabithumb.jtoml.route.helper.HolidaysTestRoute;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 
+@NullMarked
 public final class SetHolidaysTestRoute extends HolidaysTestRoute {
 
     @Sentinel("holidays.toml")

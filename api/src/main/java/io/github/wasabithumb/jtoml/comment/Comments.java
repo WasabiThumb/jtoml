@@ -16,7 +16,10 @@
 
 package io.github.wasabithumb.jtoml.comment;
 
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.Unmodifiable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
@@ -33,7 +36,7 @@ public interface Comments {
      * @return A new mutable {@link Comments} instance
      */
     @Contract("-> new")
-    static @NotNull Comments empty() {
+    static Comments empty() {
         return new CommentsImpl();
     }
 
@@ -45,7 +48,7 @@ public interface Comments {
      */
     @Contract("_ -> new")
     @ApiStatus.AvailableSince("0.6.4")
-    static @NotNull Comments copyOf(@NotNull Comments other) {
+    static Comments copyOf(Comments other) {
         return CommentsImpl.copyOf(other);
     }
 
@@ -57,7 +60,7 @@ public interface Comments {
      */
     @Contract("_ -> new")
     @ApiStatus.AvailableSince("1.5.0")
-    static @NotNull Comments comments(@NotNull Comment @NotNull ... src) {
+    static Comments comments(Comment... src) {
         Comments ret = empty();
         for (Comment comment : src) ret.add(comment);
         return ret;
@@ -77,13 +80,13 @@ public interface Comments {
      * document. Comments are sorted by {@link CommentPosition position},
      * then by insertion order.
      */
-    @NotNull @Unmodifiable List<Comment> all();
+    @Unmodifiable List<Comment> all();
 
     /**
      * Provides an immutable list of all comments of the given
      * {@link CommentPosition position} in insertion order.
      */
-    @NotNull @Unmodifiable List<Comment> get(@NotNull CommentPosition position);
+    @Unmodifiable List<Comment> get(CommentPosition position);
 
     /**
      * Gets the content of the {@link CommentPosition#INLINE INLINE} comment,
@@ -103,14 +106,14 @@ public interface Comments {
     /**
      * Removes all comments of the given {@link CommentPosition position}.
      */
-    void clear(@NotNull CommentPosition position);
+    void clear(CommentPosition position);
 
     /**
      * Adds a comment. If the position of the comment is
      * {@link CommentPosition#INLINE INLINE}, any existing
      * inline comment is replaced.
      */
-    void add(@NotNull Comment comment);
+    void add(Comment comment);
 
     /**
      * Creates and adds a comment
@@ -119,7 +122,7 @@ public interface Comments {
      * @param content Content of the comment
      * @see #add(Comment)
      */
-    default void add(@NotNull CommentPosition position, @NotNull String content) {
+    default void add(CommentPosition position, String content) {
         this.add(Comment.of(position, content));
     }
 
@@ -127,7 +130,7 @@ public interface Comments {
      * Alias for {@code add(CommentPosition.PRE, content)}
      * @see #add(CommentPosition, String)
      */
-    default void addPre(@NotNull String content) {
+    default void addPre(String content) {
         this.add(CommentPosition.PRE, content);
     }
 
@@ -135,7 +138,7 @@ public interface Comments {
      * Alias for {@code add(CommentPosition.INLINE, content)}
      * @see #add(CommentPosition, String)
      */
-    default void addInline(@NotNull String content) {
+    default void addInline(String content) {
         this.add(CommentPosition.INLINE, content);
     }
 
@@ -155,7 +158,7 @@ public interface Comments {
      * Alias for {@code add(CommentPosition.POST, content)}
      * @see #add(CommentPosition, String)
      */
-    default void addPost(@NotNull String content) {
+    default void addPost(String content) {
         this.add(CommentPosition.POST, content);
     }
 

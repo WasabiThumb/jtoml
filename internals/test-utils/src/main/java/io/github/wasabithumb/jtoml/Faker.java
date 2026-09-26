@@ -16,7 +16,7 @@
 package io.github.wasabithumb.jtoml;
 
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -37,6 +37,7 @@ import java.util.Random;
  * A utility class for generating sample values for the purpose
  * of round-trip tests. Named in reference to the {@code faker.js} project.
  */
+@NullMarked
 public final class Faker {
 
     private static final List<String> NOUNS = readStringList("faker/nouns.txt");
@@ -80,7 +81,7 @@ public final class Faker {
     /**
      * Populates the fields of a POJO with sample values
      */
-    public void populate(@NotNull Object object) {
+    public void populate(Object object) {
         Class<?> cls = object.getClass();
         for (Field f : cls.getDeclaredFields()) {
             try {
@@ -107,7 +108,7 @@ public final class Faker {
      * Creates a new sample value of the given type
      */
     @SuppressWarnings("unchecked")
-    public <T> @NotNull T create(@NotNull Class<T> clazz) {
+    public <T> T create(Class<T> clazz) {
         if (String.class.equals(clazz)) {
             return clazz.cast(this.createString());
         } else if (Boolean.class.equals(clazz) || Boolean.TYPE.equals(clazz)) {
@@ -138,7 +139,7 @@ public final class Faker {
         }
     }
 
-    public @NotNull String createString() {
+    public String createString() {
         return this.selectString(ADJECTIVES) + " " + this.selectString(NOUNS) + " " + this.selectString(EMOJI);
     }
 
@@ -154,14 +155,14 @@ public final class Faker {
         return (this.random.nextDouble() * 100d) - 50d;
     }
 
-    public @NotNull LocalDate createLocalDate() {
+    public LocalDate createLocalDate() {
         final int year = 1800 + this.random.nextInt(400);
         Month m = Month.of(this.random.nextInt(12) + 1);
         int day = this.random.nextInt(m.length(Year.of(year).isLeap())) + 1;
         return LocalDate.of(year, m, day);
     }
 
-    public @NotNull LocalTime createLocalTime() {
+    public LocalTime createLocalTime() {
         return LocalTime.of(
                 this.random.nextInt(24),
                 this.random.nextInt(60),
@@ -170,18 +171,18 @@ public final class Faker {
         );
     }
 
-    public @NotNull LocalDateTime createLocalDateTime() {
+    public LocalDateTime createLocalDateTime() {
         return LocalDateTime.of(this.createLocalDate(), this.createLocalTime());
     }
 
-    public @NotNull OffsetDateTime createOffsetDateTime() {
+    public OffsetDateTime createOffsetDateTime() {
         return OffsetDateTime.of(
                 this.createLocalDateTime(),
                 ZoneOffset.ofTotalSeconds((this.random.nextInt(73) * 1800) - 64800)
         );
     }
 
-    private <T> @NotNull T createObject(@NotNull Class<T> clazz) {
+    private <T> T createObject(Class<T> clazz) {
         int mod = clazz.getModifiers();
         if (Modifier.isAbstract(mod) || Modifier.isInterface(mod)) {
             throw new IllegalArgumentException("Type \"" + clazz +
@@ -219,11 +220,11 @@ public final class Faker {
         return instance;
     }
 
-    private @NotNull String selectString(@NotNull List<String> list) {
+    private String selectString(List<String> list) {
         return list.get(this.random.nextInt(list.size()));
     }
 
-    private static @NotNull List<String> readStringList(@NotNull String path) {
+    private static List<String> readStringList(String path) {
         try (InputStream is = Faker.class.getClassLoader().getResourceAsStream(path)) {
             if (is == null) throw new IllegalArgumentException("Resource \"" + path + "\" not found");
             List<String> list = new ArrayList<>();
@@ -241,7 +242,7 @@ public final class Faker {
         }
     }
 
-    private static void trySetModifiers(@NotNull Field field, int modifiers) {
+    private static void trySetModifiers(Field field, int modifiers) {
         try {
             Field modifiersField = Field.class.getDeclaredField("modifiers");
             modifiersField.setAccessible(true);

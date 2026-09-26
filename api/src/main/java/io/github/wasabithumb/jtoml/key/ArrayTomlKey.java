@@ -17,14 +17,11 @@
 package io.github.wasabithumb.jtoml.key;
 
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
+import org.jspecify.annotations.Nullable;
 
 import java.nio.CharBuffer;
-import java.util.Arrays;
-import java.util.Iterator;
 import java.util.RandomAccess;
-import java.util.stream.Stream;
 
 @ApiStatus.Internal
 final class ArrayTomlKey
@@ -32,7 +29,7 @@ final class ArrayTomlKey
         implements RandomAccess
 {
 
-    public static @NotNull ArrayTomlKey parse(@NotNull CharSequence str) throws IllegalArgumentException {
+    public static ArrayTomlKey parse(CharSequence str) throws IllegalArgumentException {
         if (str instanceof String) {
             str = CharBuffer.wrap(str);
         }
@@ -75,7 +72,8 @@ final class ArrayTomlKey
 
         String[] parts = new String[count + 1];
         int b = str.length();
-        for (int i=count; i > 0; i--) {
+        for (int i = count; i > 0; i--) {
+            assert linkedDots != null;
             parts[i] = parseSingle(i, str.subSequence(linkedDots.value + 1, b));
             b = linkedDots.value;
             linkedDots = linkedDots.next;
@@ -85,7 +83,7 @@ final class ArrayTomlKey
         return new ArrayTomlKey(parts);
     }
 
-    private static @NotNull String parseSingle(int index, @NotNull CharSequence str) throws IllegalArgumentException {
+    private static String parseSingle(int index, CharSequence str) throws IllegalArgumentException {
         final int len = str.length();
         if (len == 0) throw new IllegalArgumentException("Part #" + index + " is empty");
 
@@ -148,8 +146,8 @@ final class ArrayTomlKey
 
     @SuppressWarnings("fallthrough")
     private static @Range(from=-1, to=Integer.MAX_VALUE) int decodeEscape(
-            @NotNull StringBuilder dest,
-            @NotNull CharSequence str
+            StringBuilder dest,
+            CharSequence str
     ) {
         final int len = str.length();
         if (len == 0) return -1;
@@ -204,7 +202,7 @@ final class ArrayTomlKey
 
     private final String[] data;
 
-    ArrayTomlKey(@NotNull String @NotNull [] data) {
+    ArrayTomlKey(String [] data) {
         this.data = data;
     }
 
@@ -216,7 +214,7 @@ final class ArrayTomlKey
     }
 
     @Override
-    public @NotNull String get(int index) throws IndexOutOfBoundsException {
+    public String get(int index) throws IndexOutOfBoundsException {
         if (index < 0 || index >= this.data.length)
             throw new IndexOutOfBoundsException("Index " + index + " out of bounds for size " + this.data.length);
         return this.data[index];
@@ -227,9 +225,9 @@ final class ArrayTomlKey
     private static final class LinkedInt {
 
         final int value;
-        final LinkedInt next;
+        final @Nullable LinkedInt next;
 
-        LinkedInt(int value, LinkedInt next) {
+        LinkedInt(int value, @Nullable LinkedInt next) {
             this.value = value;
             this.next = next;
         }

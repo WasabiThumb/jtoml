@@ -17,9 +17,7 @@
 package io.github.wasabithumb.jtoml.except;
 
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
-import java.time.LocalDate;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
 
@@ -49,7 +47,7 @@ public final class TomlValueException extends TomlException {
      * @throws java.time.DateTimeException A required field could not be read from the given object
      */
     @ApiStatus.Internal
-    public static void checkDate(@NotNull TemporalAccessor date) {
+    public static void checkDate(TemporalAccessor date) {
         final int year = date.get(ChronoField.YEAR);
         if (0 <= year && year <= 9999) return;
         throw new TomlValueException("Date-time " + date + " has illegal year: " + year);
@@ -57,7 +55,7 @@ public final class TomlValueException extends TomlException {
 
     //
 
-    public TomlValueException(@NotNull String message) {
+    public TomlValueException(String message) {
         super(message);
     }
 

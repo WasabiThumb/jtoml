@@ -16,8 +16,6 @@
 
 package io.github.wasabithumb.jtoml.configurate;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.framework.qual.DefaultQualifier;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.loader.AbstractConfigurationFormat;
 import org.spongepowered.configurate.loader.ConfigurationFormat;
@@ -31,7 +29,6 @@ import java.util.Set;
  * <p>This format should not be used directly, but instead accessed
  * through methods on {@link ConfigurationFormat}.</p>
  */
-@DefaultQualifier(NonNull.class)
 public final class TomlConfigurationFormat extends AbstractConfigurationFormat<
         CommentedConfigurationNode,
         TomlConfigurationLoader,

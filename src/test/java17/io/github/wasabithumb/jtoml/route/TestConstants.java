@@ -16,11 +16,14 @@
 
 package io.github.wasabithumb.jtoml.route;
 
+import org.jspecify.annotations.NullMarked;
+
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
+@NullMarked
 public final class TestConstants {
 
     public static final int MEANING_OF_LIFE = 42;

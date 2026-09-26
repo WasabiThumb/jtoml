@@ -19,9 +19,11 @@ package io.github.wasabithumb.jtoml.route.impl;
 import io.github.wasabithumb.jtoml.JToml;
 import io.github.wasabithumb.jtoml.route.Sentinel;
 import io.github.wasabithumb.jtoml.route.helper.BirthdaysTestRoute;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.function.IntFunction;
 
+@NullMarked
 public final class ArrayBirthdaysTestRoute extends BirthdaysTestRoute {
 
     @Sentinel("birthdays.toml")

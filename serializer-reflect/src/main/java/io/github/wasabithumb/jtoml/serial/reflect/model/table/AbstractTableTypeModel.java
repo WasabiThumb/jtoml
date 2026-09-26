@@ -25,8 +25,7 @@ import io.github.wasabithumb.jtoml.serial.reflect.Convention;
 import io.github.wasabithumb.jtoml.serial.reflect.Defaulting;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
@@ -41,8 +40,8 @@ abstract class AbstractTableTypeModel<T> implements TableTypeModel<T> {
 
     @Contract(mutates = "param2")
     protected static void applyAnnotationComments(
-            @NotNull AnnotatedElement annotated,
-            @NotNull Comments comments
+            AnnotatedElement annotated,
+            Comments comments
     ) {
         Annotation[] annotations = annotated.getDeclaredAnnotations();
         for (Annotation a : annotations) {
@@ -103,8 +102,8 @@ abstract class AbstractTableTypeModel<T> implements TableTypeModel<T> {
         private final @Nullable Annotation defaultingAnnotation;
 
         MemberKey(
-                @NotNull M member,
-                @NotNull KeyConvention defaultConvention
+                M member,
+                KeyConvention defaultConvention
         ) {
             this.member = member;
             this.defaultConvention = defaultConvention;
@@ -184,7 +183,7 @@ abstract class AbstractTableTypeModel<T> implements TableTypeModel<T> {
         }
 
         @Override
-        public @NotNull TomlKey asTomlKey() {
+        public TomlKey asTomlKey() {
             io.github.wasabithumb.jtoml.serial.reflect.Key explicitAnnotation = this.member
                     .getDeclaredAnnotation(io.github.wasabithumb.jtoml.serial.reflect.Key.class);
             if (explicitAnnotation != null) return TomlKey.literal(explicitAnnotation.value());
@@ -207,9 +206,9 @@ abstract class AbstractTableTypeModel<T> implements TableTypeModel<T> {
                     .orElse(null);
         }
 
-        private static <M extends Member & AnnotatedElement> @NotNull KeyConvention determineConvention(
-                @NotNull M member,
-                @NotNull KeyConvention defaultConvention
+        private static <M extends Member & AnnotatedElement> KeyConvention determineConvention(
+                M member,
+                KeyConvention defaultConvention
         ) {
             Iterator<Annotation> annotations = memberAndDeclaringClassAnnotations(member).iterator();
             while (annotations.hasNext()) {
@@ -222,7 +221,7 @@ abstract class AbstractTableTypeModel<T> implements TableTypeModel<T> {
             return defaultConvention;
         }
 
-        private static @NotNull KeyConvention resolveConventionHelperAnnotation(Class<? extends Annotation> type) {
+        private static KeyConvention resolveConventionHelperAnnotation(Class<? extends Annotation> type) {
             Field field;
             try {
                 field = type.getDeclaredField("VALUE");
@@ -246,7 +245,7 @@ abstract class AbstractTableTypeModel<T> implements TableTypeModel<T> {
             return value;
         }
 
-        private static <M extends Member & AnnotatedElement> @NotNull Stream<Annotation> memberAndDeclaringClassAnnotations(
+        private static <M extends Member & AnnotatedElement> Stream<Annotation> memberAndDeclaringClassAnnotations(
                 M member
         ) {
             Class<?> declaringClass = member.getDeclaringClass();
@@ -265,8 +264,8 @@ abstract class AbstractTableTypeModel<T> implements TableTypeModel<T> {
         private final Map<TomlKey, Key> map;
 
         FixedMapper(
-                @NotNull TableTypeModel<?> model,
-                @NotNull Collection<? extends Key> keys
+                TableTypeModel<?> model,
+                Collection<? extends Key> keys
         ) {
             this.map = buildMap(model, keys);
         }
@@ -274,20 +273,20 @@ abstract class AbstractTableTypeModel<T> implements TableTypeModel<T> {
         //
 
         @Override
-        public @NotNull Map<TomlKey, Key> universe() {
+        public Map<TomlKey, Key> universe() {
             return this.map;
         }
 
         @Override
-        public @Nullable Key fromTomlKey(@NotNull TomlKey key) {
+        public @Nullable Key fromTomlKey(TomlKey key) {
             return this.map.get(key);
         }
 
         //
 
-        private static @NotNull Map<TomlKey, Key> buildMap(
-                @NotNull TableTypeModel<?> model,
-                @NotNull Collection<? extends Key> keys
+        private static Map<TomlKey, Key> buildMap(
+                TableTypeModel<?> model,
+                Collection<? extends Key> keys
         ) {
             Map<TomlKey, Key> ret = new HashMap<>(keys.size());
             for (Key key : keys) {

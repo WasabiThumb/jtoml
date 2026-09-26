@@ -25,7 +25,11 @@ import io.github.wasabithumb.jtoml.serial.reflect.model.TypeModelOptions;
 import io.github.wasabithumb.jtoml.util.ParameterizedClass;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import io.github.wasabithumb.recsup.RecordSupport;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.UnknownNullability;
+import org.jetbrains.annotations.Unmodifiable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.*;
 
@@ -34,8 +38,8 @@ public interface TableTypeModel<T> extends TypeModel<T> {
 
     @SuppressWarnings("unchecked")
     static <O> @Nullable TableTypeModel<O> match(
-            @NotNull ParameterizedClass<O> pc,
-            @NotNull TypeModelOptions options
+            ParameterizedClass<O> pc,
+            TypeModelOptions options
     ) {
         Class<O> raw = pc.raw();
 
@@ -68,38 +72,38 @@ public interface TableTypeModel<T> extends TypeModel<T> {
 
     //
 
-    @NotNull Builder<T> create();
+    Builder<T> create();
 
-    @NotNull Mapper mapper(@NotNull KeyConvention defaultConvention);
+    Mapper mapper(KeyConvention defaultConvention);
 
     /**
      * @apiNote This is often an expensive operation.
      * The intent is to call this method ONCE to build a map.
      */
-    @NotNull @Unmodifiable Collection<? extends Key> keys(@NotNull T instance, @NotNull KeyConvention defaultConvention);
+    @Unmodifiable Collection<? extends Key> keys(T instance, KeyConvention defaultConvention);
 
-    @NotNull ParameterizedClass<?> elementType(@NotNull Key key);
+    ParameterizedClass<?> elementType(Key key);
 
-    @UnknownNullability Object get(@NotNull T instance, @NotNull Key key);
+    @UnknownNullability Object get(T instance, Key key);
 
-    default void applyTableComments(@NotNull Comments comments) { }
+    default void applyTableComments(Comments comments) { }
 
     @Contract(mutates = "param2")
-    default void applyFieldComments(@NotNull Key key, @NotNull Comments comments) { }
+    default void applyFieldComments(Key key, Comments comments) { }
 
     //
 
     interface Builder<O> {
 
-        void set(@NotNull Key key, @NotNull Object value);
+        void set(Key key, Object value);
 
-        @NotNull O build();
+        O build();
 
     }
 
     interface Key {
 
-        @NotNull TomlKey asTomlKey();
+        TomlKey asTomlKey();
 
         default boolean isDefaulting() {
             return false;
@@ -113,7 +117,7 @@ public interface TableTypeModel<T> extends TypeModel<T> {
 
     interface Mapper {
 
-        @Nullable Key fromTomlKey(@NotNull TomlKey key);
+        @Nullable Key fromTomlKey(TomlKey key);
 
         default @Nullable Map<TomlKey, Key> universe() {
             return null;

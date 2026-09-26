@@ -22,12 +22,15 @@ import io.github.wasabithumb.jtoml.route.Sentinel;
 import io.github.wasabithumb.jtoml.route.TestRoute;
 import io.github.wasabithumb.jtoml.serial.TomlSerializable;
 import io.github.wasabithumb.jtoml.serial.reflect.Convention;
+import org.jetbrains.annotations.UnknownNullability;
+import org.jspecify.annotations.NullMarked;
 
 import java.time.OffsetDateTime;
 
 import static io.github.wasabithumb.jtoml.route.TestConstants.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@NullMarked
 public final class SimplePojoTestRoute implements TestRoute {
 
     @Sentinel("simple.toml")
@@ -55,8 +58,8 @@ public final class SimplePojoTestRoute implements TestRoute {
     private static final class Document implements TomlSerializable {
         public int meaningOfLife;
         public double pi;
-        public String loremIpsum;
-        public OffsetDateTime greatMoment;
+        public @UnknownNullability String loremIpsum;
+        public @UnknownNullability OffsetDateTime greatMoment;
     }
 
 }

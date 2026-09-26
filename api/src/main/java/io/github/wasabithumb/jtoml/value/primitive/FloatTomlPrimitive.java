@@ -18,7 +18,6 @@ package io.github.wasabithumb.jtoml.value.primitive;
 
 import io.github.wasabithumb.jtoml.comment.Comments;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 import java.text.NumberFormat;
 import java.util.Locale;
@@ -38,7 +37,7 @@ final class FloatTomlPrimitive extends AbstractTomlPrimitive<Double> {
         return df;
     });
 
-    private static @NotNull String autoChars(double value) {
+    private static String autoChars(double value) {
         long bits = Double.doubleToRawLongBits(value);
         if (bits == 0x8000000000000000L) return "-0.0";
         if ((bits & 0x7ff0000000000000L) != 0x7ff0000000000000L) return NUMBER_FORMAT.get().format(value);
@@ -47,7 +46,7 @@ final class FloatTomlPrimitive extends AbstractTomlPrimitive<Double> {
                 ((bits & 0x8000000000000000L) == 0x8000000000000000L ? "-nan" : "nan");
     }
 
-    static @NotNull FloatTomlPrimitive parse(@NotNull CharSequence str) throws IllegalArgumentException {
+    static FloatTomlPrimitive parse(CharSequence str) throws IllegalArgumentException {
         final int len = str.length();
         if (len == 0) {
             throw new IllegalArgumentException("Cannot parse empty string as TOML float");
@@ -121,18 +120,18 @@ final class FloatTomlPrimitive extends AbstractTomlPrimitive<Double> {
     private final double value;
     private final String chars;
 
-    private FloatTomlPrimitive(@NotNull Comments comments, double value, @NotNull String chars) {
+    private FloatTomlPrimitive(Comments comments, double value, String chars) {
         super(comments);
         this.value = value;
         this.chars = chars;
     }
 
-    public FloatTomlPrimitive(double value, @NotNull String chars) {
+    public FloatTomlPrimitive(double value, String chars) {
         this(Comments.empty(), value, chars);
     }
 
     /** Called by {@code TomlPrimitive#copyOf} */
-    public FloatTomlPrimitive(@NotNull Comments comments, double value) {
+    public FloatTomlPrimitive(Comments comments, double value) {
         this(comments, value, autoChars(value));
     }
 
@@ -144,17 +143,17 @@ final class FloatTomlPrimitive extends AbstractTomlPrimitive<Double> {
     //
 
     @Override
-    public @NotNull TomlPrimitiveType type() {
+    public TomlPrimitiveType type() {
         return TomlPrimitiveType.FLOAT;
     }
 
     @Override
-    public @NotNull Double value() {
+    public Double value() {
         return this.value;
     }
 
     @Override
-    public @NotNull String asString() {
+    public String asString() {
         return this.chars;
     }
 

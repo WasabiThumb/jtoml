@@ -20,7 +20,6 @@ import io.github.wasabithumb.jtoml.except.TomlException;
 import io.github.wasabithumb.jtoml.except.TomlIOException;
 import io.github.wasabithumb.jtoml.except.parse.TomlBomException;
 import io.github.wasabithumb.jtoml.option.prop.OrderMarkPolicy;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
 import java.io.FilterReader;
@@ -35,7 +34,7 @@ public final class ReaderCharSource extends FilterReader implements CharSource {
     private static final int BOM_READ     = 8;
 
     @SuppressWarnings("fallthrough")
-    private static int initialFlags(@NotNull OrderMarkPolicy bomPolicy) {
+    private static int initialFlags(OrderMarkPolicy bomPolicy) {
         int flags = 0;
         switch (bomPolicy) {
             case ALWAYS:
@@ -51,7 +50,7 @@ public final class ReaderCharSource extends FilterReader implements CharSource {
 
     private int flags;
 
-    public ReaderCharSource(@NotNull Reader in, @NotNull OrderMarkPolicy bomPolicy) {
+    public ReaderCharSource(Reader in, OrderMarkPolicy bomPolicy) {
         super(in);
         this.flags = initialFlags(bomPolicy);
     }

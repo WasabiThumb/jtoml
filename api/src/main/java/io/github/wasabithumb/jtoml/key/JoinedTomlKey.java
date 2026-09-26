@@ -17,7 +17,6 @@
 package io.github.wasabithumb.jtoml.key;
 
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 import java.util.ListIterator;
@@ -26,7 +25,7 @@ import java.util.NoSuchElementException;
 @ApiStatus.Internal
 final class JoinedTomlKey extends AbstractTomlKey {
 
-    public static @NotNull TomlKey join(@NotNull TomlKey first, @NotNull TomlKey @NotNull ... additional) {
+    public static TomlKey join(TomlKey first, TomlKey ... additional) {
         if (additional.length == 0) return first;
         TomlKey[] parts;
         int head;
@@ -84,7 +83,7 @@ final class JoinedTomlKey extends AbstractTomlKey {
     private final TomlKey[] sub;
     private final int totalSize;
 
-    private JoinedTomlKey(@NotNull TomlKey @NotNull [] sub, int totalSize) {
+    private JoinedTomlKey(TomlKey[] sub, int totalSize) {
         this.sub = sub;
         this.totalSize = totalSize;
     }
@@ -133,7 +132,7 @@ final class JoinedTomlKey extends AbstractTomlKey {
         private int partOffset;
         private int partHead;
 
-        Iter(@NotNull JoinedTomlKey parent, int start) {
+        Iter(JoinedTomlKey parent, int start) {
             int keyHead = 0;
             int partOffset = 0;
             while (keyHead < parent.sub.length) {

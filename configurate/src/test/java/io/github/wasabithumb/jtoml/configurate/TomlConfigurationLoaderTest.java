@@ -63,7 +63,7 @@ class TomlConfigurationLoaderTest {
 
     @Test
     void testSimpleLoading() throws ConfigurateException {
-        final URL url = this.getClass().getResource("/example.toml");
+        final URL url = resource("/example.toml");
         final ConfigurationLoader<CommentedConfigurationNode> loader = TomlConfigurationLoader.builder()
                 .url(url).build();
         final ConfigurationNode node = loader.load();
@@ -167,4 +167,12 @@ class TomlConfigurationLoaderTest {
             return reader.lines().collect(Collectors.toList());
         }
     }
+
+    @SuppressWarnings("SameParameterValue")
+    private static URL resource(String path) {
+        URL url = TomlConfigurationLoaderTest.class.getResource(path);
+        if (url == null) throw new IllegalStateException("Resource \"" + path + "\" not found");
+        return url;
+    }
+
 }

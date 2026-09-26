@@ -17,6 +17,7 @@ indra.javaVersions {
 }
 
 dependencies {
-    compileOnly(libs.annotations)
+    api(libs.annotations)
+    api(libs.jspecify)
     implementation(project(":api"))
 }

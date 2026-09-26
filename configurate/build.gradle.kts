@@ -42,7 +42,8 @@ indraSpotlessLicenser {
 }
 
 dependencies {
-    compileOnly(libs.annotations)
+    api(libs.annotations)
+    api(libs.jspecify)
     implementation(project(":"))
     api(project(":api"))
     api(platform(libs.configurate.bom))

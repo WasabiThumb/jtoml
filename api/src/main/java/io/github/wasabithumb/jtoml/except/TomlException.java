@@ -17,8 +17,7 @@
 package io.github.wasabithumb.jtoml.except;
 
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Superclass of exceptions pertaining to TOML
@@ -33,11 +32,11 @@ public abstract class TomlException extends RuntimeException {
 
     //
 
-    public TomlException(@NotNull String message) {
+    public TomlException(String message) {
         super(message);
     }
 
-    public TomlException(@NotNull String message, @Nullable Throwable cause) {
+    public TomlException(String message, @Nullable Throwable cause) {
         super(message, cause);
     }
 

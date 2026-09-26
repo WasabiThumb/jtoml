@@ -19,14 +19,17 @@ package io.github.wasabithumb.jtoml.value.table;
 import io.github.wasabithumb.jtoml.comment.Comments;
 import io.github.wasabithumb.jtoml.key.TomlKey;
 import io.github.wasabithumb.jtoml.value.TomlValue;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.Unmodifiable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.*;
 
 @ApiStatus.Internal
 final class TomlTableImpl implements TomlTable {
 
-    static @NotNull TomlTableImpl copyOf(@NotNull TomlTableImpl table) {
+    static TomlTableImpl copyOf(TomlTableImpl table) {
         return new TomlTableImpl(
                 TomlTableBranch.copyOf(table.root),
                 Comments.copyOf(table.comments)
@@ -40,14 +43,14 @@ final class TomlTableImpl implements TomlTable {
     private final Comments comments;
     private transient byte flags;
 
-    private TomlTableImpl(@NotNull TomlTableBranch root, @NotNull Comments comments) {
+    private TomlTableImpl(TomlTableBranch root, Comments comments) {
         this.creationTime = System.nanoTime();
         this.root = root;
         this.comments = comments;
         this.flags = 0;
     }
 
-    private TomlTableImpl(@NotNull TomlTableBranch root) {
+    private TomlTableImpl(TomlTableBranch root) {
         this(root, Comments.empty());
     }
 
@@ -68,13 +71,13 @@ final class TomlTableImpl implements TomlTable {
     }
 
     @Override
-    public @NotNull TomlTable flags(int flags) {
+    public TomlTable flags(int flags) {
         this.flags = (byte) flags;
         return this;
     }
 
     @Override
-    public @NotNull Comments comments() {
+    public Comments comments() {
         return this.comments;
     }
 
@@ -94,21 +97,21 @@ final class TomlTableImpl implements TomlTable {
     }
 
     @Override
-    public @NotNull @Unmodifiable Set<TomlKey> keys(boolean deep) {
+    public @Unmodifiable Set<TomlKey> keys(boolean deep) {
         return deep ?
                 new DeepKeySet(this) :
                 new ShallowKeySet(this.root);
     }
 
     @Override
-    public boolean contains(@NotNull TomlKey key) {
+    public boolean contains(TomlKey key) {
         Resolution r = this.resolve(key, false);
         if (r == null) return false;
         return r.branch.get(r.label) != null;
     }
 
     @Override
-    public @Nullable TomlValue get(@NotNull TomlKey key) {
+    public @Nullable TomlValue get(TomlKey key) {
         Resolution r = this.resolve(key, false);
         if (r == null) return null;
         TomlTableNode node = r.branch.get(r.label);
@@ -116,7 +119,7 @@ final class TomlTableImpl implements TomlTable {
     }
 
     @Override
-    public @Nullable TomlValue put(@NotNull TomlKey key, @NotNull TomlValue value) {
+    public @Nullable TomlValue put(TomlKey key, TomlValue value) {
         Resolution r = this.resolve(key, true);
         TomlTableNode old;
         if (value.isTable()) {
@@ -131,7 +134,7 @@ final class TomlTableImpl implements TomlTable {
     }
 
     @Override
-    public @Nullable TomlValue remove(@NotNull TomlKey key) {
+    public @Nullable TomlValue remove(TomlKey key) {
         Resolution r = this.resolve(key, false);
         if (r == null) return null;
         TomlTableNode node = r.branch.remove(r.label);
@@ -139,7 +142,7 @@ final class TomlTableImpl implements TomlTable {
     }
 
     @Contract("null -> null; !null -> !null")
-    private TomlValue wrapNode(TomlTableNode node) {
+    private @Nullable TomlValue wrapNode(@Nullable TomlTableNode node) {
         if (node == null) return null;
         if (node.isLeaf()) {
             return node.asLeaf().value();
@@ -154,10 +157,9 @@ final class TomlTableImpl implements TomlTable {
         }
     }
 
-    @Contract("null, _ -> fail; _, true -> !null")
+    @Contract("_, true -> !null")
     private @Nullable Resolution resolve(TomlKey key, boolean create) {
-        if (key == null) throw new NullPointerException("Key may not be null");
-
+        Objects.requireNonNull(key, "key must not be null");
         Iterator<String> iter = key.iterator();
         if (!iter.hasNext()) throw new IllegalArgumentException("Cannot use empty (zero part) key in TomlTable");
 
@@ -222,8 +224,8 @@ final class TomlTableImpl implements TomlTable {
         final String label;
 
         Resolution(
-                @NotNull TomlTableBranch branch,
-                @NotNull String label
+                TomlTableBranch branch,
+                String label
         ) {
             this.branch = branch;
             this.label = label;
@@ -235,7 +237,7 @@ final class TomlTableImpl implements TomlTable {
 
         private final TomlTableBranch parent;
 
-        ShallowKeySet(@NotNull TomlTableBranch parent) {
+        ShallowKeySet(TomlTableBranch parent) {
             this.parent = parent;
         }
 
@@ -247,7 +249,7 @@ final class TomlTableImpl implements TomlTable {
         }
 
         @Override
-        public @NotNull Iter iterator() {
+        public Iter iterator() {
             return new Iter(this.parent.keys().iterator());
         }
 
@@ -265,7 +267,7 @@ final class TomlTableImpl implements TomlTable {
 
             private final Iterator<String> backing;
 
-            Iter(@NotNull Iterator<String> backing) {
+            Iter(Iterator<String> backing) {
                 this.backing = backing;
             }
 
@@ -277,7 +279,7 @@ final class TomlTableImpl implements TomlTable {
             }
 
             @Override
-            public @NotNull TomlKey next() {
+            public TomlKey next() {
                 return TomlKey.literal(this.backing.next());
             }
 
@@ -289,7 +291,7 @@ final class TomlTableImpl implements TomlTable {
 
         private final TomlTableImpl parent;
 
-        DeepKeySet(@NotNull TomlTableImpl parent) {
+        DeepKeySet(TomlTableImpl parent) {
             this.parent = parent;
         }
 
@@ -307,7 +309,7 @@ final class TomlTableImpl implements TomlTable {
         }
 
         @Override
-        public @NotNull Iterator<TomlKey> iterator() {
+        public Iterator<TomlKey> iterator() {
             return new Iter(this.parent.root);
         }
 
@@ -317,7 +319,7 @@ final class TomlTableImpl implements TomlTable {
 
             private final Queue<SubIter> queue;
 
-            Iter(@NotNull TomlTableBranch branch) {
+            Iter(TomlTableBranch branch) {
                 this.queue = new LinkedList<>();
                 this.queue.add(new SubIter(TomlKey.literal(), branch, this.queue));
             }
@@ -340,7 +342,7 @@ final class TomlTableImpl implements TomlTable {
             }
 
             @Override
-            public @NotNull TomlKey next() {
+            public TomlKey next() {
                 SubIter sub = this.acquire();
                 if (sub == null) throw new NoSuchElementException();
                 return sub.next();
@@ -354,12 +356,12 @@ final class TomlTableImpl implements TomlTable {
                 private final TomlTableBranch branch;
                 private final Iterator<String> backing;
                 private final Queue<SubIter> queue;
-                private TomlKey head;
+                private @Nullable TomlKey head;
 
                 SubIter(
-                        @NotNull TomlKey prefix,
-                        @NotNull TomlTableBranch branch,
-                        @NotNull Queue<SubIter> queue
+                        TomlKey prefix,
+                        TomlTableBranch branch,
+                        Queue<SubIter> queue
                 ) {
                     this.prefix = prefix;
                     this.branch = branch;
@@ -397,7 +399,7 @@ final class TomlTableImpl implements TomlTable {
                 }
 
                 @Override
-                public @NotNull TomlKey next() {
+                public TomlKey next() {
                     this.compute();
                     TomlKey ret = this.head;
                     this.head = null;

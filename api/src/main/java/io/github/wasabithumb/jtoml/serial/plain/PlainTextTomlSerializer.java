@@ -19,7 +19,6 @@ package io.github.wasabithumb.jtoml.serial.plain;
 import io.github.wasabithumb.jtoml.JToml;
 import io.github.wasabithumb.jtoml.serial.TomlSerializer;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * A bare-bones serializer which uses a
@@ -40,24 +39,24 @@ public final class PlainTextTomlSerializer implements TomlSerializer.Symmetric<S
      * {@link JToml#readFromString(String) readFromString} and {@link JToml#writeToString(TomlTable) writeToString}
      * methods.
      */
-    public PlainTextTomlSerializer(@NotNull JToml instance) {
+    public PlainTextTomlSerializer(JToml instance) {
         this.instance = instance;
     }
 
     //
 
     @Override
-    public @NotNull Class<String> serialType() {
+    public Class<String> serialType() {
         return String.class;
     }
 
     @Override
-    public @NotNull String fromToml(@NotNull TomlTable table) {
+    public String fromToml(TomlTable table) {
         return this.instance.writeToString(table);
     }
 
     @Override
-    public @NotNull TomlTable toToml(@NotNull String data) {
+    public TomlTable toToml(String data) {
         return this.instance.readFromString(data);
     }
 

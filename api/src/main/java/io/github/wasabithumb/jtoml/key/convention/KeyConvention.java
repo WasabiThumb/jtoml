@@ -18,7 +18,6 @@ package io.github.wasabithumb.jtoml.key.convention;
 
 import io.github.wasabithumb.jtoml.key.TomlKey;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Determines how a given identifier may be
@@ -40,6 +39,6 @@ public interface KeyConvention {
      * Adapts the given identifier into a {@link TomlKey}
      * based on the convention.
      */
-    @NotNull TomlKey toToml(@NotNull String key);
+    TomlKey toToml(String key);
     
 }

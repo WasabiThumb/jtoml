@@ -32,11 +32,9 @@ import io.github.wasabithumb.jtoml.value.array.TomlArray;
 import io.github.wasabithumb.jtoml.value.primitive.TomlPrimitive;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import net.kyori.option.OptionSchema;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.checkerframework.framework.qual.DefaultQualifier;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.Nullable;
 import org.spongepowered.configurate.*;
 import org.spongepowered.configurate.loader.AbstractConfigurationLoader;
 import org.spongepowered.configurate.loader.CommentHandler;
@@ -63,7 +61,6 @@ import java.util.stream.Collectors;
  * A loader for TOML-formatted configurations, using the JToml library for
  * parsing and generation.
  */
-@DefaultQualifier(NonNull.class)
 public final class TomlConfigurationLoader extends AbstractConfigurationLoader<CommentedConfigurationNode> {
 
     private static final Set<Class<?>> NATIVE_TYPES = UnmodifiableCollections.toSet(

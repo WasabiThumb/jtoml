@@ -23,11 +23,17 @@ more efficiently. Javadoc comments are expected on
 user-facing classes and their members,
 and not required for any other class/member.
 
-### Use JetBrains annotations
-JToml uses ``org.jetbrains.annotations`` to document
-method contracts. The ``@NotNull`` and
-``@Nullable`` annotations should be preferred over
-``@Contract`` when possible.
+### Use nullability annotations
+JToml uses JSpecify nullability annotations.
+All code should be ``@NullMarked`` at the package
+level, class level or both. Nullable fields, parameters
+and variables can be specified with JSpecify's 
+``@Nullable`` annotation. In rare cases such as lateinit
+fields or reflection, ``@UnknownNullability`` from
+JetBrains Annotations may be used. Other non-nullability
+annotations from JetBrains Annotations such as ``@Contract``, 
+``@MagicConstant``, ``@Range``, ``@ApiStatus`` and others
+are not required but encouraged.
 
 ### Understand your code
 Changes that make sense will be accepted without

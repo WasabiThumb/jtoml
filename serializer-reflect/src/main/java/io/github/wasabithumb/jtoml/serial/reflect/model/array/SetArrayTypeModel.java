@@ -18,7 +18,6 @@ package io.github.wasabithumb.jtoml.serial.reflect.model.array;
 
 import io.github.wasabithumb.jtoml.util.ParameterizedClass;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.EnumSet;
 import java.util.LinkedHashSet;
@@ -30,8 +29,8 @@ final class SetArrayTypeModel<T extends Set<E>, E> extends CollectionArrayTypeMo
 
     @SuppressWarnings("unchecked")
     static <IT extends Set<IE>, IE> SetArrayTypeModel<IT, IE> create(
-            @NotNull Class<IT> setType,
-            @NotNull ParameterizedClass<?> elementType
+            Class<IT> setType,
+            ParameterizedClass<?> elementType
     ) {
         return new SetArrayTypeModel<>(setType, (ParameterizedClass<IE>) elementType);
     }
@@ -44,14 +43,14 @@ final class SetArrayTypeModel<T extends Set<E>, E> extends CollectionArrayTypeMo
 
     //
 
-    private SetArrayTypeModel(@NotNull Class<T> type, @NotNull ParameterizedClass<E> elementType) {
+    private SetArrayTypeModel(Class<T> type, ParameterizedClass<E> elementType) {
         super(type, elementType);
     }
 
     //
 
     @Override
-    public @NotNull T createNew(int length) {
+    public T createNew(int length) {
         if (this.elementType.raw().isEnum() && this.type.isAssignableFrom(EnumSet.class))
             return this.type.cast(EnumSet.noneOf(this.elementType.raw().asSubclass(Enum.class)));
 

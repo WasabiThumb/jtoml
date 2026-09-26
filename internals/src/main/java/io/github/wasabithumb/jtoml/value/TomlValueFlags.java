@@ -19,8 +19,9 @@ package io.github.wasabithumb.jtoml.value;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 @ApiStatus.Internal
 public final class TomlValueFlags {
 
@@ -31,15 +32,15 @@ public final class TomlValueFlags {
     //
 
     private static boolean get(
-            @NotNull TomlValue v,
+            TomlValue v,
             @MagicConstant(valuesFromClass = TomlValueFlags.class) int flag
     ) {
         return (v.flags() & flag) != 0;
     }
 
     @Contract("_, _, _ -> param1")
-    private static @NotNull TomlValue set(
-            @NotNull TomlValue v,
+    private static TomlValue set(
+            TomlValue v,
             @MagicConstant(valuesFromClass = TomlValueFlags.class) int flag,
             boolean value
     ) {
@@ -54,30 +55,30 @@ public final class TomlValueFlags {
 
     //
 
-    public static boolean isConstant(@NotNull TomlValue v) {
+    public static boolean isConstant(TomlValue v) {
         return get(v, F_CONSTANT);
     }
 
     @Contract("_, _ -> param1")
-    public static @NotNull TomlValue setConstant(@NotNull TomlValue v, boolean constant) {
+    public static TomlValue setConstant(TomlValue v, boolean constant) {
         return set(v, F_CONSTANT, constant);
     }
 
-    public static boolean isNonReusable(@NotNull TomlValue v) {
+    public static boolean isNonReusable(TomlValue v) {
         return get(v, F_NON_REUSABLE);
     }
 
     @Contract("_, _ -> param1")
-    public static @NotNull TomlValue setNonReusable(@NotNull TomlValue v, boolean nonReusable) {
+    public static TomlValue setNonReusable(TomlValue v, boolean nonReusable) {
         return set(v, F_NON_REUSABLE, nonReusable);
     }
 
-    public static boolean isNonKeyExtendable(@NotNull TomlValue v) {
+    public static boolean isNonKeyExtendable(TomlValue v) {
         return get(v, F_NON_KEY_EXTENDABLE);
     }
 
     @Contract("_, _ -> param1")
-    public static @NotNull TomlValue setNonKeyExtendable(@NotNull TomlValue v, boolean nonKeyExtendable) {
+    public static TomlValue setNonKeyExtendable(TomlValue v, boolean nonKeyExtendable) {
         return set(v, F_NON_KEY_EXTENDABLE, nonKeyExtendable);
     }
 

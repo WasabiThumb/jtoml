@@ -30,8 +30,7 @@ import io.github.wasabithumb.jtoml.value.array.TomlArray;
 import io.github.wasabithumb.jtoml.value.primitive.TomlPrimitive;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
 import java.util.*;
@@ -42,14 +41,14 @@ public final class TableWriter implements Closeable {
     private final JTomlOptions options;
     private int indentLevel = 0;
 
-    public TableWriter(@NotNull CharTarget out, @NotNull JTomlOptions options) {
+    public TableWriter(CharTarget out, JTomlOptions options) {
         this.out = out;
         this.options = options;
     }
 
     //
 
-    public void writeTable(@NotNull TomlTable table) throws TomlException {
+    public void writeTable(TomlTable table) throws TomlException {
         this.indentLevel = this.options.get(JTomlOption.INDENTATION).globalIndent();
 
         final Comments comments = table.comments();
@@ -79,7 +78,7 @@ public final class TableWriter implements Closeable {
     }
 
     private void writeTableHeader0(
-            @NotNull TomlKey key,
+            TomlKey key,
             boolean array,
             @Nullable Comments comments
     ) throws TomlException {
@@ -135,8 +134,8 @@ public final class TableWriter implements Closeable {
     }
 
     private void writeTableHeader(
-            @NotNull TomlKey key,
-            @NotNull TomlTable table,
+            TomlKey key,
+            TomlTable table,
             boolean array,
             boolean unconditional
     ) throws TomlException {
@@ -152,8 +151,8 @@ public final class TableWriter implements Closeable {
     }
 
     private void writeTableBody(
-            @NotNull TomlKey prefix,
-            @NotNull TomlTable table,
+            TomlKey prefix,
+            TomlTable table,
             boolean andHeader
     ) throws TomlException {
         final LineSeparator newline = this.options.get(JTomlOption.LINE_SEPARATOR);
@@ -189,7 +188,8 @@ public final class TableWriter implements Closeable {
                     key = TomlKey.join(prefix, key);
                     TomlArray arr = value.asArray();
                     TomlTable child;
-                    for (int z=0; z < arr.size(); z++) {
+                    //noinspection ForLoopReplaceableByForEach
+                    for (int z = 0; z < arr.size(); z++) {
                         child = arr.get(z).asTable();
                         this.writeTableHeader(key, child, true, true);
                         this.writeTableBody(key, child, false);
@@ -218,7 +218,7 @@ public final class TableWriter implements Closeable {
         }
     }
 
-    private void openStatement(@NotNull TomlKey key, @NotNull Comments comments) throws TomlException {
+    private void openStatement(TomlKey key, Comments comments) throws TomlException {
         final boolean writeComments = this.options.get(JTomlOption.WRITE_COMMENTS) && comments.count() != 0;
         final SpacingPolicy spacing = this.options.get(JTomlOption.SPACING);
         final LineSeparator newline = this.options.get(JTomlOption.LINE_SEPARATOR);
@@ -239,7 +239,7 @@ public final class TableWriter implements Closeable {
         this.out.put(" = ");
     }
 
-    private void closeStatement(@NotNull Comments comments) throws TomlException {
+    private void closeStatement(Comments comments) throws TomlException {
         final boolean writeComments = this.options.get(JTomlOption.WRITE_COMMENTS);
         final String inline = comments.getInline();
         final SpacingPolicy spacing = this.options.get(JTomlOption.SPACING);
@@ -260,14 +260,14 @@ public final class TableWriter implements Closeable {
             this.out.put(newline);
     }
 
-    private void writePrimitive(@NotNull TomlKey key, @NotNull TomlPrimitive value) throws TomlException {
+    private void writePrimitive(TomlKey key, TomlPrimitive value) throws TomlException {
         final Comments comments = value.comments();
         this.openStatement(key, comments);
         this.writePrimitiveValue(value);
         this.closeStatement(comments);
     }
 
-    private void writePrimitiveValue(@NotNull TomlPrimitive value) throws TomlException {
+    private void writePrimitiveValue(TomlPrimitive value) throws TomlException {
         if (value.isString()) {
             this.writeBasicString(value.asString());
         } else {
@@ -275,7 +275,7 @@ public final class TableWriter implements Closeable {
         }
     }
 
-    private void writeBasicString(@NotNull String s) throws TomlException {
+    private void writeBasicString(String s) throws TomlException {
         this.out.put('"');
 
         int c;
@@ -309,14 +309,14 @@ public final class TableWriter implements Closeable {
         this.out.put('"');
     }
 
-    private void writeArray(@NotNull TomlKey key, @NotNull TomlArray value) throws TomlException {
+    private void writeArray(TomlKey key, TomlArray value) throws TomlException {
         final Comments comments = value.comments();
         this.openStatement(key, comments);
         this.writeArrayValue(value);
         this.closeStatement(comments);
     }
 
-    private void writeArrayValue(@NotNull TomlArray value) throws TomlException {
+    private void writeArrayValue(TomlArray value) throws TomlException {
         final ArrayStrategy strategy = this.options.get(JTomlOption.ARRAY_STRATEGY);
         boolean allowComments, doNewlines;
         switch (strategy) {
@@ -346,7 +346,7 @@ public final class TableWriter implements Closeable {
         final PaddingPolicy padding = this.options.get(JTomlOption.PADDING);
         this.out.put('[');
 
-        if (value.size() == 0) {
+        if (value.isEmpty()) {
             this.out.put(']');
             return;
         }
@@ -420,14 +420,14 @@ public final class TableWriter implements Closeable {
         this.out.put(']');
     }
 
-    private void writeInlineTable(@NotNull TomlKey key, @NotNull TomlTable value) throws TomlException {
+    private void writeInlineTable(TomlKey key, TomlTable value) throws TomlException {
         final Comments comments = value.comments();
         this.openStatement(key, comments);
         this.writeInlineTableValue(value);
         this.closeStatement(comments);
     }
 
-    private void writeInlineTableValue(@NotNull TomlTable table) throws TomlException {
+    private void writeInlineTableValue(TomlTable table) throws TomlException {
         final PaddingPolicy padding = this.options.get(JTomlOption.PADDING);
         this.out.put('{');
 
@@ -458,7 +458,7 @@ public final class TableWriter implements Closeable {
         this.out.put('}');
     }
 
-    private void writeAnyValue(@NotNull TomlValue value) throws TomlException {
+    private void writeAnyValue(TomlValue value) throws TomlException {
         if (value.isPrimitive()) {
             this.writePrimitiveValue(value.asPrimitive());
         } else if (value.isArray()) {
@@ -468,7 +468,7 @@ public final class TableWriter implements Closeable {
         }
     }
 
-    private @NotNull List<TypedKey> deconstruct(@NotNull TomlTable table) {
+    private List<TypedKey> deconstruct(TomlTable table) {
         SortMethod sort = this.options.get(JTomlOption.SORTING);
         switch (sort) {
             case STRATIFIED:
@@ -482,7 +482,7 @@ public final class TableWriter implements Closeable {
         }
     }
 
-    private @NotNull List<TypedKey> deconstructStratified(@NotNull TomlTable table) {
+    private List<TypedKey> deconstructStratified(TomlTable table) {
         final Set<TomlKey> all = table.keys(false);
         final int count = all.size();
 
@@ -509,7 +509,7 @@ public final class TableWriter implements Closeable {
         return ret;
     }
 
-    private @NotNull List<TypedKey> deconstructLexOrTime(@NotNull TomlTable table, boolean time) {
+    private List<TypedKey> deconstructLexOrTime(TomlTable table, boolean time) {
         final Set<TomlKey> all = table.keys(false);
         final int count = all.size();
 
@@ -539,7 +539,7 @@ public final class TableWriter implements Closeable {
     }
 
     @Contract(mutates = "param1")
-    private void rectifyKeyTypes(@NotNull TypedKey @NotNull [] keys, int end) {
+    private void rectifyKeyTypes(TypedKey[] keys, int end) {
         boolean allowRich = true;
         for (int i = (end - 1); i >= 0; i--) {
             TypedKey tk = keys[i];
@@ -554,15 +554,15 @@ public final class TableWriter implements Closeable {
         }
     }
 
-    private @NotNull ValueType valueTypeOf(@NotNull TomlValue value) {
+    private ValueType valueTypeOf(TomlValue value) {
         if (value.isTable()) {
             return ValueType.TABLE;
         } else if (value.isArray()) {
             TomlArray a = value.asArray();
             int n = a.size();
             if (n == 0) return ValueType.ARRAY;
-            for (int i=0; i < n; i++) {
-                if (!a.get(i).isTable())
+            for (TomlValue v : a) {
+                if (!v.isTable())
                     return ValueType.ARRAY;
             }
             return ValueType.ARRAY_OF_TABLES;
@@ -599,8 +599,8 @@ public final class TableWriter implements Closeable {
         private final TomlKey key;
 
         TypedKey(
-                @NotNull ValueType type,
-                @NotNull TomlKey key
+                ValueType type,
+                TomlKey key
         ) {
             this.type = type;
             this.key = key;

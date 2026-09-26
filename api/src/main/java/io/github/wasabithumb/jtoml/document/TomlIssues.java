@@ -21,7 +21,6 @@ import io.github.wasabithumb.jtoml.except.parse.TomlLocalParseException;
 import io.github.wasabithumb.jtoml.util.Buildable;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
@@ -41,7 +40,7 @@ public interface TomlIssues extends List<TomlIssue>, Buildable<TomlIssues> {
      * {@link TomlIssues#unwrap() unwrap} does nothing)
      */
     @Contract(pure = true)
-    static @NotNull TomlIssues empty() {
+    static TomlIssues empty() {
         return TomlIssuesImpl.EMPTY;
     }
 
@@ -50,7 +49,7 @@ public interface TomlIssues extends List<TomlIssue>, Buildable<TomlIssues> {
      * {@link TomlIssues} list.
      */
     @Contract("-> new")
-    static @NotNull Builder builder() {
+    static Builder builder() {
         return new TomlIssuesImpl.Builder();
     }
 
@@ -85,7 +84,7 @@ public interface TomlIssues extends List<TomlIssue>, Buildable<TomlIssues> {
          * @return This builder
          */
         @Contract("_ -> this")
-        @NotNull Builder add(@NotNull TomlIssue issue);
+        Builder add(TomlIssue issue);
 
         /**
          * Adds a new issue to the resulting {@link TomlIssues} list.
@@ -95,7 +94,7 @@ public interface TomlIssues extends List<TomlIssue>, Buildable<TomlIssues> {
          * @return This builder
          */
         @Contract("_, _, _ -> this")
-        default @NotNull Builder add(int line, int column, @NotNull String message) {
+        default Builder add(int line, int column, String message) {
             return this.add(TomlIssue.issue(line, column, message));
         }
 
@@ -106,7 +105,7 @@ public interface TomlIssues extends List<TomlIssue>, Buildable<TomlIssues> {
          * @return This builder
          */
         @Contract("_ -> this")
-        default @NotNull Builder add(@NotNull TomlLocalParseException exception) {
+        default Builder add(TomlLocalParseException exception) {
             return this.add(TomlIssue.issue(exception));
         }
 
@@ -119,7 +118,7 @@ public interface TomlIssues extends List<TomlIssue>, Buildable<TomlIssues> {
          */
         @Override
         @Contract("-> new")
-        @NotNull TomlIssues build();
+        TomlIssues build();
 
     }
 

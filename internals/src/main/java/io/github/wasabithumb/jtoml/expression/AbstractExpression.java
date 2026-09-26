@@ -16,11 +16,11 @@
 
 package io.github.wasabithumb.jtoml.expression;
 
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 public abstract class AbstractExpression implements Expression {
 
-    protected String comment = null;
+    protected @Nullable String comment = null;
 
     //
 

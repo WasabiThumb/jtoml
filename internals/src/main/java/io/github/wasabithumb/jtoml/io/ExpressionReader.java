@@ -31,9 +31,8 @@ import io.github.wasabithumb.jtoml.value.array.TomlArray;
 import io.github.wasabithumb.jtoml.value.primitive.TomlPrimitive;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.UnknownNullability;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
 import java.time.*;
@@ -46,7 +45,7 @@ public class ExpressionReader implements Closeable {
     protected final BufferedCharSource in;
     protected final JTomlOptions options;
 
-    public ExpressionReader(@NotNull BufferedCharSource in, @NotNull JTomlOptions options) {
+    public ExpressionReader(BufferedCharSource in, JTomlOptions options) {
         this.in = in;
         this.options = options;
     }
@@ -102,8 +101,8 @@ public class ExpressionReader implements Closeable {
      * @param quot The escape delimiter currently in use ({@code "} or {@code '}), or {@code \0} if not escaped
      */
     @Contract(mutates = "this, param1")
-    private @NotNull TomlKey readKey(
-            @NotNull StringBuilder buf,
+    private TomlKey readKey(
+            StringBuilder buf,
             int terminatedBy,
             char quot
     ) throws TomlException {
@@ -161,7 +160,7 @@ public class ExpressionReader implements Closeable {
         }
     }
 
-    private void stripBareWhitespace(@NotNull StringBuilder sb) throws TomlException {
+    private void stripBareWhitespace(StringBuilder sb) throws TomlException {
         int trimStart = 0;
 
         // Trim leading whitespace
@@ -225,11 +224,11 @@ public class ExpressionReader implements Closeable {
         }
     }
 
-    private @NotNull TomlValue readValue() throws TomlException {
+    private TomlValue readValue() throws TomlException {
         return this.readValue(-1);
     }
 
-    private @NotNull TomlValue readValue(int firstIfKnown) throws TomlException {
+    private TomlValue readValue(int firstIfKnown) throws TomlException {
         char c0 = (firstIfKnown != -1) ? ((char) firstIfKnown) : this.in.nextChar("a value after key");
 
         if (c0 == '"')              return this.readBasicString();
@@ -344,7 +343,7 @@ public class ExpressionReader implements Closeable {
         }
     }
 
-    private @NotNull TomlPrimitive parseInteger(@NotNull CharSequence str) throws TomlException {
+    private TomlPrimitive parseInteger(CharSequence str) throws TomlException {
         final int len = str.length();
         if (len == 0) this.in.raise("Cannot parse empty sequence as integer");
         long n = 0L;
@@ -454,7 +453,7 @@ public class ExpressionReader implements Closeable {
         return TomlPrimitive.of(n);
     }
 
-    private @NotNull TomlPrimitive parseFloat(@NotNull CharSequence str) throws TomlException {
+    private TomlPrimitive parseFloat(CharSequence str) throws TomlException {
         try {
             return TomlPrimitive.parseFloat(str);
         } catch (IllegalArgumentException e) {
@@ -463,7 +462,7 @@ public class ExpressionReader implements Closeable {
         }
     }
 
-    private @NotNull TomlPrimitive parseDateTime(@NotNull CharSequence str) throws TomlException, DateTimeException {
+    private TomlPrimitive parseDateTime(CharSequence str) throws TomlException, DateTimeException {
         final int len = str.length();
         boolean truncated = false;
 
@@ -547,7 +546,7 @@ public class ExpressionReader implements Closeable {
         }
     }
 
-    private @NotNull PartialTime parsePartialTime(@NotNull CharSequence str, int off, int len) throws TomlException {
+    private PartialTime parsePartialTime(CharSequence str, int off, int len) throws TomlException {
         // v1.1.0 - support datetimes without seconds
         boolean ignoreSeconds = false;
         if (len == 5 && this.options.get(JTomlOption.COMPLIANCE).isAtLeast(1, 1)) {
@@ -602,7 +601,7 @@ public class ExpressionReader implements Closeable {
         );
     }
 
-    private int parseNDigits(@NotNull CharSequence str, int off, int len) throws TomlException {
+    private int parseNDigits(CharSequence str, int off, int len) throws TomlException {
         int d = 0;
         char c;
         for (int i=0; i < len; i++) {
@@ -629,7 +628,7 @@ public class ExpressionReader implements Closeable {
         return 1;
     }
 
-    private @NotNull TomlPrimitive readBasicString() throws TomlException {
+    private TomlPrimitive readBasicString() throws TomlException {
         switch (this.openString('"')) {
             case 0:
                 return TomlPrimitive.of("");
@@ -655,7 +654,7 @@ public class ExpressionReader implements Closeable {
         }
     }
 
-    private @NotNull TomlPrimitive readMultilineBasicString() throws TomlException {
+    private TomlPrimitive readMultilineBasicString() throws TomlException {
         StringBuilder sb = new StringBuilder();
 
         // Skip leading newline
@@ -730,11 +729,10 @@ public class ExpressionReader implements Closeable {
     }
 
     @SuppressWarnings("fallthrough")
-    private void readEscapeSequence(@NotNull StringBuilder dest) throws TomlException {
+    private void readEscapeSequence(StringBuilder dest) throws TomlException {
         int c = this.in.next();
         if (c == -1) this.in.raise("Truncated escape sequence");
         int uc = 4;
-        boolean valid = true;
 
         switch (c) {
             case '"':  dest.append('"'); break;
@@ -791,7 +789,7 @@ public class ExpressionReader implements Closeable {
         this.in.raise("Invalid escape sequence character");
     }
 
-    private @NotNull TomlPrimitive readLiteralString() throws TomlException {
+    private TomlPrimitive readLiteralString() throws TomlException {
         switch (this.openString('\'')) {
             case 0:
                 return TomlPrimitive.of("");
@@ -813,7 +811,7 @@ public class ExpressionReader implements Closeable {
         }
     }
 
-    private @NotNull TomlPrimitive readMultilineLiteralString() throws TomlException {
+    private TomlPrimitive readMultilineLiteralString() throws TomlException {
         StringBuilder sb = new StringBuilder();
 
         // Skip leading newline
@@ -856,7 +854,7 @@ public class ExpressionReader implements Closeable {
         }
     }
 
-    private @NotNull TomlPrimitive readBoolean() throws TomlException {
+    private TomlPrimitive readBoolean() throws TomlException {
         char[] n3 = new char[3];
         if (this.in.next(n3) == 3) {
             if (n3[0] == 'r' && n3[1] == 'u' && n3[2] == 'e') {
@@ -869,7 +867,7 @@ public class ExpressionReader implements Closeable {
         return null;
     }
 
-    private @NotNull TomlTable readInlineTable() throws TomlException {
+    private TomlTable readInlineTable() throws TomlException {
         List<String> commentStack = new LinkedList<>();
         TomlTable ret = TomlTable.create();
         TomlValue lastValue = null;
@@ -928,7 +926,7 @@ public class ExpressionReader implements Closeable {
         return ret;
     }
 
-    private @NotNull TomlArray readArray() throws TomlException {
+    private TomlArray readArray() throws TomlException {
         final boolean readComments = this.options.get(JTomlOption.READ_COMMENTS);
         TomlArray ret = TomlArray.create();
 
@@ -975,7 +973,7 @@ public class ExpressionReader implements Closeable {
     }
 
     /** Skip specific to arrays */
-    private @NotNull ArrayControl readArrayControl(boolean readComments) throws TomlException {
+    private ArrayControl readArrayControl(boolean readComments) throws TomlException {
         List<String> comments = readComments ? new LinkedList<>() : null;
         StringBuilder commentBuffer = readComments ? new StringBuilder() : null;
         boolean inComment = false;
@@ -1037,7 +1035,7 @@ public class ExpressionReader implements Closeable {
     private static final class ArrayControl {
 
         final char character;
-        final List<String> comments;
+        final @UnknownNullability List<String> comments;
 
         ArrayControl(char character, @UnknownNullability List<String> comments) {
             this.character = character;

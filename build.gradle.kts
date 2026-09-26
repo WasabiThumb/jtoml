@@ -61,7 +61,8 @@ sourceSets.test {
 }
 
 dependencies {
-    compileOnly(libs.annotations)
+    api(libs.annotations)
+    api(libs.jspecify)
     api(project(":api"))
     implementation(project(":internals"))
 

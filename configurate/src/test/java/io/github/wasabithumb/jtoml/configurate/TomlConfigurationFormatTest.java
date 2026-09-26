@@ -16,14 +16,15 @@
 
 package io.github.wasabithumb.jtoml.configurate;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.loader.ConfigurationFormat;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.net.URL;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class TomlConfigurationFormatTest {
 
@@ -36,8 +37,16 @@ class TomlConfigurationFormatTest {
     @Test
     void testLoadToml() throws ConfigurateException {
         final @Nullable ConfigurationFormat format = ConfigurationFormat.forExtension("toml");
-        final ConfigurationNode node = format.create(this.getClass().getResource("simple.toml")).load();
+        assertNotNull(format);
+        final ConfigurationNode node = format.create(resource("simple.toml")).load();
         assertTrue(node.node("test").getBoolean());
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private static URL resource(String path) {
+        URL url = TomlConfigurationFormatTest.class.getResource(path);
+        if (url == null) throw new IllegalStateException("Resource \"" + path + "\" not found");
+        return url;
     }
 
 }

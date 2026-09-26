@@ -16,8 +16,6 @@
 
 package io.github.wasabithumb.jtoml.except.parse;
 
-import org.jetbrains.annotations.NotNull;
-
 /**
  * An issue was found with the BOM in the source data.
  * <ul>
@@ -39,7 +37,7 @@ public final class TomlBomException extends TomlParseException {
 
     //
 
-    public TomlBomException(@NotNull String message) {
+    public TomlBomException(String message) {
         super(message);
     }
 

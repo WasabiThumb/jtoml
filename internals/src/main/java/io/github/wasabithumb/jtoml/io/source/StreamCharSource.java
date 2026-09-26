@@ -21,7 +21,6 @@ import io.github.wasabithumb.jtoml.except.TomlIOException;
 import io.github.wasabithumb.jtoml.except.parse.TomlBomException;
 import io.github.wasabithumb.jtoml.except.parse.TomlCodingException;
 import io.github.wasabithumb.jtoml.option.prop.OrderMarkPolicy;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
 import java.io.FilterInputStream;
@@ -36,7 +35,7 @@ public final class StreamCharSource extends FilterInputStream implements CharSou
     private static final int BOM_READ     = 8;
 
     @SuppressWarnings("fallthrough")
-    private static int initialFlags(@NotNull OrderMarkPolicy bomPolicy) {
+    private static int initialFlags(OrderMarkPolicy bomPolicy) {
         int flags = 0;
         switch (bomPolicy) {
             case ALWAYS:
@@ -53,7 +52,7 @@ public final class StreamCharSource extends FilterInputStream implements CharSou
     private int flags;
     private int carry;
 
-    public StreamCharSource(@NotNull InputStream in, @NotNull OrderMarkPolicy bomPolicy) {
+    public StreamCharSource(InputStream in, OrderMarkPolicy bomPolicy) {
         super(in);
         this.flags = initialFlags(bomPolicy);
         this.carry = -1;

@@ -22,7 +22,6 @@ import io.github.wasabithumb.jtoml.value.primitive.TomlPrimitive;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * A TOML {@link TomlPrimitive primitive},
@@ -42,7 +41,7 @@ public interface TomlValue {
      */
     @Contract("_ -> new")
     @ApiStatus.AvailableSince("0.6.4")
-    static @NotNull TomlValue copyOf(@NotNull TomlValue other) {
+    static TomlValue copyOf(TomlValue other) {
         if (other.isTable()) {
             return TomlTable.copyOf(other.asTable());
         } else if (other.isArray()) {
@@ -78,13 +77,13 @@ public interface TomlValue {
     @ApiStatus.Internal
     @ApiStatus.AvailableSince("1.2.1")
     @Contract("_ -> this")
-    @NotNull TomlValue flags(int flags);
+    TomlValue flags(int flags);
 
     /**
      * Accesses the comments stored on this value
      */
     @ApiStatus.AvailableSince("0.6.0")
-    @NotNull Comments comments();
+    Comments comments();
 
     /**
      * <p>
@@ -105,7 +104,7 @@ public interface TomlValue {
      * Whether the method returns {@code this} or not is an implementation detail.
      * @throws UnsupportedOperationException Value does not represent a primitive (see {@link #isPrimitive()})
      */
-    default @NotNull TomlPrimitive asPrimitive() throws UnsupportedOperationException {
+    default TomlPrimitive asPrimitive() throws UnsupportedOperationException {
         if (this instanceof TomlPrimitive) return (TomlPrimitive) this;
         throw new UnsupportedOperationException();
     }
@@ -129,7 +128,7 @@ public interface TomlValue {
      * Whether the method returns {@code this} or not is an implementation detail.
      * @throws UnsupportedOperationException Value does not represent an array (see {@link #isArray()})
      */
-    default @NotNull TomlArray asArray() throws UnsupportedOperationException {
+    default TomlArray asArray() throws UnsupportedOperationException {
         if (this instanceof TomlArray) return (TomlArray) this;
         throw new UnsupportedOperationException();
     }
@@ -153,7 +152,7 @@ public interface TomlValue {
      * Whether the method returns {@code this} or not is an implementation detail.
      * @throws UnsupportedOperationException Value does not represent a table (see {@link #isTable()})
      */
-    default @NotNull TomlTable asTable() throws UnsupportedOperationException {
+    default TomlTable asTable() throws UnsupportedOperationException {
         if (this instanceof TomlTable) return (TomlTable) this;
         throw new UnsupportedOperationException();
     }

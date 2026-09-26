@@ -17,6 +17,7 @@
 package io.github.wasabithumb.jtoml.route.helper;
 
 import io.github.wasabithumb.jtoml.route.TestRoute;
+import org.jspecify.annotations.NullMarked;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -25,6 +26,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@NullMarked
 public abstract class HolidaysTestRoute implements TestRoute {
 
     protected void validateDocument(

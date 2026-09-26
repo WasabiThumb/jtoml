@@ -18,7 +18,6 @@ package io.github.wasabithumb.jtoml.serial;
 
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * An abstraction for facets which can transform
@@ -65,7 +64,7 @@ public interface TomlSerializer<I, O> {
      * {@link #toToml(Object)}.
      */
     @ApiStatus.OverrideOnly
-    @NotNull Class<I> inType();
+    Class<I> inType();
 
     /**
      * Reports the narrowest public supertype
@@ -73,7 +72,7 @@ public interface TomlSerializer<I, O> {
      * {@link #fromToml(TomlTable)}.
      */
     @ApiStatus.OverrideOnly
-    @NotNull Class<O> outType();
+    Class<O> outType();
 
     /**
      * Performs an implementation-specific conversion
@@ -81,7 +80,7 @@ public interface TomlSerializer<I, O> {
      * of type {@link #outType() outType}.
      */
     @ApiStatus.AvailableSince("1.2.1")
-    @NotNull O fromToml(@NotNull TomlTable table);
+    O fromToml(TomlTable table);
 
     /**
      * Performs an implementation-specific conversion
@@ -90,7 +89,7 @@ public interface TomlSerializer<I, O> {
      * TOML table.
      */
     @ApiStatus.AvailableSince("1.2.1")
-    @NotNull TomlTable toToml(@NotNull I data);
+    TomlTable toToml(I data);
 
     //
 
@@ -106,15 +105,15 @@ public interface TomlSerializer<I, O> {
          * {@link Symmetric Symmetric} superinterface.
          */
         @ApiStatus.OverrideOnly
-        @NotNull Class<T> serialType();
+        Class<T> serialType();
 
         @Override
-        default @NotNull Class<T> inType() {
+        default Class<T> inType() {
             return this.serialType();
         }
 
         @Override
-        default @NotNull Class<T> outType() {
+        default Class<T> outType() {
             return this.serialType();
         }
 

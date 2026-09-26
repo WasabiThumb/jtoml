@@ -17,7 +17,6 @@
 package io.github.wasabithumb.jtoml.key;
 
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 import java.util.ListIterator;
@@ -27,8 +26,8 @@ import java.util.RandomAccess;
 @ApiStatus.Internal
 class SlicedTomlKey extends AbstractTomlKey {
 
-    public static @NotNull SlicedTomlKey of(
-            @NotNull TomlKey source,
+    public static SlicedTomlKey of(
+            TomlKey source,
             int offset,
             int length
     ) throws IllegalArgumentException {
@@ -57,7 +56,7 @@ class SlicedTomlKey extends AbstractTomlKey {
     private final int offset;
     private final int length;
 
-    private SlicedTomlKey(@NotNull TomlKey source, int offset, int length) {
+    private SlicedTomlKey(TomlKey source, int offset, int length) {
         this.source = source;
         this.offset = offset;
         this.length = length;
@@ -71,7 +70,7 @@ class SlicedTomlKey extends AbstractTomlKey {
     }
 
     @Override
-    public @NotNull String get(int index) throws IndexOutOfBoundsException {
+    public String get(int index) throws IndexOutOfBoundsException {
         if (index < 0 || index >= this.length)
             throw new IndexOutOfBoundsException("Index " + index + " out of bounds for length " + this.length);
         return this.source.get(this.offset + index);
@@ -100,7 +99,7 @@ class SlicedTomlKey extends AbstractTomlKey {
             implements RandomAccess
     {
 
-        WithRandomAccess(@NotNull TomlKey source, int offset, int length) {
+        WithRandomAccess(TomlKey source, int offset, int length) {
             super(source, offset, length);
         }
 
@@ -117,7 +116,7 @@ class SlicedTomlKey extends AbstractTomlKey {
         private final SlicedTomlKey parent;
         private int head;
 
-        ArrayIter(@NotNull SlicedTomlKey parent, int head) {
+        ArrayIter(SlicedTomlKey parent, int head) {
             this.parent = parent;
             this.head = head;
         }
@@ -130,7 +129,7 @@ class SlicedTomlKey extends AbstractTomlKey {
         }
 
         @Override
-        public @NotNull String next() {
+        public String next() {
             int index = this.head;
             if (index >= this.parent.length) throw new NoSuchElementException();
             String ret = this.parent.source.get(this.parent.offset + index);
@@ -144,7 +143,7 @@ class SlicedTomlKey extends AbstractTomlKey {
         }
 
         @Override
-        public @NotNull String previous() {
+        public String previous() {
             int index = this.head;
             if (index == 0) throw new NoSuchElementException();
             index--;
@@ -185,7 +184,7 @@ class SlicedTomlKey extends AbstractTomlKey {
         private final SlicedTomlKey parent;
         private final ListIterator<String> backing;
 
-        SequentialIter(@NotNull SlicedTomlKey parent, int start) {
+        SequentialIter(SlicedTomlKey parent, int start) {
             this.parent = parent;
             this.backing = this.parent.source.listIterator(parent.offset + start);
         }
@@ -198,7 +197,7 @@ class SlicedTomlKey extends AbstractTomlKey {
         }
 
         @Override
-        public @NotNull String next() {
+        public String next() {
             if ((this.backing.nextIndex() - this.parent.offset) >= this.parent.length) throw new NoSuchElementException();
             return this.backing.next();
         }
@@ -209,7 +208,7 @@ class SlicedTomlKey extends AbstractTomlKey {
         }
 
         @Override
-        public @NotNull String previous() {
+        public String previous() {
             if (this.backing.previousIndex() < this.parent.offset) throw new NoSuchElementException();
             return this.backing.previous();
         }

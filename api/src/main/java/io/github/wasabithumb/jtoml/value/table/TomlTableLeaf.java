@@ -19,7 +19,6 @@ package io.github.wasabithumb.jtoml.value.table;
 import io.github.wasabithumb.jtoml.value.TomlValue;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
@@ -28,13 +27,13 @@ final class TomlTableLeaf implements TomlTableNode {
 
     private final TomlValue value;
 
-    TomlTableLeaf(@NotNull TomlValue value) {
+    TomlTableLeaf(TomlValue value) {
         this.value = value;
     }
 
     //
 
-    public @NotNull TomlValue value() {
+    public TomlValue value() {
         return this.value;
     }
 
@@ -52,7 +51,7 @@ final class TomlTableLeaf implements TomlTableNode {
 
     @Override
     @Contract("-> fail")
-    public @NotNull TomlTableBranch asBranch() throws UnsupportedOperationException {
+    public TomlTableBranch asBranch() throws UnsupportedOperationException {
         throw new UnsupportedOperationException();
     }
 
@@ -63,7 +62,7 @@ final class TomlTableLeaf implements TomlTableNode {
 
     @Override
     @Contract("-> this")
-    public @NotNull TomlTableLeaf asLeaf() {
+    public TomlTableLeaf asLeaf() {
         return this;
     }
 
