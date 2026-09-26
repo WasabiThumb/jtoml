@@ -896,7 +896,7 @@ public class ExpressionReader implements Closeable {
             StringBuilder sb = new StringBuilder();
             sb.append(c);
             TomlKey key = this.readKey(sb, '=', (c == '"' || c == '\'') ? c : '\0');
-            for (int z=1; z < key.size() + 1; z++) {
+            for (int z = 1; z <= key.size(); z++) {
                 TomlKey partialKey = key.slice(0, z);
                 TomlValue existing = ret.get(partialKey);
                 if (existing == null) continue;

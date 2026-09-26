@@ -133,7 +133,7 @@ public interface TomlKey extends List<String>, Comparable<TomlKey> {
      */
     default @NotNull TomlKey slice(int fromIndex, int toIndex) {
         if (fromIndex == 0 && toIndex == this.size()) return this;
-        return SlicedTomlKey.of(this, fromIndex, toIndex - fromIndex + 1);
+        return SlicedTomlKey.of(this, fromIndex, toIndex - fromIndex);
     }
 
     /**

@@ -78,7 +78,7 @@ class JTomlTest {
                 ),
                 TomlKey.literal("l.m.n.o.p"),
                 TomlKey.parse("q.r.s")
-        ).slice(2, 11);
+        ).slice(2, 12);
 
         // Ensure we got the right key
         assertEquals(
