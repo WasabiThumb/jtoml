@@ -17,6 +17,7 @@
 package io.github.wasabithumb.jtoml;
 
 import io.github.wasabithumb.jtoml.except.TomlException;
+import io.github.wasabithumb.jtoml.except.TomlIOException;
 import io.github.wasabithumb.jtoml.except.parse.TomlParseException;
 import io.github.wasabithumb.jtoml.key.TomlKey;
 import io.github.wasabithumb.jtoml.route.TestRouteRunner;
@@ -39,6 +40,13 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Entry point for JToml tests.
+ * This is the only class currently using
+ * JUnit injection annotations, the rest
+ * of the test source is fixtures that are
+ * inevitably used by this class.
+ */
 class JTomlTest {
 
     private static JToml TOML;
@@ -50,6 +58,11 @@ class JTomlTest {
 
     //
 
+    /**
+     * Tests that the rather optimized
+     * {@link TomlKey} APIs are
+     * functioning as intended.
+     */
     @Test
     void keys() {
         // Make a key in a very contrived way
@@ -107,12 +120,23 @@ class JTomlTest {
         assertFalse(iter.hasNext());
     }
 
+    /**
+     * Runs every test route in {@code io.github.wasabithumb.jtoml.route.impl}.
+     * Test routes are for testing library features, not language features,
+     * which should be covered by the official test suite.
+     */
     @TestFactory
     Stream<DynamicTest> routes() {
         return TestRoutes.stream()
                 .map(TestRouteRunner::newDynamicTest);
     }
 
+    /**
+     * Ensures that every valid and invalid test case in the official test
+     * suite (fetched by the {@code fetchTests} Gradle task and piped into
+     * {@code processTestRecourses}) either succeeds and matches the expected
+     * AST exactly or fails in the expected way.
+     */
     @TestFactory
     Stream<DynamicTest> read() {
         TestSpecs specs = assertDoesNotThrow(TestSpecs::load, "Failed to load test specs");
@@ -136,6 +160,13 @@ class JTomlTest {
 
     //
 
+    /**
+     * Ensures that every valid test case in the official test
+     * suite (fetched by the {@code fetchTests} Gradle task and piped into
+     * {@code processTestRecourses}) can be parsed, written, re-parsed,
+     * and that the parsed and re-parsed documents are semantically
+     * identical.
+     */
     @TestFactory
     Stream<DynamicTest> write() {
         TestSpecs specs = assertDoesNotThrow(TestSpecs::load, "Failed to load test specs");
@@ -206,6 +237,8 @@ class JTomlTest {
     private TomlTable parse(TestSpec spec) throws TomlException, IOException {
         try (InputStream in = spec.read()) {
             return TOML.read(in);
+        } catch (TomlIOException e) {
+            throw e.getCause();
         }
     }
 
