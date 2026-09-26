@@ -27,11 +27,21 @@ import java.util.List;
 
 /**
  * Represents a parsed TOML key by parts.
- * Unlike a normal {@link List}, the
+ * {@link TomlKey}s are immutable, so JCF
+ * methods which would mutate the key
+ * such as {@link List#add(Object) #add}
+ * will instead raise an {@link UnsupportedOperationException}.
+ * Unlike a normal immutable {@link List}, the
  * {@link #toString()} method formats
  * the key into TOML such that it would
  * be valid to include as-is in a document,
  * complete with escaping and separators.
+ * By virtue of implementing {@link Comparable},
+ * keys can be compared lexicographically. This
+ * is the same ordering used by
+ * {@link io.github.wasabithumb.jtoml.value.table.TomlTable TomlTable}.
+ * Implementing this interface outside JToml is
+ * highly error-prone and not supported.
  * @see #parse(CharSequence)
  */
 @ApiStatus.NonExtendable
