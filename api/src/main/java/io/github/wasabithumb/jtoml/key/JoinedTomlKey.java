@@ -142,6 +142,7 @@ final class JoinedTomlKey extends AbstractTomlKey {
                 if (start < ks) break;
                 keyHead++;
                 partOffset += ks;
+                start -= ks;
             }
             this.parent = parent;
             this.keyHead = keyHead;

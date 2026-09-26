@@ -84,9 +84,13 @@ class SlicedTomlKey extends AbstractTomlKey {
 
     @Override
     public ListIterator<String> listIterator(int index) {
+        this.iteratorIndexCheck(index);
+        return new SequentialIter(this, index);
+    }
+
+    protected void iteratorIndexCheck(int index) throws IndexOutOfBoundsException {
         if (index < 0 || index > this.length)
             throw new IndexOutOfBoundsException("Index " + index + " out of bounds for length " + this.length);
-        return new Iter(this, index);
     }
 
     //
@@ -100,14 +104,20 @@ class SlicedTomlKey extends AbstractTomlKey {
             super(source, offset, length);
         }
 
+        @Override
+        public ListIterator<String> listIterator(int index) {
+            this.iteratorIndexCheck(index);
+            return new ArrayIter(this, index);
+        }
+
     }
 
-    private static final class Iter implements ListIterator<String> {
+    private static final class ArrayIter implements ListIterator<String> {
 
         private final SlicedTomlKey parent;
         private int head;
 
-        Iter(@NotNull SlicedTomlKey parent, int head) {
+        ArrayIter(@NotNull SlicedTomlKey parent, int head) {
             this.parent = parent;
             this.head = head;
         }
@@ -151,6 +161,70 @@ class SlicedTomlKey extends AbstractTomlKey {
         @Override
         public int previousIndex() {
             return this.head - 1;
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void set(String s) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void add(String s) {
+            throw new UnsupportedOperationException();
+        }
+
+    }
+
+    private static final class SequentialIter implements ListIterator<String> {
+
+        private final SlicedTomlKey parent;
+        private final ListIterator<String> backing;
+
+        SequentialIter(@NotNull SlicedTomlKey parent, int start) {
+            this.parent = parent;
+            this.backing = this.parent.source.listIterator(parent.offset + start);
+        }
+
+        //
+
+        @Override
+        public boolean hasNext() {
+            return (this.backing.nextIndex() - this.parent.offset) < this.parent.length;
+        }
+
+        @Override
+        public @NotNull String next() {
+            if ((this.backing.nextIndex() - this.parent.offset) >= this.parent.length) throw new NoSuchElementException();
+            return this.backing.next();
+        }
+
+        @Override
+        public boolean hasPrevious() {
+            return this.backing.previousIndex() >= this.parent.offset;
+        }
+
+        @Override
+        public @NotNull String previous() {
+            if (this.backing.previousIndex() < this.parent.offset) throw new NoSuchElementException();
+            return this.backing.previous();
+        }
+
+        @Override
+        public int nextIndex() {
+            int next = this.backing.nextIndex() - this.parent.offset;
+            return Math.min(next, this.parent.length);
+        }
+
+        @Override
+        public int previousIndex() {
+            int pre = this.backing.previousIndex();
+            if (pre < this.parent.offset) return -1;
+            return pre - this.parent.offset;
         }
 
         @Override
