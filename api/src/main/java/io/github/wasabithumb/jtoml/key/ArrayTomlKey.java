@@ -22,11 +22,15 @@ import org.jetbrains.annotations.Range;
 
 import java.nio.CharBuffer;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.RandomAccess;
 import java.util.stream.Stream;
 
 @ApiStatus.Internal
-final class ArrayTomlKey extends AbstractTomlKey implements RandomAccess {
+final class ArrayTomlKey
+        extends AbstractTomlKey
+        implements RandomAccess
+{
 
     public static @NotNull ArrayTomlKey parse(@NotNull CharSequence str) throws IllegalArgumentException {
         if (str instanceof String) {
@@ -213,12 +217,9 @@ final class ArrayTomlKey extends AbstractTomlKey implements RandomAccess {
 
     @Override
     public @NotNull String get(int index) throws IndexOutOfBoundsException {
+        if (index < 0 || index >= this.data.length)
+            throw new IndexOutOfBoundsException("Index " + index + " out of bounds for size " + this.data.length);
         return this.data[index];
-    }
-
-    @Override
-    public @NotNull Stream<String> stream() {
-        return Arrays.stream(this.data);
     }
 
     //

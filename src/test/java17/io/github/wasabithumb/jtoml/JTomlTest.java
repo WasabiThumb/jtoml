@@ -29,6 +29,7 @@ import io.github.wasabithumb.jtoml.value.primitive.TomlPrimitive;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestFactory;
 
 import java.io.IOException;
@@ -48,6 +49,63 @@ class JTomlTest {
     }
 
     //
+
+    @Test
+    void keys() {
+        // Make a key in a very contrived way
+        TomlKey key = TomlKey.join(
+                TomlKey.literal("a", "b"),
+                TomlKey.join(
+                        TomlKey.parse("c.'d'"),
+                        TomlKey.literal("e", "f")
+                ),
+                TomlKey.join(
+                        TomlKey.literal("g", "h"),
+                        TomlKey.parse("\"i\".j.k")
+                ),
+                TomlKey.literal("l.m.n.o.p"),
+                TomlKey.parse("q.r.s")
+        ).slice(2, 11);
+
+        // Ensure we got the right key
+        assertEquals(
+                TomlKey.parse("c.d.e.f.g.h.i.j.k.'l.m.n.o.p'"),
+                key
+        );
+
+        // Iterate maliciously
+        ListIterator<String> iter = key.listIterator(4);
+
+        assertTrue(iter.hasNext());
+        assertEquals(4, iter.nextIndex());
+        assertEquals("g", iter.next());
+
+        assertTrue(iter.hasPrevious());
+        assertEquals(4, iter.previousIndex());
+        assertEquals("g", iter.previous());
+
+        assertTrue(iter.hasPrevious());
+        assertEquals(3, iter.previousIndex());
+        assertEquals("f", iter.previous());
+
+        for (int i = 2; i >= 0; i--) {
+            assertTrue(iter.hasPrevious());
+            assertEquals(i, iter.previousIndex());
+            iter.previous();
+        }
+        assertFalse(iter.hasPrevious());
+
+        for (int i = 0; i < 9; i++) {
+            assertTrue(iter.hasNext());
+            assertEquals(i, iter.nextIndex());
+            iter.next();
+        }
+
+        assertTrue(iter.hasNext());
+        assertEquals(9, iter.nextIndex());
+        assertEquals("l.m.n.o.p", iter.next());
+        assertFalse(iter.hasNext());
+    }
 
     @TestFactory
     Stream<DynamicTest> routes() {

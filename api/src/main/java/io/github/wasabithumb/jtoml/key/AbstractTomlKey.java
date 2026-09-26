@@ -19,13 +19,15 @@ package io.github.wasabithumb.jtoml.key;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.AbstractCollection;
+import java.util.AbstractList;
 import java.util.Iterator;
 import java.util.StringJoiner;
-import java.util.stream.Stream;
 
 @ApiStatus.Internal
-abstract class AbstractTomlKey extends AbstractCollection<String> implements TomlKey {
+abstract class AbstractTomlKey
+        extends AbstractList<String>
+        implements TomlKey
+{
 
     protected static boolean isValidBare(char c) {
         if ('A' <= c && c <= 'Z') return true;
@@ -69,11 +71,8 @@ abstract class AbstractTomlKey extends AbstractCollection<String> implements Tom
     //
 
     @Override
-    public abstract @NotNull Stream<String> stream();
-
-    @Override
-    public @NotNull Iterator<String> iterator() {
-        return this.stream().iterator();
+    public TomlKey subList(int fromIndex, int toIndex) {
+        return this.slice(fromIndex, toIndex);
     }
 
     @Override
@@ -105,22 +104,23 @@ abstract class AbstractTomlKey extends AbstractCollection<String> implements Tom
 
         Iterator<String> a = this.iterator();
         Iterator<String> b = other.iterator();
-        for (int i=0; i < len; i++) {
+        for (int i = 0; i < len; i++) {
             if (!a.next().equals(b.next())) {
                 return false;
             }
         }
+
         return true;
     }
 
     @Override
     public @NotNull String toString() {
         StringJoiner sj = new StringJoiner(".");
-        for (String part : this) sj.add(this.encodePart(part));
+        for (String part : this) sj.add(encodePart(part));
         return sj.toString();
     }
 
-    protected @NotNull CharSequence encodePart(@NotNull CharSequence part) {
+    protected static @NotNull CharSequence encodePart(@NotNull CharSequence part) {
         final int len = part.length();
         if (len == 0) return "\"\"";
 

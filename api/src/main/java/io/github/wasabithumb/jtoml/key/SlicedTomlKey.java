@@ -19,10 +19,13 @@ package io.github.wasabithumb.jtoml.key;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.stream.Stream;
+import java.util.Iterator;
+import java.util.ListIterator;
+import java.util.NoSuchElementException;
+import java.util.RandomAccess;
 
 @ApiStatus.Internal
-final class SlicedTomlKey extends AbstractTomlKey {
+class SlicedTomlKey extends AbstractTomlKey {
 
     public static @NotNull SlicedTomlKey of(
             @NotNull TomlKey source,
@@ -38,9 +41,13 @@ final class SlicedTomlKey extends AbstractTomlKey {
         }
         if (source instanceof SlicedTomlKey) {
             SlicedTomlKey qual = (SlicedTomlKey) source;
-            return new SlicedTomlKey(qual.source, qual.offset + offset, length);
+            return qual.source instanceof RandomAccess ?
+                    new SlicedTomlKey.WithRandomAccess(qual.source, qual.offset + offset, length) :
+                    new SlicedTomlKey(qual.source, qual.offset + offset, length);
         } else {
-            return new SlicedTomlKey(source, offset, length);
+            return source instanceof RandomAccess ?
+                    new SlicedTomlKey.WithRandomAccess(source, offset, length) :
+                    new SlicedTomlKey(source, offset, length);
         }
     }
 
@@ -71,10 +78,96 @@ final class SlicedTomlKey extends AbstractTomlKey {
     }
 
     @Override
-    public @NotNull Stream<String> stream() {
-        return this.source.stream()
-                .skip(this.offset)
-                .limit(this.length);
+    public Iterator<String> iterator() {
+        return this.listIterator(0);
+    }
+
+    @Override
+    public ListIterator<String> listIterator(int index) {
+        if (index < 0 || index > this.length)
+            throw new IndexOutOfBoundsException("Index " + index + " out of bounds for length " + this.length);
+        return new Iter(this, index);
+    }
+
+    //
+
+    private static final class WithRandomAccess
+            extends SlicedTomlKey
+            implements RandomAccess
+    {
+
+        WithRandomAccess(@NotNull TomlKey source, int offset, int length) {
+            super(source, offset, length);
+        }
+
+    }
+
+    private static final class Iter implements ListIterator<String> {
+
+        private final SlicedTomlKey parent;
+        private int head;
+
+        Iter(@NotNull SlicedTomlKey parent, int head) {
+            this.parent = parent;
+            this.head = head;
+        }
+
+        //
+
+        @Override
+        public boolean hasNext() {
+            return this.head < this.parent.length;
+        }
+
+        @Override
+        public @NotNull String next() {
+            int index = this.head;
+            if (index >= this.parent.length) throw new NoSuchElementException();
+            String ret = this.parent.source.get(this.parent.offset + index);
+            this.head = index + 1;
+            return ret;
+        }
+
+        @Override
+        public boolean hasPrevious() {
+            return this.head != 0;
+        }
+
+        @Override
+        public @NotNull String previous() {
+            int index = this.head;
+            if (index == 0) throw new NoSuchElementException();
+            index--;
+            String ret = this.parent.source.get(this.parent.offset + index);
+            this.head = index;
+            return ret;
+        }
+
+        @Override
+        public int nextIndex() {
+            return this.head;
+        }
+
+        @Override
+        public int previousIndex() {
+            return this.head - 1;
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void set(String s) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void add(String s) {
+            throw new UnsupportedOperationException();
+        }
+
     }
 
 }
