@@ -16,8 +16,6 @@
 
 package io.github.wasabithumb.jtoml.io.target;
 
-import org.jetbrains.annotations.NotNull;
-
 public final class StringCharTarget implements CharTarget {
 
     private final StringBuilder backing = new StringBuilder();
@@ -35,7 +33,7 @@ public final class StringCharTarget implements CharTarget {
     }
 
     @Override
-    public void put(@NotNull CharSequence cs) {
+    public void put(CharSequence cs) {
         this.backing.append(cs);
     }
 
@@ -43,7 +41,7 @@ public final class StringCharTarget implements CharTarget {
     public void close() { }
 
     @Override
-    public @NotNull String toString() {
+    public String toString() {
         return this.backing.toString();
     }
 

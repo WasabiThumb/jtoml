@@ -25,10 +25,11 @@ import io.github.wasabithumb.jtoml.route.TestRoute;
 import io.github.wasabithumb.jtoml.value.TomlValue;
 import io.github.wasabithumb.jtoml.value.array.TomlArray;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
+import org.jspecify.annotations.NullMarked;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** For debugging/covering #86 */
+@NullMarked
 public final class CompactArrayTestRoute implements TestRoute.Configuring {
 
     @Override

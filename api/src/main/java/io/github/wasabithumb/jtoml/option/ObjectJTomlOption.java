@@ -17,15 +17,14 @@
 package io.github.wasabithumb.jtoml.option;
 
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 @ApiStatus.Internal
 final class ObjectJTomlOption<T> extends AbstractJTomlOption<T> {
 
-    public static <R> @NotNull ObjectJTomlOption<R> of(
-            @NotNull String name,
-            @NotNull Class<R> valueClass,
-            @NotNull R defaultValue
+    public static <R> ObjectJTomlOption<R> of(
+            String name,
+            Class<R> valueClass,
+            R defaultValue
     ) {
         return new ObjectJTomlOption<>(name, valueClass, defaultValue);
     }
@@ -34,7 +33,7 @@ final class ObjectJTomlOption<T> extends AbstractJTomlOption<T> {
 
     private final Class<T> valueClass;
 
-    public ObjectJTomlOption(@NotNull String name, @NotNull Class<T> valueClass, @NotNull T defaultValue) {
+    public ObjectJTomlOption(String name, Class<T> valueClass, T defaultValue) {
         super(name, defaultValue);
         this.valueClass = valueClass;
     }
@@ -42,7 +41,7 @@ final class ObjectJTomlOption<T> extends AbstractJTomlOption<T> {
     //
 
     @Override
-    public @NotNull Class<T> valueClass() {
+    public Class<T> valueClass() {
         return this.valueClass;
     }
 

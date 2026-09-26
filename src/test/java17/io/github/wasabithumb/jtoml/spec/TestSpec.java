@@ -17,10 +17,12 @@
 package io.github.wasabithumb.jtoml.spec;
 
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.IOException;
 import java.io.InputStream;
 
+@NullMarked
 public interface TestSpec {
 
     static TestSpec valid(String name, boolean hasValidator) {

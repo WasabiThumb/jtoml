@@ -18,7 +18,9 @@ package io.github.wasabithumb.jtoml.route;
 
 import io.github.wasabithumb.jtoml.JToml;
 import io.github.wasabithumb.jtoml.option.JTomlOptions;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 public interface TestRoute {
 
     String displayName();

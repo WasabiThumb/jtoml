@@ -18,14 +18,13 @@ package io.github.wasabithumb.jtoml.value.primitive;
 
 import io.github.wasabithumb.jtoml.comment.Comments;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 @ApiStatus.Internal
 final class BooleanTomlPrimitive extends AbstractTomlPrimitive<Boolean> {
 
     private final boolean value;
 
-    public BooleanTomlPrimitive(@NotNull Comments comments, boolean value) {
+    public BooleanTomlPrimitive(Comments comments, boolean value) {
         super(comments);
         this.value = value;
     }
@@ -37,18 +36,18 @@ final class BooleanTomlPrimitive extends AbstractTomlPrimitive<Boolean> {
     //
 
     @Override
-    public @NotNull TomlPrimitiveType type() {
+    public TomlPrimitiveType type() {
         return TomlPrimitiveType.BOOLEAN;
     }
 
     @Override
-    public @NotNull Boolean value() {
+    public Boolean value() {
         return this.value;
     }
 
     @Override
-    public @NotNull String asString() {
-        return this.value ? "true" : "false";
+    public String asString() {
+        return Boolean.toString(this.value);
     }
 
     @Override

@@ -28,6 +28,9 @@ import io.github.wasabithumb.jtoml.value.TomlValue;
 import io.github.wasabithumb.jtoml.value.array.TomlArray;
 import io.github.wasabithumb.jtoml.value.primitive.TomlPrimitive;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
+import org.jetbrains.annotations.UnknownNullability;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
@@ -47,9 +50,10 @@ import static org.junit.jupiter.api.Assertions.*;
  * of the test source is fixtures that are
  * inevitably used by this class.
  */
+@NullMarked
 class JTomlTest {
 
-    private static JToml TOML;
+    private static @UnknownNullability JToml TOML;
 
     @BeforeAll
     static void setup() {
@@ -212,7 +216,7 @@ class JTomlTest {
         assertEquals(p1.asString(), p2.asString());
     }
 
-    private void writeEqualsAny(TomlValue v1, TomlValue v2) {
+    private void writeEqualsAny(@Nullable TomlValue v1, @Nullable TomlValue v2) {
         if (v1 == null) {
             assertNull(v2);
             return;

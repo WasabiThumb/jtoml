@@ -22,7 +22,10 @@ import io.github.wasabithumb.jtoml.util.ParameterizedClass;
 import io.github.wasabithumb.recsup.RecordClass;
 import io.github.wasabithumb.recsup.RecordComponent;
 import io.github.wasabithumb.recsup.RecordSupport;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.UnknownNullability;
+import org.jetbrains.annotations.Unmodifiable;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -32,15 +35,15 @@ import java.util.*;
 @ApiStatus.Internal
 final class RecordTableTypeModel<T> extends AbstractTableTypeModel<T> {
 
-    private static @NotNull Key recordComponentKey(
-            @NotNull RecordComponent component,
-            @NotNull KeyConvention defaultConvention
+    private static Key recordComponentKey(
+            RecordComponent component,
+            KeyConvention defaultConvention
     ) {
         return new RecordComponentKey(component, defaultConvention);
     }
 
-    private static @NotNull RecordComponent unwrapRecordComponentKey(
-            @NotNull Key key
+    private static RecordComponent unwrapRecordComponentKey(
+            Key key
     ) {
         if (key instanceof RecordComponentKey) {
             return ((RecordComponentKey) key).component;
@@ -53,7 +56,7 @@ final class RecordTableTypeModel<T> extends AbstractTableTypeModel<T> {
     private final RecordClass<T> clazz;
     private final RecordComponent[] components;
 
-    RecordTableTypeModel(@NotNull Class<T> clazz) {
+    RecordTableTypeModel(Class<T> clazz) {
         this.clazz = RecordSupport.asRecord(clazz);
         this.components = this.clazz.getRecordComponents();
     }
@@ -61,39 +64,39 @@ final class RecordTableTypeModel<T> extends AbstractTableTypeModel<T> {
     //
 
     @Override
-    public @NotNull Class<T> type() {
+    public Class<T> type() {
         return this.clazz.handle();
     }
 
     @Override
-    public @NotNull TableTypeModel.Builder<T> create() {
+    public TableTypeModel.Builder<T> create() {
         return new Builder<>(this);
     }
 
     @Override
-    public @NotNull Mapper mapper(@NotNull KeyConvention defaultConvention) {
+    public Mapper mapper(KeyConvention defaultConvention) {
         return new FixedMapper(this, this.keys(defaultConvention));
     }
 
     @Override
-    public @NotNull @Unmodifiable Collection<Key> keys(@NotNull T instance, @NotNull KeyConvention defaultConvention) {
+    public @Unmodifiable Collection<Key> keys(T instance, KeyConvention defaultConvention) {
         return this.keys(defaultConvention);
     }
 
-    private @NotNull @Unmodifiable Collection<Key> keys(@NotNull KeyConvention defaultConvention) {
+    private @Unmodifiable Collection<Key> keys(KeyConvention defaultConvention) {
         List<Key> ret = new ArrayList<>(this.components.length);
         for (RecordComponent rc : this.components) ret.add(recordComponentKey(rc, defaultConvention));
         return Collections.unmodifiableList(ret);
     }
 
     @Override
-    public @NotNull ParameterizedClass<?> elementType(@NotNull Key key) {
+    public ParameterizedClass<?> elementType(Key key) {
         final RecordComponent componentKey = unwrapRecordComponentKey(key);
         return new ParameterizedClass<>(componentKey.getType(), componentKey.getGenericType());
     }
 
     @Override
-    public @UnknownNullability Object get(@NotNull T instance, @NotNull Key key) {
+    public @UnknownNullability Object get(T instance, Key key) {
         final RecordComponent component = unwrapRecordComponentKey(key);
         final Method m = component.getAccessor();
         try {
@@ -112,12 +115,12 @@ final class RecordTableTypeModel<T> extends AbstractTableTypeModel<T> {
     }
 
     @Override
-    public void applyTableComments(@NotNull Comments comments) {
+    public void applyTableComments(Comments comments) {
         applyAnnotationComments(this.clazz.handle(), comments);
     }
 
     @Override
-    public void applyFieldComments(@NotNull Key key, @NotNull Comments comments) {
+    public void applyFieldComments(Key key, Comments comments) {
         final RecordComponent component = unwrapRecordComponentKey(key);
         applyAnnotationComments(component.getAccessor(), comments);
     }
@@ -129,7 +132,7 @@ final class RecordTableTypeModel<T> extends AbstractTableTypeModel<T> {
         private final RecordTableTypeModel<O> parent;
         private final Object[] values;
 
-        private Builder(@NotNull RecordTableTypeModel<O> parent) {
+        private Builder(RecordTableTypeModel<O> parent) {
             this.parent = parent;
             this.values = new Object[parent.components.length];
         }
@@ -137,13 +140,13 @@ final class RecordTableTypeModel<T> extends AbstractTableTypeModel<T> {
         //
 
         @Override
-        public void set(@NotNull Key key, @NotNull Object value) {
+        public void set(Key key, Object value) {
             final RecordComponent component = unwrapRecordComponentKey(key);
             this.values[component.index()] = value;
         }
 
         @Override
-        public @NotNull O build() {
+        public O build() {
             Constructor<O> con = this.parent.clazz.getPrimaryConstructor();
             try {
                 con.setAccessible(true);
@@ -200,8 +203,8 @@ final class RecordTableTypeModel<T> extends AbstractTableTypeModel<T> {
         private final RecordComponent component;
 
         RecordComponentKey(
-                @NotNull RecordComponent component,
-                @NotNull KeyConvention defaultConvention
+                RecordComponent component,
+                KeyConvention defaultConvention
         ) {
             super(component.getAccessor(), defaultConvention);
             this.component = component;

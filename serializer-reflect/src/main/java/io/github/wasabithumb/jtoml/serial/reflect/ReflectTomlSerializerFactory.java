@@ -22,13 +22,12 @@ import io.github.wasabithumb.jtoml.option.JTomlOptions;
 import io.github.wasabithumb.jtoml.serial.TomlSerializerFactory;
 import io.github.wasabithumb.jtoml.serial.reflect.adapter.TypeAdapters;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 @ApiStatus.Internal
 public final class ReflectTomlSerializerFactory extends TomlSerializerFactory {
 
     @Override
-    public @NotNull <T> Result<?, T> fromToml(@NotNull JToml instance, @NotNull Class<T> outType) {
+    public <T> Result<?, T> fromToml(JToml instance, Class<T> outType) {
         int features = features(instance) | ReflectTomlSerializer.Feature.SUPPORTS_FROM_TOML;
         String error = ReflectTomlSerializer.anyTypeError(outType, features);
         if (error != null) return Result.invalid(error);
@@ -41,7 +40,7 @@ public final class ReflectTomlSerializerFactory extends TomlSerializerFactory {
     }
 
     @Override
-    public @NotNull <T> Result<T, ?> toToml(@NotNull JToml instance, @NotNull Class<T> inType) {
+    public <T> Result<T, ?> toToml(JToml instance, Class<T> inType) {
         int features = features(instance) | ReflectTomlSerializer.Feature.SUPPORTS_TO_TOML;
         String error = ReflectTomlSerializer.anyTypeError(inType, features);
         if (error != null) return Result.invalid(error);
@@ -55,7 +54,7 @@ public final class ReflectTomlSerializerFactory extends TomlSerializerFactory {
 
     //
 
-    private static @ReflectTomlSerializer.Feature.Set int features(@NotNull JToml instance) {
+    private static @ReflectTomlSerializer.Feature.Set int features(JToml instance) {
         final JTomlOptions options = instance.options();
         @ReflectTomlSerializer.Feature.Set int ret = 0;
         if (options.get(JTomlOption.IGNORE_SERIALIZABLE_MARKER)) ret |= ReflectTomlSerializer.Feature.IGNORE_MARKER;

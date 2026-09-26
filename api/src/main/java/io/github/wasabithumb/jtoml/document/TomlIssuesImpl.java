@@ -21,7 +21,6 @@ import io.github.wasabithumb.jtoml.except.parse.TomlLocalParseException;
 import io.github.wasabithumb.jtoml.except.parse.TomlMultiParseException;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -37,9 +36,7 @@ final class TomlIssuesImpl
 
     private final TomlIssue[] array;
 
-    public TomlIssuesImpl(
-            @NotNull TomlIssue @NotNull [] array
-    ) {
+    public TomlIssuesImpl(TomlIssue[] array) {
         this.array = array;
     }
 
@@ -61,6 +58,7 @@ final class TomlIssuesImpl
     public void unwrap() throws TomlException {
         int len = this.array.length;
         if (len == 0) return;
+        if (len == 1) throw this.array[0].toException();
         List<TomlLocalParseException> ex = new ArrayList<>(len);
         for (TomlIssue issue : this.array) ex.add(issue.toException());
         throw TomlMultiParseException.create(ex);
@@ -68,7 +66,7 @@ final class TomlIssuesImpl
 
     @Override
     @Contract(" -> new")
-    public @NotNull Builder toBuilder() {
+    public Builder toBuilder() {
         Builder ret = new Builder();
         ret.set.addAll(Arrays.asList(this.array));
         return ret;
@@ -83,13 +81,13 @@ final class TomlIssuesImpl
         //
 
         @Override
-        public @NotNull Builder add(@NotNull TomlIssue issue) {
+        public Builder add(TomlIssue issue) {
             this.set.add(issue);
             return this;
         }
 
         @Override
-        public @NotNull TomlIssuesImpl build() {
+        public TomlIssuesImpl build() {
             final int len = this.set.size();
             final TomlIssue[] array = new TomlIssue[len];
             Iterator<TomlIssue> iter = set.iterator();

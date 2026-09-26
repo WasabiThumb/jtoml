@@ -18,8 +18,8 @@ package io.github.wasabithumb.jtoml.util;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
@@ -31,16 +31,17 @@ import java.util.*;
  * (as provided by e.g. {@link Field#getType()} and {@link Field#getGenericType()})
  * and provides utilities to work with them
  */
+@NullMarked
 @ApiStatus.Internal
 public final class ParameterizedClass<T> {
 
     @Contract("_ -> new")
-    public static @NotNull ParameterizedClass<?> of(@NotNull Field f) {
+    public static ParameterizedClass<?> of(Field f) {
         return new ParameterizedClass<>(f.getType(), f.getGenericType());
     }
 
     @Contract("_ -> new")
-    public static @NotNull ParameterizedClass<?> of(@NotNull Type t) {
+    public static ParameterizedClass<?> of(Type t) {
         Type[] params;
         if (t instanceof ParameterizedType) {
             ParameterizedType pt = (ParameterizedType) t;
@@ -64,12 +65,12 @@ public final class ParameterizedClass<T> {
     private final Class<T> clazz;
     private final Type[] params;
 
-    private ParameterizedClass(@NotNull Class<T> clazz, @NotNull Type[] params) {
+    private ParameterizedClass(Class<T> clazz, Type[] params) {
         this.clazz = clazz;
         this.params = params;
     }
 
-    private ParameterizedClass(@NotNull Class<T> clazz, @NotNull Type type, @NotNull Type @Nullable [] inherited) {
+    private ParameterizedClass(Class<T> clazz, Type type, Type @Nullable [] inherited) {
         Type[] params;
         if (type instanceof ParameterizedType) {
             ParameterizedType pt = (ParameterizedType) type;
@@ -90,18 +91,18 @@ public final class ParameterizedClass<T> {
         this.params = params;
     }
 
-    public ParameterizedClass(@NotNull Class<T> clazz, @NotNull Type type) {
+    public ParameterizedClass(Class<T> clazz, Type type) {
         this(clazz, type, null);
     }
 
-    public ParameterizedClass(@NotNull Class<T> clazz) {
+    public ParameterizedClass(Class<T> clazz) {
         this(clazz, new Type[0]);
     }
 
     //
 
     @Contract(pure = true)
-    public @NotNull Class<T> raw() {
+    public Class<T> raw() {
         return this.clazz;
     }
 
@@ -110,11 +111,11 @@ public final class ParameterizedClass<T> {
     }
 
     @Contract(pure = true)
-    public @NotNull Type @NotNull [] params() {
+    public Type [] params() {
         return Arrays.copyOf(this.params, this.params.length);
     }
 
-    public @NotNull Type param(int index) {
+    public Type param(int index) {
         return this.params[index];
     }
 
@@ -124,14 +125,14 @@ public final class ParameterizedClass<T> {
         return new ParameterizedClass<>(cls, this.clazz.getGenericSuperclass(), this.params);
     }
 
-    public @NotNull Set<ParameterizedClass<?>> superClasses() {
+    public Set<ParameterizedClass<?>> superClasses() {
         Set<ParameterizedClass<?>> ret = new LinkedHashSet<>();
         Iterator<ParameterizedClass<?>> iter = this.lineage(false);
         while (iter.hasNext()) ret.add(iter.next());
         return Collections.unmodifiableSet(ret);
     }
 
-    public @NotNull Set<ParameterizedClass<?>> directSuperInterfaces() {
+    public Set<ParameterizedClass<?>> directSuperInterfaces() {
         Class<?>[] a = this.clazz.getInterfaces();
         Type[] b = this.clazz.getGenericInterfaces();
         int count = a.length;
@@ -143,14 +144,14 @@ public final class ParameterizedClass<T> {
         return Collections.unmodifiableSet(ret);
     }
 
-    public @NotNull Set<ParameterizedClass<?>> superInterfaces() {
+    public Set<ParameterizedClass<?>> superInterfaces() {
         Set<ParameterizedClass<?>> ret = new HashSet<>();
         Iterator<ParameterizedClass<?>> iter = this.lineage(true);
         while (iter.hasNext()) ret.addAll(iter.next().directSuperInterfaces());
         return Collections.unmodifiableSet(ret);
     }
 
-    public @Nullable ParameterizedClass<?> declaredInterface(@NotNull Class<?> cls) {
+    public @Nullable ParameterizedClass<?> declaredInterface(Class<?> cls) {
         if (this.clazz.isInterface() && this.clazz.equals(cls)) return this;
         for (ParameterizedClass<?> pc : this.superInterfaces()) {
             if (cls.equals(pc.raw())) return pc;
@@ -158,10 +159,10 @@ public final class ParameterizedClass<T> {
         return null;
     }
 
-    private @NotNull Iterator<ParameterizedClass<?>> lineage(final boolean includeSelf) {
+    private Iterator<ParameterizedClass<?>> lineage(final boolean includeSelf) {
         return new Iterator<ParameterizedClass<?>>() {
 
-            private ParameterizedClass<?> head = includeSelf ?
+            private @Nullable ParameterizedClass<?> head = includeSelf ?
                     ParameterizedClass.this :
                     ParameterizedClass.this.superClass();
 
@@ -184,7 +185,7 @@ public final class ParameterizedClass<T> {
     //
 
     @Override
-    public @NotNull String toString() {
+    public String toString() {
         if (this.params.length == 0)
             return this.clazz.getName();
 

@@ -16,6 +16,8 @@
 
 package io.github.wasabithumb.jtoml.route;
 
+import org.jspecify.annotations.NullMarked;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,6 +40,7 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+@NullMarked
 public final class TestRoutes {
 
     private static final List<Class<? extends TestRoute>> IMPL_CLASSES = findImplClasses();

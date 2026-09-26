@@ -21,9 +21,12 @@ import io.github.wasabithumb.jtoml.route.Sentinel;
 import io.github.wasabithumb.jtoml.route.TestRoute;
 import io.github.wasabithumb.jtoml.serial.TomlSerializable;
 import io.github.wasabithumb.jtoml.serial.reflect.Defaulting;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@NullMarked
 public final class DefaultingTestRoute implements TestRoute {
 
     @Sentinel("defaulting.toml")
@@ -57,7 +60,7 @@ public final class DefaultingTestRoute implements TestRoute {
 
     private interface Document {
         long sanity();
-        String someString();
+        @Nullable String someString();
         boolean someBool();
         double someFloat();
         int someInt();
@@ -66,7 +69,7 @@ public final class DefaultingTestRoute implements TestRoute {
     @Defaulting
     private record RecordDocument(
             long sanity,
-            String someString,
+            @Nullable String someString,
             boolean someBool,
             double someFloat,
             int someInt
@@ -76,7 +79,7 @@ public final class DefaultingTestRoute implements TestRoute {
     private static final class PojoDocument implements TomlSerializable, Document {
 
         private long sanity;
-        private String someString;
+        private @Nullable String someString;
         private boolean someBool;
         private double someFloat;
         private int someInt;
@@ -89,7 +92,7 @@ public final class DefaultingTestRoute implements TestRoute {
         }
 
         @Override
-        public String someString() {
+        public @Nullable String someString() {
             return this.someString;
         }
 

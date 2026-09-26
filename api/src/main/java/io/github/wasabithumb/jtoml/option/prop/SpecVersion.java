@@ -17,7 +17,6 @@
 package io.github.wasabithumb.jtoml.option.prop;
 
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * An enum representing versions of the TOML
@@ -43,7 +42,7 @@ public enum SpecVersion {
      * Provides the latest version of the specification
      * supported by this library.
      */
-    public static @NotNull SpecVersion latest() {
+    public static SpecVersion latest() {
         return V1_1_0;
     }
 

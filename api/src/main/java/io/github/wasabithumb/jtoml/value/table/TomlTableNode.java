@@ -17,7 +17,6 @@
 package io.github.wasabithumb.jtoml.value.table;
 
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 @ApiStatus.Internal
 interface TomlTableNode {
@@ -26,10 +25,10 @@ interface TomlTableNode {
 
     boolean isBranch();
 
-    @NotNull TomlTableBranch asBranch() throws UnsupportedOperationException;
+    TomlTableBranch asBranch() throws UnsupportedOperationException;
 
     boolean isLeaf();
 
-    @NotNull TomlTableLeaf asLeaf() throws UnsupportedOperationException;
+    TomlTableLeaf asLeaf() throws UnsupportedOperationException;
 
 }

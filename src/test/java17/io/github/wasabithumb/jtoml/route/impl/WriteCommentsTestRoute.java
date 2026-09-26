@@ -26,9 +26,11 @@ import io.github.wasabithumb.jtoml.route.TestRoute;
 import io.github.wasabithumb.jtoml.value.TomlValue;
 import io.github.wasabithumb.jtoml.value.primitive.TomlPrimitive;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
+import org.jspecify.annotations.NullMarked;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@NullMarked
 public final class WriteCommentsTestRoute implements TestRoute.Configuring {
 
     @Sentinel("comments.toml")

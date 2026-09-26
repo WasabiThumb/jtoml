@@ -16,9 +16,12 @@
 
 package io.github.wasabithumb.jtoml.spec;
 
+import org.jspecify.annotations.NullMarked;
+
 import java.io.IOException;
 import java.io.InputStream;
 
+@NullMarked
 abstract class AbstractTestSpec implements TestSpec {
 
     protected final String name;

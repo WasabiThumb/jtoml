@@ -16,8 +16,6 @@
 
 package io.github.wasabithumb.jtoml.except.parse;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.time.DateTimeException;
 
 /**
@@ -30,12 +28,12 @@ public final class TomlDateTimeException extends TomlParseException {
 
     //
 
-    public TomlDateTimeException(@NotNull DateTimeException cause) {
+    public TomlDateTimeException(DateTimeException cause) {
         super("Invalid datetime", cause);
     }
 
     @Override
-    public @NotNull DateTimeException getCause() {
+    public DateTimeException getCause() {
         return (DateTimeException) super.getCause();
     }
 

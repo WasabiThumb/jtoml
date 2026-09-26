@@ -20,7 +20,6 @@ import io.github.wasabithumb.jtoml.except.parse.TomlCodingException;
 import io.github.wasabithumb.jtoml.except.parse.TomlTruncatedException;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -48,7 +47,7 @@ public final class TomlIOException extends TomlException {
      */
     @ApiStatus.Internal
     @Contract("_ -> fail")
-    public static void rethrow(@NotNull IOException cause) throws TomlException {
+    public static void rethrow(IOException cause) throws TomlException {
         if (cause instanceof EOFException) {
             throw new TomlTruncatedException(
                     "Unexpected end of document",
@@ -69,15 +68,14 @@ public final class TomlIOException extends TomlException {
 
     //
 
-    @Contract("_, null -> fail")
-    private TomlIOException(@NotNull String message, IOException cause) {
+    private TomlIOException(String message, IOException cause) {
         super(message, Objects.requireNonNull(cause));
     }
 
     //
 
     @Override
-    public @NotNull IOException getCause() {
+    public IOException getCause() {
         return (IOException) super.getCause();
     }
 

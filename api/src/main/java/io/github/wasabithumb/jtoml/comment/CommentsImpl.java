@@ -18,7 +18,6 @@ package io.github.wasabithumb.jtoml.comment;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
@@ -27,7 +26,7 @@ import java.util.*;
 final class CommentsImpl implements Comments {
 
     @Contract("_ -> new")
-    static @NotNull CommentsImpl copyOf(@NotNull Comments other) {
+    static CommentsImpl copyOf(Comments other) {
         if (other instanceof CommentsImpl) {
             return new CommentsImpl((CommentsImpl) other);
         } else {
@@ -39,13 +38,14 @@ final class CommentsImpl implements Comments {
 
     //
 
+    @SuppressWarnings("NotNullFieldNotInitialized")
     private Comment[] array;
     private int capacity;
     private int preHead;
     private int postHead;
     private boolean hasInline;
 
-    private CommentsImpl(@NotNull CommentsImpl other) {
+    private CommentsImpl(CommentsImpl other) {
         final int capacity = other.capacity;
         this.array = new Comment[capacity];
         this.capacity = capacity;
@@ -67,12 +67,12 @@ final class CommentsImpl implements Comments {
     }
 
     @Override
-    public @NotNull @Unmodifiable List<Comment> all() {
+    public @Unmodifiable List<Comment> all() {
         return Collections.unmodifiableList(Arrays.asList(this.array).subList(0, this.postHead));
     }
 
     @Override
-    public @NotNull @Unmodifiable List<Comment> get(@NotNull CommentPosition position) {
+    public @Unmodifiable List<Comment> get(CommentPosition position) {
         switch (position) {
             case PRE:
                 return Collections.unmodifiableList(Arrays.asList(this.array).subList(0, this.preHead));
@@ -97,7 +97,7 @@ final class CommentsImpl implements Comments {
     }
 
     @Override
-    public void clear(@NotNull CommentPosition position) {
+    public void clear(CommentPosition position) {
         int tmp;
         switch (position) {
             case PRE:
@@ -131,7 +131,7 @@ final class CommentsImpl implements Comments {
     }
 
     @Override
-    public void add(@NotNull Comment comment) {
+    public void add(Comment comment) {
         switch (comment.position()) {
             case PRE:
                 this.ensureCapacity();
@@ -224,7 +224,7 @@ final class CommentsImpl implements Comments {
     }
 
     @Override
-    public @NotNull String toString() {
+    public String toString() {
         StringJoiner sj = new StringJoiner(", ");
         for (int i=0; i < this.postHead; i++) sj.add(this.array[i].toString());
         return "Comments[" + sj + "]";

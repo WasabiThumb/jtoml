@@ -18,8 +18,7 @@ package io.github.wasabithumb.jtoml.key.convention;
 
 import io.github.wasabithumb.jtoml.key.TomlKey;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -29,37 +28,37 @@ import java.util.function.Consumer;
 @ApiStatus.Internal
 final class KeyConventionOps {
 
-    static @NotNull TomlKey identity(@NotNull String string) {
+    static TomlKey identity(String string) {
         return TomlKey.literal(string);
     }
 
-    static @NotNull TomlKey lower(@NotNull String string) {
+    static TomlKey lower(String string) {
         return TomlKey.literal(string.toLowerCase(Locale.ROOT));
     }
 
-    static @NotNull TomlKey camelToKebab(@NotNull String string) {
+    static TomlKey camelToKebab(String string) {
         return camelToDelimited(string, '-');
     }
 
-    static @NotNull TomlKey camelToSnake(@NotNull String string) {
+    static TomlKey camelToSnake(String string) {
         return camelToDelimited(string, '_');
     }
 
-    static @NotNull TomlKey camelToSplit(@NotNull String string) {
+    static TomlKey camelToSplit(String string) {
         List<String> list = new LinkedList<>();
         camelParse(string, list::add, null);
         return TomlKey.literal(list);
     }
 
-    private static @NotNull TomlKey camelToDelimited(@NotNull String string, char delim) {
+    private static TomlKey camelToDelimited(String string, char delim) {
         StringBuilder ret = new StringBuilder(string.length());
         camelParse(string, ret::append, () -> ret.append(delim));
         return TomlKey.literal(ret.toString());
     }
 
     private static void camelParse(
-            @NotNull String string,
-            @NotNull Consumer<String> acceptPart,
+            String string,
+            Consumer<String> acceptPart,
             @Nullable Runnable runBetween
     ) {
         final int len = string.length();

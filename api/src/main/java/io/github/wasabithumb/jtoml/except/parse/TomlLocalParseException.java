@@ -16,8 +16,7 @@
 
 package io.github.wasabithumb.jtoml.except.parse;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * A {@link TomlParseException} with location info.
@@ -32,13 +31,13 @@ public final class TomlLocalParseException extends TomlParseException {
     private final int lineNumber;
     private final int columnNumber;
 
-    public TomlLocalParseException(@NotNull String message, int lineNumber, int columnNumber) {
+    public TomlLocalParseException(String message, int lineNumber, int columnNumber) {
         super(message);
         this.lineNumber = lineNumber;
         this.columnNumber = columnNumber;
     }
 
-    public TomlLocalParseException(@NotNull String message, @Nullable Throwable cause, int lineNumber, int columnNumber) {
+    public TomlLocalParseException(String message, @Nullable Throwable cause, int lineNumber, int columnNumber) {
         super(message, cause);
         this.lineNumber = lineNumber;
         this.columnNumber = columnNumber;
@@ -46,12 +45,12 @@ public final class TomlLocalParseException extends TomlParseException {
 
     //
 
-    public @NotNull String getRawMessage() {
+    public String getRawMessage() {
         return super.getMessage();
     }
 
     @Override
-    public @NotNull String getMessage() {
+    public String getMessage() {
         return super.getMessage() + " @ " + this.lineNumber + ":" + this.columnNumber;
     }
 

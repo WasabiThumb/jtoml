@@ -17,7 +17,6 @@
 package io.github.wasabithumb.jtoml.serial.reflect;
 
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 import java.lang.annotation.*;
 
@@ -32,5 +31,5 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.METHOD})
 public @interface Key {
-    @NotNull String value();
+    String value();
 }

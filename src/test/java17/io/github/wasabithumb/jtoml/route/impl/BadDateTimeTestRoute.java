@@ -19,9 +19,11 @@ package io.github.wasabithumb.jtoml.route.impl;
 import io.github.wasabithumb.jtoml.JToml;
 import io.github.wasabithumb.jtoml.except.TomlValueException;
 import io.github.wasabithumb.jtoml.route.TestRoute;
+import org.jspecify.annotations.NullMarked;
 
 import java.time.LocalDate;
 
+@NullMarked
 public final class BadDateTimeTestRoute implements TestRoute.Failing<TomlValueException> {
 
     @Override

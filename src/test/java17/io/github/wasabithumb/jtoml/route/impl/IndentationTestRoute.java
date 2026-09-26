@@ -20,9 +20,11 @@ import io.github.wasabithumb.jtoml.JToml;
 import io.github.wasabithumb.jtoml.route.Sentinel;
 import io.github.wasabithumb.jtoml.route.TestRoute;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
+import org.jspecify.annotations.NullMarked;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+@NullMarked
 public final class IndentationTestRoute implements TestRoute {
 
     @Sentinel("indentation.toml")

@@ -19,7 +19,6 @@ package io.github.wasabithumb.jtoml.value.primitive;
 import io.github.wasabithumb.jtoml.comment.Comments;
 import io.github.wasabithumb.jtoml.except.TomlValueException;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 import java.time.*;
 
@@ -30,9 +29,9 @@ final class LocalDateTomlPrimitive extends AbstractTemporalTomlPrimitive<LocalDa
     private final ZoneOffset offset;
 
     public LocalDateTomlPrimitive(
-            @NotNull Comments comments,
-            @NotNull LocalDate value,
-            @NotNull ZoneOffset offset
+            Comments comments,
+            LocalDate value,
+            ZoneOffset offset
     ) {
         super(comments);
         TomlValueException.checkDate(value);
@@ -41,8 +40,8 @@ final class LocalDateTomlPrimitive extends AbstractTemporalTomlPrimitive<LocalDa
     }
 
     public LocalDateTomlPrimitive(
-            @NotNull LocalDate value,
-            @NotNull ZoneOffset offset
+            LocalDate value,
+            ZoneOffset offset
     ) {
         this(Comments.empty(), value, offset);
     }
@@ -50,22 +49,22 @@ final class LocalDateTomlPrimitive extends AbstractTemporalTomlPrimitive<LocalDa
     //
 
     @Override
-    public @NotNull TomlPrimitiveType type() {
+    public TomlPrimitiveType type() {
         return TomlPrimitiveType.LOCAL_DATE;
     }
 
     @Override
-    public @NotNull LocalDate value() {
+    public LocalDate value() {
         return this.value;
     }
 
     @Override
-    @NotNull ZoneOffset temporalOffset() {
+    ZoneOffset temporalOffset() {
         return this.offset;
     }
 
     @Override
-    public @NotNull String asString() {
+    public String asString() {
         StringBuilder sb = new StringBuilder();
         writeDate(sb, this.value);
         return sb.toString();
@@ -87,22 +86,22 @@ final class LocalDateTomlPrimitive extends AbstractTemporalTomlPrimitive<LocalDa
     }
 
     @Override
-    public @NotNull OffsetDateTime asOffsetDateTime() {
+    public OffsetDateTime asOffsetDateTime() {
         return this.asLocalDateTime().atOffset(this.offset);
     }
 
     @Override
-    public @NotNull LocalDateTime asLocalDateTime() {
+    public LocalDateTime asLocalDateTime() {
         return this.value.atTime(0, 0);
     }
 
     @Override
-    public @NotNull LocalDate asLocalDate() {
+    public LocalDate asLocalDate() {
         return this.value;
     }
 
     @Override
-    public @NotNull LocalTime asLocalTime() {
+    public LocalTime asLocalTime() {
         return LocalTime.of(0, 0);
     }
 

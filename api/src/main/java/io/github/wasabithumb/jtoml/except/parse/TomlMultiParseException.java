@@ -19,7 +19,6 @@ package io.github.wasabithumb.jtoml.except.parse;
 import io.github.wasabithumb.jtoml.document.TomlIssues;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
@@ -37,7 +36,7 @@ public final class TomlMultiParseException extends TomlParseException {
     private static final long serialVersionUID = -6004683919942778023L;
 
     @Contract("_ -> new")
-    public static TomlMultiParseException create(@NotNull Collection<? extends TomlLocalParseException> sub) {
+    public static TomlMultiParseException create(Collection<? extends TomlLocalParseException> sub) {
         final int count = sub.size();
         final String message = "Encountered " + count + " distinct issues during TOML parsing";
         final TomlMultiParseException ret = new TomlMultiParseException(message);
@@ -54,7 +53,7 @@ public final class TomlMultiParseException extends TomlParseException {
 
     //
 
-    private TomlMultiParseException(@NotNull String message) {
+    private TomlMultiParseException(String message) {
         super(message);
     }
 

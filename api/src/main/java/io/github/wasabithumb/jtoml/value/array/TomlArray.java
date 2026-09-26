@@ -20,7 +20,6 @@ import io.github.wasabithumb.jtoml.value.TomlValue;
 import io.github.wasabithumb.jtoml.value.primitive.TomlPrimitive;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Array;
 import java.time.LocalDate;
@@ -41,13 +40,13 @@ public interface TomlArray extends List<TomlValue>, RandomAccess, TomlValue {
 
     /** Creates a new TomlArray with the specified initial capacity */
     @Contract("_ -> new")
-    static @NotNull TomlArray create(int initialCapacity) {
+    static TomlArray create(int initialCapacity) {
         return new TomlArrayImpl(initialCapacity);
     }
 
     /** Creates a new empty TomlArray */
     @Contract("-> new")
-    static @NotNull TomlArray create() {
+    static TomlArray create() {
         return new TomlArrayImpl();
     }
 
@@ -57,7 +56,7 @@ public interface TomlArray extends List<TomlValue>, RandomAccess, TomlValue {
      */
     @Contract("_ -> new")
     @ApiStatus.AvailableSince("0.6.3")
-    static @NotNull TomlArray copyOf(@NotNull Iterable<? extends TomlValue> array) {
+    static TomlArray copyOf(Iterable<? extends TomlValue> array) {
         return TomlArrayImpl.copyOf(array);
     }
 
@@ -76,7 +75,7 @@ public interface TomlArray extends List<TomlValue>, RandomAccess, TomlValue {
      */
     @Override
     @Contract(pure = true)
-    @NotNull TomlValue get(int index) throws IndexOutOfBoundsException;
+    TomlValue get(int index) throws IndexOutOfBoundsException;
 
     /**
      * Adds a new element to this array.
@@ -101,7 +100,7 @@ public interface TomlArray extends List<TomlValue>, RandomAccess, TomlValue {
      * @see TomlPrimitive#of(String)
      */
     @Contract(mutates = "this")
-    default void add(@NotNull String value) {
+    default void add(String value) {
         this.add(TomlPrimitive.of(value));
     }
 
@@ -156,7 +155,7 @@ public interface TomlArray extends List<TomlValue>, RandomAccess, TomlValue {
      * @throws NullPointerException Value is null
      */
     @Contract(mutates = "this")
-    default void add(@NotNull OffsetDateTime value) {
+    default void add(OffsetDateTime value) {
         this.add(TomlPrimitive.of(value));
     }
 
@@ -166,7 +165,7 @@ public interface TomlArray extends List<TomlValue>, RandomAccess, TomlValue {
      * @throws NullPointerException Value is null
      */
     @Contract(mutates = "this")
-    default void add(@NotNull LocalDateTime value) {
+    default void add(LocalDateTime value) {
         this.add(TomlPrimitive.of(value));
     }
 
@@ -176,7 +175,7 @@ public interface TomlArray extends List<TomlValue>, RandomAccess, TomlValue {
      * @throws NullPointerException Value is null
      */
     @Contract(mutates = "this")
-    default void add(@NotNull LocalDate value) {
+    default void add(LocalDate value) {
         this.add(TomlPrimitive.of(value));
     }
 
@@ -186,7 +185,7 @@ public interface TomlArray extends List<TomlValue>, RandomAccess, TomlValue {
      * @throws NullPointerException Value is null
      */
     @Contract(mutates = "this")
-    default void add(@NotNull LocalTime value) {
+    default void add(LocalTime value) {
         this.add(TomlPrimitive.of(value));
     }
 
@@ -196,7 +195,7 @@ public interface TomlArray extends List<TomlValue>, RandomAccess, TomlValue {
      * @deprecated Use {@link #addAll(Collection)}.
      */
     @Deprecated
-    default void addAll(@NotNull Iterable<? extends TomlValue> source) {
+    default void addAll(Iterable<? extends TomlValue> source) {
         for (TomlValue tv : source) this.add(tv);
     }
 
@@ -230,7 +229,7 @@ public interface TomlArray extends List<TomlValue>, RandomAccess, TomlValue {
      * @throws NullPointerException Value is null
      */
     @Contract(value = "_, null -> fail", mutates = "this")
-    @NotNull TomlValue set(int index, TomlValue value) throws IndexOutOfBoundsException;
+    TomlValue set(int index, TomlValue value) throws IndexOutOfBoundsException;
 
     /**
      * Returns a new array with the same length and values as this object,
@@ -239,7 +238,7 @@ public interface TomlArray extends List<TomlValue>, RandomAccess, TomlValue {
      */
     @SuppressWarnings("unchecked")
     @Contract("_ -> new")
-    default <T extends TomlValue> @NotNull T @NotNull [] toArray(@NotNull Class<T> valueType) throws ClassCastException {
+    default <T extends TomlValue> T[] toArray(Class<T> valueType) throws ClassCastException {
         final int len = this.size();
         T[] ret = (T[]) Array.newInstance(valueType, len);
         for (int i=0; i < len; i++) ret[i] = valueType.cast(this.get(i));

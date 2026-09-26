@@ -21,15 +21,15 @@ import io.github.wasabithumb.jtoml.key.convention.KeyConvention;
 import io.github.wasabithumb.jtoml.serial.TomlSerializable;
 import io.github.wasabithumb.jtoml.serial.reflect.model.TypeModelOptions;
 import io.github.wasabithumb.jtoml.util.ParameterizedClass;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.UnknownNullability;
+import org.jetbrains.annotations.Unmodifiable;
+import org.jspecify.annotations.Nullable;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
 import java.lang.reflect.*;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Spliterator;
-import java.util.Spliterators;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -40,12 +40,12 @@ import java.util.stream.StreamSupport;
 @ApiStatus.Internal
 final class PojoTableTypeModel<T> extends AbstractTableTypeModel<T> {
 
-    private static @NotNull Spliterator<Class<?>> hierarchy(
-            @NotNull Class<?> base,
-            @NotNull TypeModelOptions options
+    private static Spliterator<Class<?>> hierarchy(
+            Class<?> base,
+            TypeModelOptions options
     ) {
         final Iterator<Class<?>> src = new Iterator<Class<?>>() {
-            private Class<?> next = base;
+            private @Nullable Class<?> next = base;
 
             @Override
             public boolean hasNext() {
@@ -59,6 +59,7 @@ final class PojoTableTypeModel<T> extends AbstractTableTypeModel<T> {
             @Override
             public Class<?> next() {
                 Class<?> ret = this.next;
+                if (ret == null) throw new NoSuchElementException();
                 this.next = ret.getSuperclass();
                 return ret;
             }
@@ -72,9 +73,9 @@ final class PojoTableTypeModel<T> extends AbstractTableTypeModel<T> {
         );
     }
 
-    private static @NotNull Stream<Field> fieldStream(
-            @NotNull Class<?> clazz,
-            @NotNull TypeModelOptions options
+    private static Stream<Field> fieldStream(
+            Class<?> clazz,
+            TypeModelOptions options
     ) {
         return StreamSupport.stream(hierarchy(clazz, options), false)
                 .flatMap((Class<?> cls) -> Stream.of(cls.getDeclaredFields()))
@@ -85,18 +86,18 @@ final class PojoTableTypeModel<T> extends AbstractTableTypeModel<T> {
                 });
     }
 
-    private static @NotNull Key fieldKey(@NotNull Field field, @NotNull KeyConvention defaultConvention) {
+    private static Key fieldKey(Field field, KeyConvention defaultConvention) {
         return new FieldKey(field, defaultConvention);
     }
 
-    private static @NotNull Field unwrapFieldKey(@NotNull Key key) {
+    private static Field unwrapFieldKey(Key key) {
         if (key instanceof FieldKey) {
             return ((FieldKey) key).member;
         }
         throw new IllegalArgumentException("Key " + key + " is not a FieldKey");
     }
 
-    private static boolean hasNoArgsConstructor(@NotNull Class<?> cls) {
+    private static boolean hasNoArgsConstructor(Class<?> cls) {
         for (Constructor<?> ctor : cls.getDeclaredConstructors()) {
             if (ctor.getParameterCount() == 0) return true;
         }
@@ -109,8 +110,8 @@ final class PojoTableTypeModel<T> extends AbstractTableTypeModel<T> {
     private final TypeModelOptions options;
 
     PojoTableTypeModel(
-            @NotNull Class<T> type,
-            @NotNull TypeModelOptions options
+            Class<T> type,
+            TypeModelOptions options
     ) {
         this.type = type;
         this.options = options;
@@ -119,12 +120,12 @@ final class PojoTableTypeModel<T> extends AbstractTableTypeModel<T> {
     //
 
     @Override
-    public @NotNull Class<T> type() {
+    public Class<T> type() {
         return this.type;
     }
 
     @Override
-    public @NotNull TableTypeModel.Builder<T> create() {
+    public TableTypeModel.Builder<T> create() {
         int modifiers = this.type.getModifiers();
         if (Modifier.isAbstract(modifiers) || Modifier.isInterface(modifiers))
             throw new IllegalStateException("Type " + this.type.getName() + " is not instantiable (interface or abstract class)");
@@ -137,28 +138,28 @@ final class PojoTableTypeModel<T> extends AbstractTableTypeModel<T> {
     }
 
     @Override
-    public @NotNull Mapper mapper(@NotNull KeyConvention defaultConvention) {
+    public Mapper mapper(KeyConvention defaultConvention) {
         return new FixedMapper(this, this.keys(this.type, defaultConvention));
     }
 
     @Override
-    public @NotNull @Unmodifiable Collection<Key> keys(@NotNull T instance, @NotNull KeyConvention defaultConvention) {
+    public @Unmodifiable Collection<Key> keys(T instance, KeyConvention defaultConvention) {
         return this.keys(instance.getClass(), defaultConvention);
     }
 
-    private @NotNull @Unmodifiable Collection<Key> keys(@NotNull Class<?> type, @NotNull KeyConvention defaultConvention) {
+    private @Unmodifiable Collection<Key> keys(Class<?> type, KeyConvention defaultConvention) {
         return fieldStream(type, this.options)
                 .map((Field f) -> fieldKey(f, defaultConvention))
                 .collect(Collectors.toList());
     }
 
     @Override
-    public @NotNull ParameterizedClass<?> elementType(@NotNull Key key) {
+    public ParameterizedClass<?> elementType(Key key) {
         return ParameterizedClass.of(unwrapFieldKey(key));
     }
 
     @Override
-    public @UnknownNullability Object get(@NotNull T instance, @NotNull Key key) {
+    public @UnknownNullability Object get(T instance, Key key) {
         Field f = unwrapFieldKey(key);
 
         Throwable suppressed = null;
@@ -179,12 +180,12 @@ final class PojoTableTypeModel<T> extends AbstractTableTypeModel<T> {
     }
 
     @Override
-    public void applyTableComments(@NotNull Comments comments) {
+    public void applyTableComments(Comments comments) {
         applyAnnotationComments(this.type, comments);
     }
 
     @Override
-    public void applyFieldComments(@NotNull Key key, @NotNull Comments comments) {
+    public void applyFieldComments(Key key, Comments comments) {
         Field f = unwrapFieldKey(key);
         applyAnnotationComments(f, comments);
     }
@@ -196,12 +197,12 @@ final class PojoTableTypeModel<T> extends AbstractTableTypeModel<T> {
         private final PojoTableTypeModel<O> parent;
         private final O instance;
 
-        private Builder(@NotNull PojoTableTypeModel<O> parent, @NotNull O instance) {
+        private Builder(PojoTableTypeModel<O> parent, O instance) {
             this.parent = parent;
             this.instance = instance;
         }
 
-        private void trySetModifiers(@NotNull Field field, int modifiers) {
+        private void trySetModifiers(Field field, int modifiers) {
             try {
                 Field modifiersField = Field.class.getDeclaredField("modifiers");
                 modifiersField.setAccessible(true);
@@ -210,7 +211,7 @@ final class PojoTableTypeModel<T> extends AbstractTableTypeModel<T> {
         }
 
         @Override
-        public void set(@NotNull Key key, @NotNull Object value) {
+        public void set(Key key, Object value) {
             Field f = unwrapFieldKey(key);
 
             Throwable suppressed = null;
@@ -239,7 +240,7 @@ final class PojoTableTypeModel<T> extends AbstractTableTypeModel<T> {
         }
 
         @Override
-        public @NotNull O build() {
+        public O build() {
             return this.instance;
         }
 
@@ -248,8 +249,8 @@ final class PojoTableTypeModel<T> extends AbstractTableTypeModel<T> {
     private static final class FieldKey extends MemberKey<Field> {
 
         FieldKey(
-                @NotNull Field field,
-                @NotNull KeyConvention defaultConvention
+                Field field,
+                KeyConvention defaultConvention
         ) {
             super(field, defaultConvention);
         }
@@ -277,14 +278,14 @@ final class PojoTableTypeModel<T> extends AbstractTableTypeModel<T> {
 
         //
 
-        <T> @NotNull T instantiate(@NotNull Class<T> clazz);
+        <T> T instantiate(Class<T> clazz);
 
         //
 
         final class Basic implements Instantiator {
 
             @Override
-            public @NotNull <T> T instantiate(@NotNull Class<T> clazz) {
+            public <T> T instantiate(Class<T> clazz) {
                 Constructor<?> con;
                 try {
                     con = clazz.getDeclaredConstructor();
@@ -322,7 +323,8 @@ final class PojoTableTypeModel<T> extends AbstractTableTypeModel<T> {
 
         final class Unsafe implements Instantiator {
 
-            static @NotNull Instantiator tryCreate() {
+            @SuppressWarnings("JavaReflectionMemberAccess")
+            static Instantiator tryCreate() {
                 // Adapted from Gson: https://github.com/google/gson/blob/004e7a4949e08b430e3c8996998ee5a17ff9423a/gson/src/main/java/com/google/gson/internal/UnsafeAllocator.java#L51
 
                 try {
@@ -355,13 +357,13 @@ final class PojoTableTypeModel<T> extends AbstractTableTypeModel<T> {
             //
 
             private final Method method;
-            private final Object target;
-            private final Object[] extraArgs;
+            private final @Nullable Object target;
+            private final @UnknownNullability Object[] extraArgs;
 
             private Unsafe(
-                    @NotNull Method method,
+                    Method method,
                     @Nullable Object target,
-                    @UnknownNullability Object @NotNull [] extraArgs
+                    @UnknownNullability Object [] extraArgs
             ) {
                 this.method = method;
                 this.target = target;
@@ -371,7 +373,7 @@ final class PojoTableTypeModel<T> extends AbstractTableTypeModel<T> {
             //
 
             @Override
-            public @NotNull <T> T instantiate(@NotNull Class<T> clazz) {
+            public <T> T instantiate(Class<T> clazz) {
                 // Instantiate
                 Object instance;
                 Object[] args = new Object[this.extraArgs.length + 1];
@@ -391,14 +393,14 @@ final class PojoTableTypeModel<T> extends AbstractTableTypeModel<T> {
 
             private final String message;
 
-            Unsupported(@NotNull String message) {
+            Unsupported(String message) {
                 this.message = message;
             }
 
             //
 
             @Override
-            public @NotNull <T> T instantiate(@NotNull Class<T> clazz) {
+            public <T> T instantiate(Class<T> clazz) {
                 throw new UnsupportedOperationException(this.message);
             }
 

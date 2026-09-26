@@ -19,7 +19,6 @@ package io.github.wasabithumb.jtoml.option.prop;
 import io.github.wasabithumb.jtoml.util.Buildable;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
 import java.lang.annotation.*;
@@ -45,7 +44,7 @@ public final class PaddingPolicy implements Buildable<PaddingPolicy> {
      * of constructing custom {@link PaddingPolicy} instances.
      */
     @Contract("-> new")
-    public static @NotNull Builder builder() {
+    public static Builder builder() {
         return new Builder();
     }
 
@@ -110,7 +109,7 @@ public final class PaddingPolicy implements Buildable<PaddingPolicy> {
     }
 
     @Override
-    public @NotNull Builder toBuilder() {
+    public Builder toBuilder() {
         Builder ret = new Builder();
         System.arraycopy(this.data, 0, ret.data, 0, Kind.MAX);
         return ret;
@@ -128,7 +127,7 @@ public final class PaddingPolicy implements Buildable<PaddingPolicy> {
     }
 
     @Override
-    public @NotNull String toString() {
+    public String toString() {
         return "PaddingPolicy[tablePadding=" + this.tablePadding() +
                 ", inlineTablePadding=" + this.inlineTablePadding() +
                 ", arrayPadding=" + this.arrayPadding() +
@@ -149,7 +148,7 @@ public final class PaddingPolicy implements Buildable<PaddingPolicy> {
         //
 
         @Contract("_, _ -> this")
-        private @NotNull Builder set(@Kind int kind, int value) {
+        private Builder set(@Kind int kind, int value) {
             if (value < 0) throw new IllegalArgumentException("Padding may not be negative");
             if (value > 255) throw new IllegalArgumentException("Padding is too large (" + value + " > 255)");
             this.data[kind] = (byte) value;
@@ -164,7 +163,7 @@ public final class PaddingPolicy implements Buildable<PaddingPolicy> {
          * @return This builder.
          */
         @Contract("_ -> this")
-        public @NotNull Builder tablePadding(@Range(from=0, to=255) int padding) {
+        public Builder tablePadding(@Range(from=0, to=255) int padding) {
             return this.set(Kind.TABLE, padding);
         }
 
@@ -176,7 +175,7 @@ public final class PaddingPolicy implements Buildable<PaddingPolicy> {
          * @return This builder.
          */
         @Contract("_ -> this")
-        public @NotNull Builder inlineTablePadding(@Range(from=0, to=255) int padding) {
+        public Builder inlineTablePadding(@Range(from=0, to=255) int padding) {
             return this.set(Kind.INLINE_TABLE, padding);
         }
 
@@ -188,7 +187,7 @@ public final class PaddingPolicy implements Buildable<PaddingPolicy> {
          * @return This builder.
          */
         @Contract("_ -> this")
-        public @NotNull Builder arrayPadding(@Range(from=0, to=255) int padding) {
+        public Builder arrayPadding(@Range(from=0, to=255) int padding) {
             return this.set(Kind.ARRAY, padding);
         }
 
@@ -200,13 +199,13 @@ public final class PaddingPolicy implements Buildable<PaddingPolicy> {
          * @return This builder.
          */
         @Contract("_ -> this")
-        public @NotNull Builder elementPadding(@Range(from=0, to=255) int padding) {
+        public Builder elementPadding(@Range(from=0, to=255) int padding) {
             return this.set(Kind.ELEMENT, padding);
         }
 
         @Override
         @Contract("-> new")
-        public @NotNull PaddingPolicy build() {
+        public PaddingPolicy build() {
             return new PaddingPolicy(Arrays.copyOf(this.data, Kind.MAX));
         }
 

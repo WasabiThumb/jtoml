@@ -18,7 +18,7 @@ package io.github.wasabithumb.jtoml.key;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
@@ -44,6 +44,7 @@ import java.util.List;
  * highly error-prone and not supported.
  * @see #parse(CharSequence)
  */
+@Unmodifiable
 @ApiStatus.NonExtendable
 public interface TomlKey extends List<String>, Comparable<TomlKey> {
 
@@ -61,7 +62,7 @@ public interface TomlKey extends List<String>, Comparable<TomlKey> {
      *                                  or has a single quote between opening and closing single quotes
      */
     @Contract("_ -> new")
-    static @NotNull TomlKey parse(@NotNull CharSequence key) throws IllegalArgumentException {
+    static TomlKey parse(CharSequence key) throws IllegalArgumentException {
         try {
             return ArrayTomlKey.parse(key);
         } catch (IllegalArgumentException e) {
@@ -75,7 +76,7 @@ public interface TomlKey extends List<String>, Comparable<TomlKey> {
      * the first key ({@code first}) is always returned as-is. Otherwise, a new
      * key is created.
      */
-    static @NotNull TomlKey join(@NotNull TomlKey first, @NotNull TomlKey @NotNull ... additional) {
+    static TomlKey join(TomlKey first, TomlKey... additional) {
         return JoinedTomlKey.join(first, additional);
     }
 
@@ -86,7 +87,7 @@ public interface TomlKey extends List<String>, Comparable<TomlKey> {
      */
     @SafeVarargs
     @Contract("_ -> new")
-    static <S extends CharSequence> @NotNull TomlKey literal(final @NotNull S @NotNull ... parts) {
+    static <S extends CharSequence> TomlKey literal(final S... parts) {
         final int len = parts.length;
         String[] cpy = new String[len];
         for (int i = 0; i < len; i++) {
@@ -101,7 +102,7 @@ public interface TomlKey extends List<String>, Comparable<TomlKey> {
      * @see #parse(CharSequence)
      */
     @Contract("_ -> new")
-    static @NotNull TomlKey literal(@NotNull Collection<? extends CharSequence> parts) {
+    static TomlKey literal(Collection<? extends CharSequence> parts) {
         final int len = parts.size();
         String[] cpy = new String[len];
 
@@ -131,7 +132,7 @@ public interface TomlKey extends List<String>, Comparable<TomlKey> {
      * @throws IndexOutOfBoundsException Index is less than 0 or not less than {@link #size()}.
      */
     @Override
-    @NotNull String get(int index) throws IndexOutOfBoundsException;
+    String get(int index) throws IndexOutOfBoundsException;
 
     /**
      * Produces a potentially new
@@ -141,7 +142,7 @@ public interface TomlKey extends List<String>, Comparable<TomlKey> {
      * @param toIndex The index of the first part to exclude.
      * @throws IllegalArgumentException Negative or out of bounds range
      */
-    default @NotNull TomlKey slice(int fromIndex, int toIndex) {
+    default TomlKey slice(int fromIndex, int toIndex) {
         if (fromIndex == 0 && toIndex == this.size()) return this;
         return SlicedTomlKey.of(this, fromIndex, toIndex - fromIndex);
     }
@@ -150,7 +151,7 @@ public interface TomlKey extends List<String>, Comparable<TomlKey> {
      * Alias for {@link #slice(int, int)}.
      */
     @Override
-    @NotNull TomlKey subList(int fromIndex, int toIndex);
+    TomlKey subList(int fromIndex, int toIndex);
 
     /**
      * Serializes the key represented by this object
@@ -164,7 +165,7 @@ public interface TomlKey extends List<String>, Comparable<TomlKey> {
      * }</pre>
      */
     @Override
-    @NotNull String toString();
+    String toString();
 
     /**
      * Performs lexicographical comparison
@@ -175,7 +176,7 @@ public interface TomlKey extends List<String>, Comparable<TomlKey> {
      *         greater than 0 if this key is greater than the given key
      */
     @Override
-    default int compareTo(@NotNull TomlKey o) {
+    default int compareTo(TomlKey o) {
         int ml = this.size();
         int ol = o.size();
         int sl;

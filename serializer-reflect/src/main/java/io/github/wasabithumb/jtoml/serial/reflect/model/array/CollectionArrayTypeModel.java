@@ -19,7 +19,6 @@ package io.github.wasabithumb.jtoml.serial.reflect.model.array;
 import io.github.wasabithumb.jtoml.util.ParameterizedClass;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -30,7 +29,7 @@ import java.util.Iterator;
 abstract class CollectionArrayTypeModel<T extends Collection<E>, E> implements ArrayTypeModel<T> {
 
     @Contract("_, _ -> new")
-    protected static <C extends Collection<?>> C autoConstruct(@NotNull Class<C> clazz, int length) {
+    protected static <C extends Collection<?>> C autoConstruct(Class<C> clazz, int length) {
         Constructor<?> con;
         boolean withLength;
 
@@ -74,8 +73,8 @@ abstract class CollectionArrayTypeModel<T extends Collection<E>, E> implements A
     protected final ParameterizedClass<E> elementType;
 
     CollectionArrayTypeModel(
-            @NotNull Class<T> type,
-            @NotNull ParameterizedClass<E> elementType
+            Class<T> type,
+            ParameterizedClass<E> elementType
     ) {
         this.type = type;
         this.elementType = elementType;
@@ -85,27 +84,27 @@ abstract class CollectionArrayTypeModel<T extends Collection<E>, E> implements A
 
 
     @Override
-    public @NotNull Class<T> type() {
+    public Class<T> type() {
         return this.type;
     }
 
     @Override
-    public @NotNull ParameterizedClass<?> componentType() {
+    public ParameterizedClass<?> componentType() {
         return this.elementType;
     }
 
     @Override
-    public int size(@NotNull T instance) {
+    public int size(T instance) {
         return instance.size();
     }
 
     @Override
-    public @NotNull Iterator<?> iterator(@NotNull T instance) {
+    public Iterator<?> iterator(T instance) {
         return instance.iterator();
     }
 
     @Override
-    public void put(@NotNull T instance, @NotNull Object object) {
+    public void put(T instance, Object object) {
         instance.add(this.elementType.raw().cast(object));
     }
 

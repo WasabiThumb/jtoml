@@ -17,7 +17,6 @@
 package io.github.wasabithumb.jtoml.key;
 
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.AbstractList;
 import java.util.Iterator;
@@ -41,7 +40,7 @@ abstract class AbstractTomlKey
         return (c != '"') && (c != '\\') && (c != (char) 0x7F);
     }
 
-    protected static @NotNull String basicEscape(char c) {
+    protected static String basicEscape(char c) {
         switch (c) {
             case '\b':
                 return "\\b";
@@ -114,13 +113,13 @@ abstract class AbstractTomlKey
     }
 
     @Override
-    public @NotNull String toString() {
+    public String toString() {
         StringJoiner sj = new StringJoiner(".");
         for (String part : this) sj.add(encodePart(part));
         return sj.toString();
     }
 
-    protected static @NotNull CharSequence encodePart(@NotNull CharSequence part) {
+    protected static CharSequence encodePart(CharSequence part) {
         final int len = part.length();
         if (len == 0) return "\"\"";
 

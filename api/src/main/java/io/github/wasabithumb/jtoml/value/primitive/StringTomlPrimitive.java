@@ -18,36 +18,35 @@ package io.github.wasabithumb.jtoml.value.primitive;
 
 import io.github.wasabithumb.jtoml.comment.Comments;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 @ApiStatus.Internal
 final class StringTomlPrimitive extends AbstractTomlPrimitive<String> {
 
     private final String value;
 
-    public StringTomlPrimitive(@NotNull Comments comments, @NotNull String value) {
+    public StringTomlPrimitive(Comments comments, String value) {
         super(comments);
         this.value = value;
     }
 
-    public StringTomlPrimitive(@NotNull String value) {
+    public StringTomlPrimitive(String value) {
         this(Comments.empty(), value);
     }
 
     //
 
     @Override
-    public @NotNull TomlPrimitiveType type() {
+    public TomlPrimitiveType type() {
         return TomlPrimitiveType.STRING;
     }
 
     @Override
-    public @NotNull String value() {
+    public String value() {
         return this.value;
     }
 
     @Override
-    public @NotNull String asString() {
+    public String asString() {
         return this.value;
     }
 

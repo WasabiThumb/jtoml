@@ -36,7 +36,7 @@ indraSpotlessLicenser {
 }
 
 dependencies {
-    compileOnly(libs.annotations)
+    api(libs.annotations)
     api(project(":api"))
     implementation(project(":"))
 }

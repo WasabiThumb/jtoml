@@ -17,7 +17,9 @@
 package io.github.wasabithumb.jtoml.spec;
 
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 final class InvalidTestSpec extends AbstractTestSpec {
 
     public InvalidTestSpec(String name) {

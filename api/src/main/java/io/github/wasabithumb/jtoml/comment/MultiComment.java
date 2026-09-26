@@ -17,7 +17,6 @@
 package io.github.wasabithumb.jtoml.comment;
 
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 import java.lang.annotation.*;
 
@@ -68,7 +67,7 @@ public abstract class MultiComment {
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD, ElementType.TYPE})
     public @interface Pre {
-        @NotNull Comment.Pre @NotNull [] value();
+        Comment.Pre[] value();
     }
 
     /**
@@ -78,7 +77,7 @@ public abstract class MultiComment {
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD, ElementType.TYPE})
     public @interface Inline {
-        @NotNull Comment.Inline @NotNull [] value();
+        Comment.Inline[] value();
     }
 
     /**
@@ -88,7 +87,7 @@ public abstract class MultiComment {
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.FIELD, ElementType.PARAMETER, ElementType.METHOD, ElementType.TYPE})
     public @interface Post {
-        @NotNull Comment.Post @NotNull [] value();
+        Comment.Post[] value();
     }
 
 }

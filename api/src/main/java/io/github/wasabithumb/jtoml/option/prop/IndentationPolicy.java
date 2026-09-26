@@ -19,7 +19,6 @@ package io.github.wasabithumb.jtoml.option.prop;
 import io.github.wasabithumb.jtoml.util.Buildable;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
 import java.lang.annotation.*;
@@ -77,7 +76,7 @@ public final class IndentationPolicy implements Buildable<IndentationPolicy> {
      * producing custom {@link IndentationPolicy} instances.
      */
     @Contract("-> new")
-    public static @NotNull Builder builder() {
+    public static Builder builder() {
         return new Builder();
     }
 
@@ -189,7 +188,7 @@ public final class IndentationPolicy implements Buildable<IndentationPolicy> {
     }
 
     @Override
-    public @NotNull String toString() {
+    public String toString() {
         int c = this.indentChar;
         return "IndentPolicy[indentChar=0x" +
                 Character.forDigit(c >> 4, 16) +
@@ -229,7 +228,7 @@ public final class IndentationPolicy implements Buildable<IndentationPolicy> {
          * @throws IllegalArgumentException {@code indentChar} is not {@code '\t'} or {@code ' '}.
          */
         @Contract(value = "_ -> this", mutates = "this")
-        public @NotNull Builder indentChar(
+        public Builder indentChar(
                 @MagicConstant(intValues = { ' ', '\t' }) char indentChar
         ) {
             if (indentChar != ' ' && indentChar != '\t')
@@ -240,7 +239,7 @@ public final class IndentationPolicy implements Buildable<IndentationPolicy> {
         }
 
         @Contract(value = "_, _ -> this", mutates = "this")
-        private @NotNull Builder indentation(@Kind int kind, int value) {
+        private Builder indentation(@Kind int kind, int value) {
             if (value < 0) throw new IllegalArgumentException("Indentation level may not be negative");
             if (value > 255) throw new IllegalArgumentException("Indentation level is too large (" + value + " > 255)");
             this.indentation[kind] = (byte) value;
@@ -254,7 +253,7 @@ public final class IndentationPolicy implements Buildable<IndentationPolicy> {
          * @throws IllegalArgumentException Indent level is less than 0 or more than 255.
          */
         @Contract(value = "_ -> this", mutates = "this")
-        public @NotNull Builder globalIndent(@Range(from=0, to=255) int indent) {
+        public Builder globalIndent(@Range(from=0, to=255) int indent) {
             return this.indentation(Kind.GLOBAL, indent);
         }
 
@@ -265,7 +264,7 @@ public final class IndentationPolicy implements Buildable<IndentationPolicy> {
          * @throws IllegalArgumentException Indent level is less than 0 or more than 255.
          */
         @Contract(value = "_ -> this", mutates = "this")
-        public @NotNull Builder constantIndent(@Range(from=0, to=255) int indent) {
+        public Builder constantIndent(@Range(from=0, to=255) int indent) {
             return this.indentation(Kind.CONSTANT, indent);
         }
 
@@ -276,7 +275,7 @@ public final class IndentationPolicy implements Buildable<IndentationPolicy> {
          * @throws IllegalArgumentException Indent level is less than 0 or more than 255.
          */
         @Contract(value = "_ -> this", mutates = "this")
-        public @NotNull Builder variableIndent(@Range(from=0, to=255) int indent) {
+        public Builder variableIndent(@Range(from=0, to=255) int indent) {
             return this.indentation(Kind.VARIABLE, indent);
         }
 
@@ -287,7 +286,7 @@ public final class IndentationPolicy implements Buildable<IndentationPolicy> {
          * @throws IllegalArgumentException Indent level is less than 0 or more than 255.
          */
         @Contract(value = "_ -> this", mutates = "this")
-        public @NotNull Builder postIndent(@Range(from=0, to=255) int indent) {
+        public Builder postIndent(@Range(from=0, to=255) int indent) {
             return this.indentation(Kind.POST, indent);
         }
 
@@ -298,7 +297,7 @@ public final class IndentationPolicy implements Buildable<IndentationPolicy> {
          * @throws IllegalArgumentException Indent level is less than 0 or more than 255.
          */
         @Contract(value = "_ -> this", mutates = "this")
-        public @NotNull Builder elementIndent(@Range(from=0, to=255) int indent) {
+        public Builder elementIndent(@Range(from=0, to=255) int indent) {
             return this.indentation(Kind.ELEMENT, indent);
         }
 
@@ -310,7 +309,7 @@ public final class IndentationPolicy implements Buildable<IndentationPolicy> {
          *                                  causing any indentation level to exceed 255.
          */
         @Contract(value = "_ -> this", mutates = "this")
-        public @NotNull Builder scale(int amount) {
+        public Builder scale(int amount) {
             if (amount < 0) throw new IllegalArgumentException("Scale may not be negative");
 
             int cur;
@@ -340,7 +339,7 @@ public final class IndentationPolicy implements Buildable<IndentationPolicy> {
          */
         @Override
         @Contract("-> new")
-        public @NotNull IndentationPolicy build() {
+        public IndentationPolicy build() {
             return new IndentationPolicy(
                     this.indentChar,
                     Arrays.copyOf(this.indentation, Kind.MAX)

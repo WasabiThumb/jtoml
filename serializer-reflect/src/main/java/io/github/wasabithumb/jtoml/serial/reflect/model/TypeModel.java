@@ -21,7 +21,6 @@ import io.github.wasabithumb.jtoml.serial.reflect.model.table.TableTypeModel;
 import io.github.wasabithumb.jtoml.util.ParameterizedClass;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Describes the component types of a Java type for the
@@ -32,9 +31,9 @@ import org.jetbrains.annotations.NotNull;
 @ApiStatus.Internal
 public interface TypeModel<T> {
 
-    static <O> @NotNull TypeModel<O> of(
-            @NotNull ParameterizedClass<O> cls,
-            @NotNull TypeModelOptions options
+    static <O> TypeModel<O> of(
+            ParameterizedClass<O> cls,
+            TypeModelOptions options
     ) {
         TypeModel<O> candidate;
 
@@ -52,14 +51,14 @@ public interface TypeModel<T> {
 
     //
 
-    @NotNull Class<T> type();
+    Class<T> type();
 
     default boolean isArray() {
         return this instanceof ArrayTypeModel<?>;
     }
 
     @Contract("-> this")
-    default @NotNull ArrayTypeModel<T> asArray() throws ClassCastException {
+    default ArrayTypeModel<T> asArray() throws ClassCastException {
         return (ArrayTypeModel<T>) this;
     }
 
@@ -68,7 +67,7 @@ public interface TypeModel<T> {
     }
 
     @Contract("-> this")
-    default @NotNull TableTypeModel<T> asTable() throws ClassCastException {
+    default TableTypeModel<T> asTable() throws ClassCastException {
         return (TableTypeModel<T>) this;
     }
 
@@ -78,12 +77,12 @@ public interface TypeModel<T> {
 
         private final Class<T> type;
 
-        private Basic(@NotNull Class<T> type) {
+        private Basic(Class<T> type) {
             this.type = type;
         }
 
         @Override
-        public @NotNull Class<T> type() {
+        public Class<T> type() {
             return this.type;
         }
 

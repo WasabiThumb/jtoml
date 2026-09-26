@@ -18,7 +18,6 @@ package io.github.wasabithumb.jtoml.value.primitive;
 
 import io.github.wasabithumb.jtoml.comment.Comments;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.time.ZoneOffset;
@@ -30,7 +29,7 @@ abstract class AbstractTomlPrimitive<T extends Serializable> implements TomlPrim
     protected final Comments comments;
     protected transient byte flags;
 
-    protected AbstractTomlPrimitive(@NotNull Comments comments) {
+    protected AbstractTomlPrimitive(Comments comments) {
         this.creationTime = System.nanoTime();
         this.comments = comments;
         this.flags = (byte) 0;
@@ -49,21 +48,21 @@ abstract class AbstractTomlPrimitive<T extends Serializable> implements TomlPrim
     }
 
     @Override
-    public @NotNull TomlPrimitive flags(int flags) {
+    public TomlPrimitive flags(int flags) {
         this.flags = (byte) flags;
         return this;
     }
 
     @Override
-    public @NotNull Comments comments() {
+    public Comments comments() {
         return this.comments;
     }
 
     @Override
-    public abstract @NotNull T value();
+    public abstract T value();
 
     @ApiStatus.Internal
-    @NotNull ZoneOffset temporalOffset() throws UnsupportedOperationException {
+    ZoneOffset temporalOffset() throws UnsupportedOperationException {
         throw new UnsupportedOperationException("Primitive has no temporal offset");
     }
 
@@ -86,7 +85,7 @@ abstract class AbstractTomlPrimitive<T extends Serializable> implements TomlPrim
     }
 
     @Override
-    public @NotNull String toString() {
+    public String toString() {
         return "TomlPrimitive[type=" + this.type().name() + ", value=" + this.value() + "]";
     }
 

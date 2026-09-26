@@ -19,12 +19,16 @@ package io.github.wasabithumb.jtoml.value.table;
 import io.github.wasabithumb.jtoml.key.TomlKey;
 import io.github.wasabithumb.jtoml.value.TomlValue;
 import io.github.wasabithumb.jtoml.value.primitive.TomlPrimitive;
-import org.jetbrains.annotations.*;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.Unmodifiable;
+import org.jspecify.annotations.Nullable;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -45,7 +49,7 @@ public interface TomlTable extends TomlValue {
      * Creates an empty table
      */
     @Contract("-> new")
-    static @NotNull TomlTable create() {
+    static TomlTable create() {
         return new TomlTableImpl();
     }
 
@@ -54,7 +58,7 @@ public interface TomlTable extends TomlValue {
      * deep copy of the given table
      */
     @Contract("_ -> new")
-    static @NotNull TomlTable copyOf(@NotNull TomlTable other) {
+    static TomlTable copyOf(TomlTable other) {
         return TomlTableImpl.copyOf((TomlTableImpl) other);
     }
 
@@ -86,17 +90,17 @@ public interface TomlTable extends TomlValue {
 
     /**
      * Reports the keys in this table in lexicographical order.
-     * @param deep If true, children will be traversed (as in {@link #keys()}). Otherwise only
-     *             the top-level keys are reported, each having a length of 1.
+     * @param deep If true, children will be traversed (as in {@link #keys()}). Otherwise, only
+     *             the top-level keys are reported with each having a length of 1.
      */
-    @NotNull @Unmodifiable Set<TomlKey> keys(boolean deep);
+    @Unmodifiable Set<TomlKey> keys(boolean deep);
 
     /**
      * Reports the keys present in this table recursively in lexicographical order.
      * Keys that map to tables are not included.
      * @see #keys(boolean)
      */
-    default @NotNull @Unmodifiable Set<TomlKey> keys() {
+    default @Unmodifiable Set<TomlKey> keys() {
         return this.keys(true);
     }
 
@@ -104,7 +108,7 @@ public interface TomlTable extends TomlValue {
      * Returns true if the given key has a mapping within this table.
      * This will return true for keys mapped to tables, including empty tables.
      */
-    boolean contains(@NotNull TomlKey key);
+    boolean contains(TomlKey key);
 
     /**
      * Returns true if the given key has a mapping within this table.
@@ -112,7 +116,7 @@ public interface TomlTable extends TomlValue {
      * The key is parsed as specified by {@link TomlKey#parse(CharSequence)}.
      * @see #contains(TomlKey)
      */
-    default boolean contains(@NotNull CharSequence key) {
+    default boolean contains(CharSequence key) {
         return this.contains(TomlKey.parse(key));
     }
 
@@ -120,7 +124,7 @@ public interface TomlTable extends TomlValue {
      * Gets the value mapped to the given key, or null
      * if no entry exists.
      */
-    @Nullable TomlValue get(@NotNull TomlKey key);
+    @Nullable TomlValue get(TomlKey key);
 
     /**
      * Gets the value mapped to the given key, or null
@@ -128,7 +132,7 @@ public interface TomlTable extends TomlValue {
      * as specified by {@link TomlKey#parse(CharSequence)}.
      * @see #get(TomlKey)
      */
-    default @Nullable TomlValue get(@NotNull CharSequence key) {
+    default @Nullable TomlValue get(CharSequence key) {
         return this.get(TomlKey.parse(key));
     }
 
@@ -137,7 +141,7 @@ public interface TomlTable extends TomlValue {
      * new entry if one does not exist.
      * @return The value previously mapped to the given key, or null the entry was newly created
      */
-    @Nullable TomlValue put(@NotNull TomlKey key, @NotNull TomlValue value);
+    @Nullable TomlValue put(TomlKey key, TomlValue value);
 
     /**
      * Updates the value mapped to the given key, creating a
@@ -146,7 +150,7 @@ public interface TomlTable extends TomlValue {
      * @return The value previously mapped to the given key, or null the entry was newly created
      * @see #put(TomlKey, TomlValue)
      */
-    default @Nullable TomlValue put(@NotNull CharSequence key, @NotNull TomlValue value) {
+    default @Nullable TomlValue put(CharSequence key, TomlValue value) {
         return this.put(TomlKey.parse(key), value);
     }
 
@@ -158,7 +162,7 @@ public interface TomlTable extends TomlValue {
      * @return The value previously mapped to the given key, or null the entry was newly created
      * @throws NullPointerException The value is null
      */
-    default @Nullable TomlValue put(@NotNull TomlKey key, @NotNull String value) {
+    default @Nullable TomlValue put(TomlKey key, String value) {
         return this.put(key, TomlPrimitive.of(value));
     }
 
@@ -171,7 +175,7 @@ public interface TomlTable extends TomlValue {
      * @throws NullPointerException The value is null
      * @throws io.github.wasabithumb.jtoml.except.TomlValueException The provided value is not representable as a TOML primitive
      */
-    default @Nullable TomlValue put(@NotNull TomlKey key, @NotNull OffsetDateTime value) {
+    default @Nullable TomlValue put(TomlKey key, OffsetDateTime value) {
         return this.put(key, TomlPrimitive.of(value));
     }
 
@@ -184,7 +188,7 @@ public interface TomlTable extends TomlValue {
      * @throws NullPointerException The value is null
      * @throws io.github.wasabithumb.jtoml.except.TomlValueException The provided value is not representable as a TOML primitive
      */
-    default @Nullable TomlValue put(@NotNull TomlKey key, @NotNull LocalDateTime value) {
+    default @Nullable TomlValue put(TomlKey key, LocalDateTime value) {
         return this.put(key, TomlPrimitive.of(value));
     }
 
@@ -197,7 +201,7 @@ public interface TomlTable extends TomlValue {
      * @throws NullPointerException The value is null
      * @throws io.github.wasabithumb.jtoml.except.TomlValueException The provided value is not representable as a TOML primitive
      */
-    default @Nullable TomlValue put(@NotNull TomlKey key, @NotNull LocalDate value) {
+    default @Nullable TomlValue put(TomlKey key, LocalDate value) {
         return this.put(key, TomlPrimitive.of(value));
     }
 
@@ -209,7 +213,7 @@ public interface TomlTable extends TomlValue {
      * @return The value previously mapped to the given key, or null the entry was newly created
      * @throws NullPointerException The value is null
      */
-    default @Nullable TomlValue put(@NotNull TomlKey key, @NotNull LocalTime value) {
+    default @Nullable TomlValue put(TomlKey key, LocalTime value) {
         return this.put(key, TomlPrimitive.of(value));
     }
 
@@ -220,7 +224,7 @@ public interface TomlTable extends TomlValue {
      * before being placed into the map.
      * @return The value previously mapped to the given key, or null the entry was newly created
      */
-    default @Nullable TomlValue put(@NotNull TomlKey key, boolean value) {
+    default @Nullable TomlValue put(TomlKey key, boolean value) {
         return this.put(key, TomlPrimitive.of(value));
     }
 
@@ -231,7 +235,7 @@ public interface TomlTable extends TomlValue {
      * before being placed into the map.
      * @return The value previously mapped to the given key, or null the entry was newly created
      */
-    default @Nullable TomlValue put(@NotNull TomlKey key, long value) {
+    default @Nullable TomlValue put(TomlKey key, long value) {
         return this.put(key, TomlPrimitive.of(value));
     }
 
@@ -242,7 +246,7 @@ public interface TomlTable extends TomlValue {
      * before being placed into the map.
      * @return The value previously mapped to the given key, or null the entry was newly created
      */
-    default @Nullable TomlValue put(@NotNull TomlKey key, int value) {
+    default @Nullable TomlValue put(TomlKey key, int value) {
         return this.put(key, TomlPrimitive.of(value));
     }
 
@@ -253,7 +257,7 @@ public interface TomlTable extends TomlValue {
      * before being placed into the map.
      * @return The value previously mapped to the given key, or null the entry was newly created
      */
-    default @Nullable TomlValue put(@NotNull TomlKey key, double value) {
+    default @Nullable TomlValue put(TomlKey key, double value) {
         return this.put(key, TomlPrimitive.of(value));
     }
 
@@ -264,7 +268,7 @@ public interface TomlTable extends TomlValue {
      * before being placed into the map.
      * @return The value previously mapped to the given key, or null the entry was newly created
      */
-    default @Nullable TomlValue put(@NotNull TomlKey key, float value) {
+    default @Nullable TomlValue put(TomlKey key, float value) {
         return this.put(key, TomlPrimitive.of(value));
     }
 
@@ -278,7 +282,7 @@ public interface TomlTable extends TomlValue {
      * @throws NullPointerException The value is null
      * @see #put(TomlKey, String)
      */
-    default @Nullable TomlValue put(@NotNull CharSequence key, @NotNull String value) {
+    default @Nullable TomlValue put(CharSequence key, String value) {
         return this.put(key, TomlPrimitive.of(value));
     }
 
@@ -291,7 +295,7 @@ public interface TomlTable extends TomlValue {
      * @return The value previously mapped to the given key, or null the entry was newly created
      * @see #put(TomlKey, boolean)
      */
-    default @Nullable TomlValue put(@NotNull CharSequence key, boolean value) {
+    default @Nullable TomlValue put(CharSequence key, boolean value) {
         return this.put(key, TomlPrimitive.of(value));
     }
 
@@ -304,7 +308,7 @@ public interface TomlTable extends TomlValue {
      * @return The value previously mapped to the given key, or null the entry was newly created
      * @see #put(TomlKey, long)
      */
-    default @Nullable TomlValue put(@NotNull CharSequence key, long value) {
+    default @Nullable TomlValue put(CharSequence key, long value) {
         return this.put(key, TomlPrimitive.of(value));
     }
 
@@ -317,7 +321,7 @@ public interface TomlTable extends TomlValue {
      * @return The value previously mapped to the given key, or null the entry was newly created
      * @see #put(TomlKey, int)
      */
-    default @Nullable TomlValue put(@NotNull CharSequence key, int value) {
+    default @Nullable TomlValue put(CharSequence key, int value) {
         return this.put(key, TomlPrimitive.of(value));
     }
 
@@ -330,7 +334,7 @@ public interface TomlTable extends TomlValue {
      * @return The value previously mapped to the given key, or null the entry was newly created
      * @see #put(TomlKey, double)
      */
-    default @Nullable TomlValue put(@NotNull CharSequence key, double value) {
+    default @Nullable TomlValue put(CharSequence key, double value) {
         return this.put(key, TomlPrimitive.of(value));
     }
 
@@ -343,7 +347,7 @@ public interface TomlTable extends TomlValue {
      * @return The value previously mapped to the given key, or null the entry was newly created
      * @see #put(TomlKey, float)
      */
-    default @Nullable TomlValue put(@NotNull CharSequence key, float value) {
+    default @Nullable TomlValue put(CharSequence key, float value) {
         return this.put(key, TomlPrimitive.of(value));
     }
 
@@ -358,7 +362,7 @@ public interface TomlTable extends TomlValue {
      * @throws io.github.wasabithumb.jtoml.except.TomlValueException The provided value is not representable as a TOML primitive
      * @see #put(TomlKey, OffsetDateTime)
      */
-    default @Nullable TomlValue put(@NotNull CharSequence key, @NotNull OffsetDateTime value) {
+    default @Nullable TomlValue put(CharSequence key, OffsetDateTime value) {
         return this.put(key, TomlPrimitive.of(value));
     }
 
@@ -373,7 +377,7 @@ public interface TomlTable extends TomlValue {
      * @throws io.github.wasabithumb.jtoml.except.TomlValueException The provided value is not representable as a TOML primitive
      * @see #put(TomlKey, LocalDateTime)
      */
-    default @Nullable TomlValue put(@NotNull CharSequence key, @NotNull LocalDateTime value) {
+    default @Nullable TomlValue put(CharSequence key, LocalDateTime value) {
         return this.put(key, TomlPrimitive.of(value));
     }
 
@@ -388,7 +392,7 @@ public interface TomlTable extends TomlValue {
      * @throws io.github.wasabithumb.jtoml.except.TomlValueException The provided value is not representable as a TOML primitive
      * @see #put(TomlKey, LocalDate)
      */
-    default @Nullable TomlValue put(@NotNull CharSequence key, @NotNull LocalDate value) {
+    default @Nullable TomlValue put(CharSequence key, LocalDate value) {
         return this.put(key, TomlPrimitive.of(value));
     }
 
@@ -402,7 +406,7 @@ public interface TomlTable extends TomlValue {
      * @throws NullPointerException The value is null
      * @see #put(TomlKey, LocalTime)
      */
-    default @Nullable TomlValue put(@NotNull CharSequence key, @NotNull LocalTime value) {
+    default @Nullable TomlValue put(CharSequence key, LocalTime value) {
         return this.put(key, TomlPrimitive.of(value));
     }
 
@@ -410,7 +414,7 @@ public interface TomlTable extends TomlValue {
      * Removes the entry associated with the given key.
      * @return The value previously mapped to the given key, or null if no entry exists.
      */
-    @Nullable TomlValue remove(@NotNull TomlKey key);
+    @Nullable TomlValue remove(TomlKey key);
 
     /**
      * Removes the entry associated with the given key.
@@ -418,7 +422,7 @@ public interface TomlTable extends TomlValue {
      * @return The value previously mapped to the given key, or null if no entry exists.
      * @see #remove(TomlKey)
      */
-    default @Nullable TomlValue remove(@NotNull String key) {
+    default @Nullable TomlValue remove(String key) {
         return this.remove(TomlKey.parse(key));
     }
 
@@ -427,10 +431,14 @@ public interface TomlTable extends TomlValue {
      * table. The resulting table is ordered arbitrarily.
      */
     @Contract("-> new")
-    default @NotNull Map<TomlKey, TomlValue> toMap() {
+    default Map<TomlKey, TomlValue> toMap() {
         Set<TomlKey> keys = this.keys();
         Map<TomlKey, TomlValue> map = new HashMap<>(keys.size());
-        for (TomlKey key : keys) map.put(key, this.get(key));
+        for (TomlKey key : keys) {
+            TomlValue value = this.get(key);
+            if (value == null) throw new ConcurrentModificationException();
+            map.put(key, value);
+        }
         return map;
     }
 

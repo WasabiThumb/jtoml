@@ -21,12 +21,14 @@ import io.github.wasabithumb.jtoml.key.convention.StandardKeyConvention;
 import io.github.wasabithumb.jtoml.route.Sentinel;
 import io.github.wasabithumb.jtoml.route.TestRoute;
 import io.github.wasabithumb.jtoml.serial.reflect.Convention;
+import org.jspecify.annotations.NullMarked;
 
 import java.time.OffsetDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static io.github.wasabithumb.jtoml.route.TestConstants.*;
 
+@NullMarked
 public final class SimpleRecordTestRoute implements TestRoute {
 
     @Sentinel("simple.toml")

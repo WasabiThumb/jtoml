@@ -18,7 +18,6 @@ package io.github.wasabithumb.jtoml.value.primitive;
 
 import io.github.wasabithumb.jtoml.comment.Comments;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Range;
 
 import java.io.Serializable;
@@ -31,11 +30,11 @@ abstract class AbstractTemporalTomlPrimitive<T extends Serializable & Temporal>
         extends AbstractTomlPrimitive<T>
 {
 
-    private static void writeDigit(@NotNull StringBuilder sb, @Range(from=0, to=9) int d) {
+    private static void writeDigit(StringBuilder sb, @Range(from=0, to=9) int d) {
         sb.append((char) (d + '0'));
     }
 
-    protected static void writeDate(@NotNull StringBuilder sb, @NotNull LocalDate date) {
+    protected static void writeDate(StringBuilder sb, LocalDate date) {
         int year = date.getYear();
         if (year > 9999) {
             sb.append(year);
@@ -57,7 +56,7 @@ abstract class AbstractTemporalTomlPrimitive<T extends Serializable & Temporal>
         writeDigit(sb, day % 10);
     }
 
-    protected static void writeHourMinute(@NotNull StringBuilder sb, int hour, int minute) {
+    protected static void writeHourMinute(StringBuilder sb, int hour, int minute) {
         writeDigit(sb, hour / 10);
         writeDigit(sb, hour % 10);
         sb.append(':');
@@ -66,8 +65,8 @@ abstract class AbstractTemporalTomlPrimitive<T extends Serializable & Temporal>
     }
 
     protected static void writeTime(
-            @NotNull StringBuilder sb,
-            @NotNull LocalTime time,
+            StringBuilder sb,
+            LocalTime time,
             @Range(from = 1, to = 9) int minNanos
     ) {
         writeHourMinute(sb, time.getHour(), time.getMinute());
@@ -104,7 +103,7 @@ abstract class AbstractTemporalTomlPrimitive<T extends Serializable & Temporal>
     /** @implNote Modified by UnsafePrimitives */
     @Range(from = 1, to = 9) int minNanoResolution;
 
-    protected AbstractTemporalTomlPrimitive(@NotNull Comments comments) {
+    protected AbstractTemporalTomlPrimitive(Comments comments) {
         super(comments);
         this.minNanoResolution = 1;
     }

@@ -21,7 +21,6 @@ import io.github.wasabithumb.jtoml.key.convention.StandardKeyConvention;
 import io.github.wasabithumb.jtoml.option.prop.*;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
 import java.time.ZoneOffset;
@@ -279,7 +278,7 @@ public interface JTomlOption<T> {
      * just as in {@link Class#getEnumConstants()}
      */
     @Contract("-> new")
-    static @NotNull JTomlOption<?> @NotNull [] values() {
+    static JTomlOption<?>[] values() {
         final Field[] fields = JTomlOption.class.getDeclaredFields();
         JTomlOption<?>[] ret = new JTomlOption<?>[fields.length];
         int head = 0;
@@ -339,19 +338,19 @@ public interface JTomlOption<T> {
      * the name of the field in the {@link JTomlOption} class
      * with the same value as this object by convention.
      */
-    @NotNull String name();
+    String name();
 
     /**
      * Reports the type that values associated with this option
      * constant must be an instance of.
      */
-    @NotNull Class<T> valueClass();
+    Class<T> valueClass();
 
     /**
      * Reports the default value associated with this option
      * constant.
      */
-    @NotNull T defaultValue();
+    T defaultValue();
 
     /**
      * Returns true if the given instance of {@link #valueClass() the value class}
@@ -362,7 +361,7 @@ public interface JTomlOption<T> {
      * @return True if the value is legal for this option
      * @apiNote Currently always returns true
      */
-    default boolean isLegal(@NotNull T value) {
+    default boolean isLegal(T value) {
         return true;
     }
 
@@ -377,7 +376,7 @@ public interface JTomlOption<T> {
     interface Bool extends JTomlOption<Boolean> {
 
         @Override
-        default @NotNull Class<Boolean> valueClass() {
+        default Class<Boolean> valueClass() {
             return Boolean.class;
         }
 

@@ -20,10 +20,12 @@ import io.github.wasabithumb.jtoml.JToml;
 import io.github.wasabithumb.jtoml.route.Sentinel;
 import io.github.wasabithumb.jtoml.route.TestRoute;
 import io.github.wasabithumb.jtoml.serial.reflect.Defaulting;
+import org.jspecify.annotations.NullMarked;
 
 import static io.github.wasabithumb.jtoml.route.TestConstants.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+@NullMarked
 public final class DefaultingWithValueTestRoute implements TestRoute {
 
     @Sentinel("defaulting.toml")

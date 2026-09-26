@@ -27,7 +27,6 @@ import io.github.wasabithumb.jtoml.value.array.TomlArray;
 import io.github.wasabithumb.jtoml.value.primitive.TomlPrimitive;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
@@ -47,7 +46,7 @@ public final class GsonTomlSerializer implements TomlSerializer.Symmetric<JsonOb
      * instance of {@link GsonTomlSerializer}.
      */
     @Contract(pure = true)
-    public static @NotNull GsonTomlSerializer instance() {
+    public static GsonTomlSerializer instance() {
         return DEFAULT_INSTANCE;
     }
 
@@ -58,12 +57,12 @@ public final class GsonTomlSerializer implements TomlSerializer.Symmetric<JsonOb
     //
 
     @Override
-    public @NotNull Class<JsonObject> serialType() {
+    public Class<JsonObject> serialType() {
         return JsonObject.class;
     }
 
     @Override
-    public @NotNull JsonObject fromToml(@NotNull TomlTable table) {
+    public JsonObject fromToml(TomlTable table) {
         JsonObject ret = new JsonObject();
         TomlValue value;
         for (TomlKey key : table.keys(false)) {
@@ -75,7 +74,7 @@ public final class GsonTomlSerializer implements TomlSerializer.Symmetric<JsonOb
     }
 
     @Override
-    public @NotNull TomlTable toToml(@NotNull JsonObject data) {
+    public TomlTable toToml(JsonObject data) {
         TomlTable ret = TomlTable.create();
         String key;
         JsonElement value;
@@ -89,7 +88,7 @@ public final class GsonTomlSerializer implements TomlSerializer.Symmetric<JsonOb
 
     //
 
-    private @NotNull JsonElement serializeValue(@NotNull TomlValue value) {
+    private JsonElement serializeValue(TomlValue value) {
         if (value.isTable()) {
             return this.fromToml(value.asTable());
         } else if (value.isArray()) {
@@ -102,7 +101,7 @@ public final class GsonTomlSerializer implements TomlSerializer.Symmetric<JsonOb
         }
     }
 
-    private @NotNull JsonElement serializePrimitive(@NotNull TomlPrimitive v) {
+    private JsonElement serializePrimitive(TomlPrimitive v) {
         if (v.isBoolean()) {
             return new JsonPrimitive(v.asBoolean());
         } else if (v.isInteger()) {
@@ -114,7 +113,7 @@ public final class GsonTomlSerializer implements TomlSerializer.Symmetric<JsonOb
         }
     }
 
-    private @NotNull TomlValue deserializeElement(@NotNull JsonElement value) {
+    private TomlValue deserializeElement(JsonElement value) {
         if (value.isJsonNull()) {
             return TomlPrimitive.of("null");
         } else if (value.isJsonArray()) {
@@ -129,7 +128,7 @@ public final class GsonTomlSerializer implements TomlSerializer.Symmetric<JsonOb
         }
     }
 
-    private @NotNull TomlPrimitive deserializePrimitive(@NotNull JsonPrimitive v) {
+    private TomlPrimitive deserializePrimitive(JsonPrimitive v) {
         if (v.isBoolean()) {
             return TomlPrimitive.of(v.getAsBoolean());
         } else if (v.isString()) {

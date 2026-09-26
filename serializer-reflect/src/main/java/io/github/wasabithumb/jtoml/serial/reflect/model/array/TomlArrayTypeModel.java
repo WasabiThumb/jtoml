@@ -20,7 +20,6 @@ import io.github.wasabithumb.jtoml.util.ParameterizedClass;
 import io.github.wasabithumb.jtoml.value.TomlValue;
 import io.github.wasabithumb.jtoml.value.array.TomlArray;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 
@@ -34,32 +33,32 @@ final class TomlArrayTypeModel implements ArrayTypeModel<TomlArray> {
     //
 
     @Override
-    public @NotNull Class<TomlArray> type() {
+    public Class<TomlArray> type() {
         return TomlArray.class;
     }
 
     @Override
-    public @NotNull ParameterizedClass<?> componentType() {
+    public ParameterizedClass<?> componentType() {
         return COMPONENT_TYPE;
     }
 
     @Override
-    public @NotNull TomlArray createNew(int length) {
+    public TomlArray createNew(int length) {
         return TomlArray.create(length);
     }
 
     @Override
-    public int size(@NotNull TomlArray instance) {
+    public int size(TomlArray instance) {
         return instance.size();
     }
 
     @Override
-    public @NotNull Iterator<?> iterator(@NotNull TomlArray instance) {
+    public Iterator<?> iterator(TomlArray instance) {
         return instance.iterator();
     }
 
     @Override
-    public void put(@NotNull TomlArray instance, @NotNull Object object) {
+    public void put(TomlArray instance, Object object) {
         instance.add((TomlValue) object);
     }
 

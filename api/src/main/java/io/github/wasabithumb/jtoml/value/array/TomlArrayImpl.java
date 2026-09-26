@@ -19,7 +19,6 @@ package io.github.wasabithumb.jtoml.value.array;
 import io.github.wasabithumb.jtoml.comment.Comments;
 import io.github.wasabithumb.jtoml.value.TomlValue;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -29,7 +28,7 @@ final class TomlArrayImpl
         implements TomlArray
 {
 
-    static @NotNull TomlArrayImpl copyOf(@NotNull Iterable<? extends TomlValue> src) {
+    static TomlArrayImpl copyOf(Iterable<? extends TomlValue> src) {
         TomlArrayImpl ret;
 
         if (src instanceof TomlArray) {
@@ -55,7 +54,7 @@ final class TomlArrayImpl
     private final Comments comments;
     private transient byte flags;
 
-    private TomlArrayImpl(int initialCapacity, @NotNull Comments comments) {
+    private TomlArrayImpl(int initialCapacity, Comments comments) {
         this.creationTime = System.nanoTime();
         this.backing = new ArrayList<>(initialCapacity);
         this.comments = comments;
@@ -83,13 +82,13 @@ final class TomlArrayImpl
     }
 
     @Override
-    public @NotNull TomlArray flags(int flags) {
+    public TomlArray flags(int flags) {
         this.flags = (byte) flags;
         return this;
     }
 
     @Override
-    public @NotNull Comments comments() {
+    public Comments comments() {
         return this.comments;
     }
 
@@ -99,41 +98,41 @@ final class TomlArrayImpl
     }
 
     @Override
-    public @NotNull TomlValue get(int index) throws IndexOutOfBoundsException {
+    public TomlValue get(int index) throws IndexOutOfBoundsException {
         return this.backing.get(index);
     }
 
     @Override
     public void add(int index, TomlValue element) {
-        if (element == null) throw new NullPointerException("Cannot add null to TomlArray");
+        Objects.requireNonNull(element, "element must not be null");
         this.backing.add(index, element);
     }
 
     @Override
-    public boolean add(TomlValue value) {
-        if (value == null) throw new NullPointerException("Cannot add null to TomlArray");
-        this.backing.add(value);
+    public boolean add(TomlValue element) {
+        Objects.requireNonNull(element, "element must not be null");
+        this.backing.add(element);
         return true;
     }
 
     @Override
-    public @NotNull TomlValue remove(int index) throws IndexOutOfBoundsException {
+    public TomlValue remove(int index) throws IndexOutOfBoundsException {
         return this.backing.remove(index);
     }
 
     @Override
-    public @NotNull TomlValue set(int index, TomlValue value) throws IndexOutOfBoundsException {
-        if (value == null) throw new NullPointerException("Cannot insert null into TomlArray");
-        return this.backing.set(index, value);
+    public TomlValue set(int index, TomlValue element) throws IndexOutOfBoundsException {
+        Objects.requireNonNull(element, "element must not be null");
+        return this.backing.set(index, element);
     }
 
     @Override
-    public @NotNull Iterator<TomlValue> iterator() {
+    public Iterator<TomlValue> iterator() {
         return this.backing.iterator();
     }
 
     @Override
-    public @NotNull String toString() {
+    public String toString() {
         StringBuilder sb = new StringBuilder("[");
         for (int i=0; i < this.size(); i++) {
             if (i != 0) sb.append(", ");

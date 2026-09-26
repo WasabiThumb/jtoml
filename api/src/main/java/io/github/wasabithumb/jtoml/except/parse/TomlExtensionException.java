@@ -16,8 +16,6 @@
 
 package io.github.wasabithumb.jtoml.except.parse;
 
-import org.jetbrains.annotations.NotNull;
-
 /**
  * An attempt was made to extend an inline table or array.
  * From the TOML docs:
@@ -38,7 +36,7 @@ public final class TomlExtensionException extends TomlParseException {
 
     //
 
-    public TomlExtensionException(@NotNull String message) {
+    public TomlExtensionException(String message) {
         super(message);
     }
 

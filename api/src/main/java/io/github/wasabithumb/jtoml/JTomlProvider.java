@@ -19,7 +19,6 @@ package io.github.wasabithumb.jtoml;
 import io.github.wasabithumb.jtoml.option.JTomlOptions;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.UnknownNullability;
 
 import java.lang.invoke.MethodHandle;
@@ -75,7 +74,7 @@ final class JTomlProvider {
     private final JToml defaultInstance;
 
     private JTomlProvider(
-            @NotNull MethodHandle ctor
+            MethodHandle ctor
     ) {
         this.ctor = ctor;
         this.defaultInstance = newInstance(ctor, DEFAULT_OPTIONS);
@@ -89,12 +88,12 @@ final class JTomlProvider {
     }
 
     @Contract("_ -> new")
-    public JToml instance(@NotNull JTomlOptions options) {
+    public JToml instance(JTomlOptions options) {
         if (DEFAULT_OPTIONS.equals(options)) return this.defaultInstance;
         return newInstance(this.ctor, options);
     }
 
-    private static JToml newInstance(@NotNull MethodHandle ctor, @NotNull JTomlOptions options) {
+    private static JToml newInstance(MethodHandle ctor, JTomlOptions options) {
         try {
             return (JToml) ctor.invoke(options);
         } catch (Throwable t) {
