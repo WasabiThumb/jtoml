@@ -8,6 +8,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
@@ -23,9 +24,11 @@ abstract class GeneratePackageMetadataTask : DefaultTask() {
     protected abstract val libraryVersion: Property<String>
 
     @get:Input
+    @get:Optional
     protected abstract val gitBranch: Property<String>
 
     @get:Input
+    @get:Optional
     protected abstract val gitCommit: Property<String>
 
     @get:Input
@@ -45,7 +48,9 @@ abstract class GeneratePackageMetadataTask : DefaultTask() {
         this.ci.convention(this.project.providers.environmentVariable("CI").map { truthyEnv(it) }.orElse(false))
         val ext = this.project.extensions.findByName("indraGit")
         if (ext == null) {
-            this.logger.warn("No indraGit extension, cannot write git info")
+            this.logger.warn("No indraGit extension, using environment variables for git info")
+            this.gitBranch.convention(this.project.providers.environmentVariable("CI_COMMIT_BRANCH"))
+            this.gitCommit.convention(this.project.providers.environmentVariable("CI_COMMIT_SHA"))
         } else {
             this.gitBranch.convention(gitBranchFromIndraGitExtension(ext))
             this.gitCommit.convention(gitCommitFromIndraGitExtension(ext))
@@ -74,13 +79,9 @@ abstract class GeneratePackageMetadataTask : DefaultTask() {
     private fun createMetaProperties(): Properties {
         val ret = Properties()
         ret.setProperty(PROPERTY_LIBRARY_VERSION, this.libraryVersion.get())
-        if (this.ci.get()) {
-            ret.setProperty(PROPERTY_BUILD_CI, "true")
-        } else {
-            ret.setProperty(PROPERTY_BUILD_CI, "false")
-            ret.setProperty(PROPERTY_VCS_BRANCH, this.gitBranch.get())
-            ret.setProperty(PROPERTY_VCS_COMMIT, this.gitCommit.get())
-        }
+        ret.setProperty(PROPERTY_BUILD_CI, "${this.ci.get()}")
+        if (this.gitBranch.isPresent) ret.setProperty(PROPERTY_VCS_BRANCH, this.gitBranch.get())
+        if (this.gitCommit.isPresent) ret.setProperty(PROPERTY_VCS_COMMIT, this.gitCommit.get())
         return ret
     }
 
