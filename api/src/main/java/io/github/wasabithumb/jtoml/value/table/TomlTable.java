@@ -451,13 +451,9 @@ public interface TomlTable extends TomlValue {
      */
     @Contract("-> new")
     default Map<TomlKey, TomlValue> toMap() {
-        Set<TomlKey> keys = this.keys();
-        Map<TomlKey, TomlValue> map = new HashMap<>(keys.size());
-        for (TomlKey key : keys) {
-            TomlValue value = this.get(key);
-            if (value == null) throw new ConcurrentModificationException();
-            map.put(key, value);
-        }
+        Set<Entry<?>> entries = this.entries();
+        Map<TomlKey, TomlValue> map = new HashMap<>((int) Math.ceil(entries.size() / 0.75d), 0.75f);
+        for (Entry<?> entry : entries) map.put(entry.key(), entry.value());
         return map;
     }
 

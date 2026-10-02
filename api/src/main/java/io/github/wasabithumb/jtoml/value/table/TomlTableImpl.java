@@ -222,18 +222,16 @@ final class TomlTableImpl implements TomlTable {
 
     @Override
     public String toString() {
-        Iterator<TomlKey> iter = this.keys(true).iterator();
+        Iterator<TomlTable.Entry<?>> iter = this.entries(true).iterator();
         if (!iter.hasNext()) return "{}";
 
         StringBuilder sb = new StringBuilder();
         sb.append('{');
         while (true) {
-            TomlKey next = iter.next();
-            TomlValue value = this.get(next);
-            if (value == null) throw new ConcurrentModificationException();
-            sb.append(next);
+            TomlTable.Entry<?> next = iter.next();
+            sb.append(next.key());
             sb.append('=');
-            sb.append(value);
+            sb.append(next.value());
             if (!iter.hasNext()) break;
             sb.append(", ");
         }

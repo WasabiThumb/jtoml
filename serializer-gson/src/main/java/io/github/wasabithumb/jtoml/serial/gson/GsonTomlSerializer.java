@@ -64,11 +64,8 @@ public final class GsonTomlSerializer implements TomlSerializer.Symmetric<JsonOb
     @Override
     public JsonObject fromToml(TomlTable table) {
         JsonObject ret = new JsonObject();
-        TomlValue value;
-        for (TomlKey key : table.keys(false)) {
-            value = table.get(key);
-            assert value != null;
-            ret.add(key.get(0), this.serializeValue(value));
+        for (TomlTable.Entry<?> entry : table.entries(false)) {
+            ret.add(entry.key().get(0), this.serializeValue(entry.value()));
         }
         return ret;
     }
