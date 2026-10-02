@@ -63,6 +63,15 @@ class JTomlTest {
     //
 
     /**
+     * Tests that the version
+     * data can be read
+     */
+    @Test
+    void version() {
+        System.out.println("using " + TOML.version());
+    }
+
+    /**
      * Tests that the rather optimized
      * {@link TomlKey} APIs are
      * functioning as intended.
