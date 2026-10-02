@@ -89,7 +89,7 @@ public interface TomlTable extends TomlValue {
 
     /**
      * Reports the keys in this table in lexicographical order.
-     * The resultant set supports removals but not additions.
+     * The resultant set supports removals but not other mutation operations.
      * @param deep If true, children will be traversed (as in {@link #keys()}). Otherwise, only
      *             the top-level keys are reported with each having a size equal to 1.
      */
@@ -98,7 +98,7 @@ public interface TomlTable extends TomlValue {
     /**
      * Reports the keys present in this table recursively in lexicographical order.
      * Keys that map to tables are not included.
-     * The resultant set supports removals but not additions.
+     * The resultant set supports removals but not other mutation operations.
      * @see #keys(boolean)
      */
     default Set<TomlKey> keys() {
@@ -107,18 +107,20 @@ public interface TomlTable extends TomlValue {
 
     /**
      * Reports the entries (key-value pairs) of this table in lexicographical order.
-     * The resultant set supports removals but not additions.
+     * The resultant set supports removals but not other mutation operations.
      * @param deep If true, children will be traversed (as in {@link #entries()}). Otherwise, only
      *             the top-level entries are reported with each having a key of size equal to 1.
      */
+    @ApiStatus.AvailableSince("1.8.2")
     Set<Entry<?>> entries(boolean deep);
 
     /**
      * Reports the entries (key-value pairs) present in this table recursively in lexicographical order.
      * Entries with table values are not included, just as in {@link #keys()}.
-     * The resultant set supports removals but not additions.
+     * The resultant set supports removals but not other mutation operations.
      * @see #entries(boolean)
      */
+    @ApiStatus.AvailableSince("1.8.2")
     default Set<Entry<?>> entries() {
         return this.entries(true);
     }
@@ -465,6 +467,7 @@ public interface TomlTable extends TomlValue {
      * not read through to the underlying table.
      */
     @ApiStatus.NonExtendable
+    @ApiStatus.AvailableSince("1.8.2")
     interface Entry<V extends TomlValue> {
 
         /**
