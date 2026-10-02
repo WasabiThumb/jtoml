@@ -90,7 +90,7 @@ dependencies {
 <dependencies>
     <!-- jtoml or jtoml-kotlin and any number of optional modules -->
     <dependency>
-        <group>io.github.wasabithumb</group>
+        <groupId>io.github.wasabithumb</groupId>
         <artifactId>jtoml</artifactId>
         <version>VERSION</version>
         <scope>compile</scope>
@@ -98,7 +98,7 @@ dependencies {
 
     <!-- ...or jtoml-all for everything + JPMS support -->
     <dependency>
-        <group>io.github.wasabithumb</group>
+        <groupId>io.github.wasabithumb</groupId>
         <artifactId>jtoml-all</artifactId>
         <version>VERSION</version>
         <scope>compile</scope>
