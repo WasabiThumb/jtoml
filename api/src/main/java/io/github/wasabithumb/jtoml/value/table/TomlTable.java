@@ -21,7 +21,6 @@ import io.github.wasabithumb.jtoml.value.TomlValue;
 import io.github.wasabithumb.jtoml.value.primitive.TomlPrimitive;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.Unmodifiable;
 import org.jspecify.annotations.Nullable;
 
 import java.time.LocalDate;
@@ -59,7 +58,7 @@ public interface TomlTable extends TomlValue {
      */
     @Contract("_ -> new")
     static TomlTable copyOf(TomlTable other) {
-        return TomlTableImpl.copyOf((TomlTableImpl) other);
+        return TomlTableImpl.copyOf(other);
     }
 
     //
@@ -90,18 +89,40 @@ public interface TomlTable extends TomlValue {
 
     /**
      * Reports the keys in this table in lexicographical order.
+     * The resultant set supports removals but not other mutation operations.
      * @param deep If true, children will be traversed (as in {@link #keys()}). Otherwise, only
-     *             the top-level keys are reported with each having a length of 1.
+     *             the top-level keys are reported with each having a size equal to 1.
      */
-    @Unmodifiable Set<TomlKey> keys(boolean deep);
+    Set<TomlKey> keys(boolean deep);
 
     /**
      * Reports the keys present in this table recursively in lexicographical order.
      * Keys that map to tables are not included.
+     * The resultant set supports removals but not other mutation operations.
      * @see #keys(boolean)
      */
-    default @Unmodifiable Set<TomlKey> keys() {
+    default Set<TomlKey> keys() {
         return this.keys(true);
+    }
+
+    /**
+     * Reports the entries (key-value pairs) of this table in lexicographical order.
+     * The resultant set supports removals but not other mutation operations.
+     * @param deep If true, children will be traversed (as in {@link #entries()}). Otherwise, only
+     *             the top-level entries are reported with each having a key of size equal to 1.
+     */
+    @ApiStatus.AvailableSince("1.8.2")
+    Set<Entry<?>> entries(boolean deep);
+
+    /**
+     * Reports the entries (key-value pairs) present in this table recursively in lexicographical order.
+     * Entries with table values are not included, just as in {@link #keys()}.
+     * The resultant set supports removals but not other mutation operations.
+     * @see #entries(boolean)
+     */
+    @ApiStatus.AvailableSince("1.8.2")
+    default Set<Entry<?>> entries() {
+        return this.entries(true);
     }
 
     /**
@@ -432,14 +453,35 @@ public interface TomlTable extends TomlValue {
      */
     @Contract("-> new")
     default Map<TomlKey, TomlValue> toMap() {
-        Set<TomlKey> keys = this.keys();
-        Map<TomlKey, TomlValue> map = new HashMap<>(keys.size());
-        for (TomlKey key : keys) {
-            TomlValue value = this.get(key);
-            if (value == null) throw new ConcurrentModificationException();
-            map.put(key, value);
-        }
+        Set<Entry<?>> entries = this.entries();
+        Map<TomlKey, TomlValue> map = new HashMap<>((int) Math.ceil(entries.size() / 0.75d), 0.75f);
+        for (Entry<?> entry : entries) map.put(entry.key(), entry.value());
         return map;
+    }
+
+    //
+
+    /**
+     * A key-value pair from a table's entry set.
+     * This is an immutable snapshot that does
+     * not read through to the underlying table.
+     */
+    @ApiStatus.NonExtendable
+    @ApiStatus.AvailableSince("1.8.2")
+    interface Entry<V extends TomlValue> {
+
+        /**
+         * Reports the key associated
+         * with this entry.
+         */
+        TomlKey key();
+
+        /**
+         * Reports the value of
+         * this entry.
+         */
+        V value();
+
     }
 
 }

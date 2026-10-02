@@ -1,3 +1,4 @@
+import tasks.GeneratePackageMetadataTask
 
 plugins {
     alias(libs.plugins.indra.core)
@@ -47,4 +48,15 @@ tasks.jar {
     // Add Git-Commit and Git-Branch to manifest
     indraGit.applyVcsInformationToManifest(manifest)
     manifest.attributes["Library-Version"] = "${rootProject.version}"
+}
+
+val generatePackageMetadata = tasks.register("generatePackageMetadata", GeneratePackageMetadataTask::class) {
+    description = "Creates the files that will be shipped in META-INF/jtoml"
+}
+
+tasks.processResources {
+    dependsOn(generatePackageMetadata)
+    into("META-INF/jtoml") {
+        from(generatePackageMetadata)
+    }
 }

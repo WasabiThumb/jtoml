@@ -146,13 +146,9 @@ public final class TomlConfigurationLoader extends AbstractConfigurationLoader<C
         if (value.isTable()) {
             node.raw(new HashMap<>());
             final TomlTable tomlTable = value.asTable();
-            for (final TomlKey key : tomlTable.keys(false)) {
-                final @Nullable TomlValue tomlChild = tomlTable.get(key);
-                if (tomlChild == null) {
-                    continue;
-                }
-                final CommentedConfigurationNode child = node.node(key.get(0));
-                populateNode(child, tomlChild);
+            for (final TomlTable.Entry<?> entry : tomlTable.entries(false)) {
+                final CommentedConfigurationNode child = node.node(entry.key().get(0));
+                populateNode(child, entry.value());
             }
         } else if (value.isArray()) {
             node.raw(new ArrayList<>());

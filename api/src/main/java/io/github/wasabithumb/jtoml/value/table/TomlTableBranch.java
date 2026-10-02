@@ -116,7 +116,7 @@ final class TomlTableBranch implements TomlTableNode {
 
     /** @implNote This is a shallow listing */
     public @Unmodifiable List<String> keys() {
-        return Collections.unmodifiableList(Arrays.asList(this.labels).subList(0, this.len));
+        return new LabelList(this);
     }
 
     /** @implNote This is a shallow count */
@@ -174,18 +174,20 @@ final class TomlTableBranch implements TomlTableNode {
                 label,
                 this.labels,
                 this.len,
-                (int i) -> {
-                    TomlTableNode node = this.nodes[i];
-                    this.len--;
-                    this.modifyEntryCount(-node.entryCount());
-                    System.arraycopy(this.nodes, i + 1, this.nodes, i, this.len - i);
-                    System.arraycopy(this.labels, i + 1, this.labels, i, this.len - i);
-                    if (node.isBranch()) this.tryUnparent(node.asBranch());
-                    this.tryShrink();
-                    return node;
-                },
+                this::remove,
                 (int ignored) -> null
         );
+    }
+
+    private TomlTableNode remove(int index) {
+        TomlTableNode node = this.nodes[index];
+        this.len--;
+        this.modifyEntryCount(-node.entryCount());
+        System.arraycopy(this.nodes, index + 1, this.nodes, index, this.len - index);
+        System.arraycopy(this.labels, index + 1, this.labels, index, this.len - index);
+        if (node.isBranch()) this.tryUnparent(node.asBranch());
+        this.tryShrink();
+        return node;
     }
 
     private void modifyEntryCount(int mod) {
@@ -299,6 +301,116 @@ final class TomlTableBranch implements TomlTableNode {
             if (!Objects.equals(this.nodes[i], other.nodes[i])) return false;
         }
         return true;
+    }
+
+    //
+
+    private static final class LabelList extends AbstractList<String> implements RandomAccess {
+
+        private final TomlTableBranch parent;
+
+        LabelList(TomlTableBranch parent) {
+            this.parent = parent;
+        }
+
+        //
+
+        @Override
+        public int size() {
+            return this.parent.len;
+        }
+
+        @Override
+        public String get(int index) {
+            return this.parent.labels[index];
+        }
+
+        @Override
+        public Iterator<String> iterator() {
+            return new Iter(this.parent, 0);
+        }
+
+        @Override
+        public ListIterator<String> listIterator(int index) {
+            if (index < 0 || index > this.parent.len) throw new IndexOutOfBoundsException();
+            return new Iter(this.parent, index);
+        }
+
+        //
+
+        private static final class Iter implements ListIterator<String> {
+
+            private final TomlTableBranch parent;
+            private int head;
+            private int removable;
+
+            Iter(TomlTableBranch parent, int head) {
+                this.parent = parent;
+                this.head = head;
+                this.removable = -1;
+            }
+
+            //
+
+
+            @Override
+            public boolean hasNext() {
+                return this.head < this.parent.len;
+            }
+
+            @Override
+            public String next() {
+                int head = this.head;
+                if (head >= this.parent.len) throw new NoSuchElementException();
+                this.removable = head;
+                this.head = head + 1;
+                return this.parent.labels[head];
+            }
+
+            @Override
+            public boolean hasPrevious() {
+                return this.head > 0;
+            }
+
+            @Override
+            public String previous() {
+                int head = this.head;
+                if (head <= 0) throw new NoSuchElementException();
+                this.head = --head;
+                return this.parent.labels[head];
+            }
+
+            @Override
+            public int nextIndex() {
+                return this.head;
+            }
+
+            @Override
+            public int previousIndex() {
+                return this.head - 1;
+            }
+
+            @Override
+            public void remove() {
+                int idx = this.removable;
+                if (idx == -1) throw new IllegalStateException();
+                this.removable = -1;
+                this.head = idx;
+                this.parent.remove(idx);
+            }
+
+            @Override
+            public void set(String s) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public void add(String s) {
+                throw new UnsupportedOperationException();
+            }
+
+        }
+
     }
 
 }

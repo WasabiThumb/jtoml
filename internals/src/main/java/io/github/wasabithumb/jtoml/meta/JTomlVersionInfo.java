@@ -16,68 +16,73 @@
 
 package io.github.wasabithumb.jtoml.meta;
 
+import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.UnknownNullability;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
+import java.io.InputStreamReader;
+import java.lang.annotation.*;
+import java.nio.charset.StandardCharsets;
+import java.util.Properties;
 
 @ApiStatus.Internal
 public final class JTomlVersionInfo {
 
-    private static @UnknownNullability Manifest MANIFEST;
+    private static @UnknownNullability Properties META;
 
-    private static InputStream openManifestStream() throws IOException {
-        InputStream in = JTomlVersionInfo.class.getResourceAsStream("/META-INF/MANIFEST.MF");
-        if (in == null) throw new IllegalStateException("Failed to locate manifest");
+    private static InputStream openMetaStream() throws IOException {
+        InputStream in = JTomlVersionInfo.class.getResourceAsStream("/META-INF/jtoml/meta.properties");
+        if (in == null) throw new IllegalStateException("Failed to locate meta.properties");
         return in;
     }
 
-    private static synchronized Manifest getManifest() {
-        Manifest mf = MANIFEST;
-        if (mf == null) {
-            mf = new Manifest();
-            try (InputStream in = openManifestStream()) {
-                mf.read(in);
-            } catch (IOException e) {
-                throw new IllegalStateException("Failed to read version info", e);
-            }
-            MANIFEST = mf;
+    private static synchronized Properties getMeta() {
+        Properties meta = META;
+        if (meta != null) return meta;
+        meta = new Properties();
+        try (InputStream in = openMetaStream();
+             BufferedReader r = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))
+        ) {
+            meta.load(r);
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to parse meta.properties");
         }
-        return mf;
+        META = meta;
+        return meta;
     }
 
-    private static String getSingleAttribute(String key) {
-        Attributes attrs = getManifest().getMainAttributes();
-        String value = attrs.getValue(key);
-        if (value == null) throw new IllegalStateException("Manifest is missing attribute \"" + key + "\"");
-        return value;
+    private static String getMetaProperty(@Property String property) {
+        Properties meta = getMeta();
+        String value = meta.getProperty(property);
+        return value == null ? "unknown" : value;
     }
 
-    public static String libraryVersion() {
-        return getSingleAttribute("Library-Version");
-    }
-
-    public static String gitCommit() {
-        return getSingleAttribute("Git-Commit");
-    }
-
-    public static String gitBranch() {
-        return getSingleAttribute("Git-Branch");
-    }
 
     public static String derivedVersion() {
-        String base = libraryVersion();
-        String branch = gitBranch();
+        String base = getMetaProperty(Property.LIBRARY_VERSION);
+        String branch = getMetaProperty(Property.VCS_BRANCH);
         if ("master".equals(branch)) return base;
-        String sha = gitCommit();
+        String sha = getMetaProperty(Property.VCS_COMMIT);
         return base + "-" + sha.substring(0, 7);
     }
 
     //
 
     private JTomlVersionInfo() { }
+
+    //
+
+    @Documented
+    @Retention(RetentionPolicy.SOURCE)
+    @Target({ ElementType.FIELD, ElementType.PARAMETER, ElementType.LOCAL_VARIABLE, ElementType.METHOD })
+    @MagicConstant(valuesFromClass = Property.class)
+    private @interface Property {
+        String LIBRARY_VERSION = "library.version";
+        String VCS_BRANCH = "vcs.branch";
+        String VCS_COMMIT = "vcs.commit";
+    }
 
 }

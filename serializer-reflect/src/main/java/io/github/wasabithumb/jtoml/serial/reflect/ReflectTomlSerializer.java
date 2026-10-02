@@ -291,15 +291,11 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
                 builder.set(modelKey, object);
             }
         } else {
-            for (TomlKey tk : table.keys(false)) {
-                TomlValue value = table.get(tk);
-                assert value != null;
-
-                TableTypeModel.Key key = mapper.fromTomlKey(tk);
+            for (TomlTable.Entry<?> entry : table.entries(false)) {
+                TableTypeModel.Key key = mapper.fromTomlKey(entry.key());
                 if (key == null) continue;
-
                 TypeModel<?> valueModel = TypeModel.of(model.elementType(key), modelOptions(this.features));
-                Object object = this.serializeValue(valueModel, value);
+                Object object = this.serializeValue(valueModel, entry.value());
                 builder.set(key, object);
             }
         }

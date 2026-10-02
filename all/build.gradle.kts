@@ -1,8 +1,10 @@
+import tasks.GeneratePackageMetadataTask
 import tasks.PeerResourcesTask
 
 plugins {
     alias(libs.plugins.indra.core)
     alias(libs.plugins.indra.publishing)
+    alias(libs.plugins.indra.git)
 }
 
 description = "All of JToml as a single module"
@@ -99,10 +101,13 @@ tasks.javadoc {
     }
 }
 
-// Collate resources from peers
 val peerResources = tasks.register("peerResources", PeerResourcesTask::class) {
     description = "Collates resources from peer projects"
     fromPeerProjects(peers)
+}
+
+val generatePackageMetadata = tasks.register("generatePackageMetadata", GeneratePackageMetadataTask::class) {
+    description = "Creates the files that will be shipped in META-INF/jtoml"
 }
 
 tasks.processResources {
@@ -116,6 +121,18 @@ tasks.processResources {
         dependsOn(src.tasks.assemble)
         from(src.layout.buildDirectory.dir("classes/java/main"))
     }
+
+    // Add package metadata
+    dependsOn(generatePackageMetadata)
+    into("META-INF/jtoml") {
+        from(generatePackageMetadata)
+    }
+}
+
+tasks.jar {
+    // Add Git-Commit and Git-Branch to manifest
+    indraGit.applyVcsInformationToManifest(manifest)
+    manifest.attributes["Library-Version"] = "${rootProject.version}"
 }
 
 tasks.named<Jar>("sourcesJar") {
