@@ -4,11 +4,139 @@
 ![Maven Central Version](https://img.shields.io/maven-central/v/io.github.wasabithumb/jtoml)
 ![License](https://img.shields.io/badge/license-apache--2.0-blue)
 
-A modular [TOML](https://toml.io/en/v1.1.0) library for Java 8 and above. JToml aims to
-be the ultimate solution for all things TOML, fully recreating its type system with a
-*robust yet permissive API inspired by Gson*. **To get started, check out [the wiki](https://github.com/WasabiThumb/jtoml/wiki).** For a more technical overview, reference the [javadocs](https://javadoc.io/doc/io.github.wasabithumb/jtoml-api).
+JToml is a modular [TOML](https://toml.io/en/v1.1.0) library for Java 8 and above.
+**For a detailed look at all of JToml's features, check out [the wiki](https://github.com/WasabiThumb/jtoml/wiki).**
 
-## Comparison Table
+## Quick Start
+### Using JToml
+<table>
+<tr>
+<th>Language</th>
+<th>Example Code</th>
+</tr>
+<tr>
+<td>Java</td>
+<td>
+
+```java
+JToml toml = JToml.jToml(); // default instance
+TomlTable table = toml.read(Paths.get("src.toml"));
+table.put("w.'x.y'.z", 42);
+toml.write(Path.of("dest.toml"), table);
+```
+
+</td>
+</tr>
+<tr>
+<td>Kotlin (JVM)</td>
+<td>
+
+```kotlin
+val table: TomlTable = KToml.read(Path("src.toml"))
+table["w.'x.y'.z"] = 42
+KToml.write(Path("dest.toml"), table)
+```
+
+</td>
+</tr>
+</table>
+
+### Getting JToml
+Replace `VERSION` with the latest version available
+[from Maven Central](https://repo1.maven.org/maven2/io/github/wasabithumb/jtoml/).
+
+<table>
+<tr>
+<th>Build Script</th>
+<th>Syntax</th>
+</tr>
+<tr>
+<td>Gradle (Groovy DSL)<br><i>build.gradle</i></td>
+<td>
+
+```groovy
+dependencies {
+    // jtoml or jtoml-kotlin and any number of optional modules
+    implementation 'io.github.wasabithumb:jtoml:VERSION'
+
+    // ...or jtoml-all for everything + JPMS support
+    implementation 'io.github.wasabithumb:jtoml-all:VERSION'
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>Gradle (Kotlin DSL)<br><i>build.gradle.kts</i></td>
+<td>
+
+```kotlin
+dependencies {
+    // jtoml or jtoml-kotlin and any number of optional modules
+    implementation("io.github.wasabithumb:jtoml:VERSION")
+
+    // ...or jtoml-all for everything + JPMS support
+    implementation("io.github.wasabithumb:jtoml-all:VERSION")
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>Maven<br><i>pom.xml</i></td>
+<td>
+
+```xml
+<dependencies>
+    <!-- jtoml or jtoml-kotlin and any number of optional modules -->
+    <dependency>
+        <group>io.github.wasabithumb</group>
+        <artifactId>jtoml</artifactId>
+        <version>VERSION</version>
+        <scope>compile</scope>
+    </dependency>
+
+    <!-- ...or jtoml-all for everything + JPMS support -->
+    <dependency>
+        <group>io.github.wasabithumb</group>
+        <artifactId>jtoml-all</artifactId>
+        <version>VERSION</version>
+        <scope>compile</scope>
+    </dependency>
+</dependencies>
+```
+
+</td>
+</tr>
+</table>
+
+> [!TIP]
+> If you are using Gradle's `java-library` plugin,
+> you may want to use the `api` configuration instead of `implementation`.
+> Read [this](https://docs.gradle.org/current/userguide/java_library_plugin.html#sec:java_library_separation)
+> to see if that is the case for your project.
+
+## Why JToml?
+- JToml is feature-complete, actively maintained, and covered by the
+  official test suite.
+- JToml is highly configurable, featuring [dozens of option keys](https://javadoc.io/doc/io.github.wasabithumb/jtoml-api/latest/io/github/wasabithumb/jtoml/option/JTomlOption.html)
+  and an options system designed to grow gracefully.
+- JToml faithfully implements the TOML type system, allowing you to inspect
+  the concrete type of TOML values and automatically coerce primitives.
+- JToml *does not flatten the document* while also allowing access to tables
+  as if they were a flat map. You can create sub-table views and access
+  nested elements from top-level tables.
+- JToml *does not use strings* as its canonical key type. When a string key
+  is used, it is immediately parsed into a ``TomlKey`` object. Working with
+  ``TomlKey`` objects is more optimal and allows unambiguous joining and slicing.
+- JToml is configuration-oriented, ready to be used directly or as a backend
+  for [Configurate](https://github.com/WasabiThumb/jtoml/wiki/Configurate-Integration),
+  [DazzleConf](https://github.com/A248/DazzleConf) and others.
+- JToml is unnecessarily optimized, with some individual optimizations
+  like [RecSup](https://github.com/WasabiThumb/recsup) necessitating their own projects.
+- JToml loves you very much!
+
+### Comparison Table
 <img src="doc/comparisonTable.svg" alt="A table comparing JToml to similar projects"/>
 
 ## Star History
@@ -25,7 +153,7 @@ be the ultimate solution for all things TOML, fully recreating its type system w
 Code and documentation written by core team members will never and have
 never employed  the use of large language models (LLMs) either local or
 remote to any extent. PRs or issues suspected of containing AI-generated text,
-code or graphics may be closed by project maintainers with no additional 
+code or graphics may be closed by project maintainers with no additional
 stated reason.
 
 ## License
