@@ -61,8 +61,10 @@ public final class JTomlVersionInfo {
         return value;
     }
 
+
     public static String derivedVersion() {
         String base = getMetaProperty(Property.LIBRARY_VERSION);
+        if (Boolean.parseBoolean(getMetaProperty(Property.BUILD_CI))) return base + "-ci";
         String branch = getMetaProperty(Property.VCS_BRANCH);
         if ("master".equals(branch)) return base;
         String sha = getMetaProperty(Property.VCS_COMMIT);
@@ -81,6 +83,7 @@ public final class JTomlVersionInfo {
     @MagicConstant(valuesFromClass = Property.class)
     private @interface Property {
         String LIBRARY_VERSION = "library.version";
+        String BUILD_CI = "build.ci";
         String VCS_BRANCH = "vcs.branch";
         String VCS_COMMIT = "vcs.commit";
     }

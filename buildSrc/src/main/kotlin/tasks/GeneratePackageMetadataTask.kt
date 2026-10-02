@@ -13,6 +13,7 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import java.util.Properties
 
 @CacheableTask
@@ -27,6 +28,9 @@ abstract class GeneratePackageMetadataTask : DefaultTask() {
     @get:Input
     protected abstract val gitCommit: Property<String>
 
+    @get:Input
+    protected abstract val ci: Property<Boolean>
+
     @get:InputFile
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val licenseFile: RegularFileProperty
@@ -38,6 +42,7 @@ abstract class GeneratePackageMetadataTask : DefaultTask() {
         this.libraryVersion.convention(this.project.provider { "${this.project.rootProject.version}" })
         this.licenseFile.convention { this.project.rootProject.file("LICENSE.txt") }
         this.outDir.convention(this.project.layout.buildDirectory.dir("tmp/${this.name}"))
+        this.ci.convention(this.project.providers.environmentVariable("CI").map { truthyEnv(it) }.orElse(false))
         val ext = this.project.extensions.findByName("indraGit")
         if (ext == null) {
             this.logger.warn("No indraGit extension, cannot write git info")
@@ -56,7 +61,7 @@ abstract class GeneratePackageMetadataTask : DefaultTask() {
 
         // Copy LICENSE.txt
         val licenseDest = dest.resolve("LICENSE.txt")
-        Files.copy(this.licenseFile.asFile.get().toPath(), licenseDest)
+        Files.copy(this.licenseFile.asFile.get().toPath(), licenseDest, StandardCopyOption.REPLACE_EXISTING)
 
         // Create meta.properties
         val propertiesDest = dest.resolve("meta.properties")
@@ -69,8 +74,13 @@ abstract class GeneratePackageMetadataTask : DefaultTask() {
     private fun createMetaProperties(): Properties {
         val ret = Properties()
         ret.setProperty(PROPERTY_LIBRARY_VERSION, this.libraryVersion.get())
-        ret.setProperty(PROPERTY_VCS_BRANCH, this.gitBranch.get())
-        ret.setProperty(PROPERTY_VCS_COMMIT, this.gitCommit.get())
+        if (this.ci.get()) {
+            ret.setProperty(PROPERTY_BUILD_CI, "true")
+        } else {
+            ret.setProperty(PROPERTY_BUILD_CI, "false")
+            ret.setProperty(PROPERTY_VCS_BRANCH, this.gitBranch.get())
+            ret.setProperty(PROPERTY_VCS_COMMIT, this.gitCommit.get())
+        }
         return ret
     }
 
@@ -79,8 +89,15 @@ abstract class GeneratePackageMetadataTask : DefaultTask() {
     companion object {
 
         private const val PROPERTY_LIBRARY_VERSION = "library.version"
+        private const val PROPERTY_BUILD_CI = "build.ci"
         private const val PROPERTY_VCS_BRANCH = "vcs.branch"
         private const val PROPERTY_VCS_COMMIT = "vcs.commit"
+
+        private fun truthyEnv(value: String?): Boolean {
+            if (value.isNullOrBlank()) return false
+            if ("0" == value) return false
+            return !"false".contentEquals(value, ignoreCase = true)
+        }
 
         // The right thing to do would be to just add indraGit
         // to the buildSrc classpath, but I would rather not
