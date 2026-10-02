@@ -21,7 +21,6 @@ import io.github.wasabithumb.jtoml.key.TomlKey;
 import io.github.wasabithumb.jtoml.value.TomlValue;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
 import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.Unmodifiable;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -48,7 +47,7 @@ public final class TomlDocumentImpl implements TomlDocument {
     //
 
     @Override
-    public @Unmodifiable TomlIssues issues() {
+    public TomlIssues issues() {
         return this.issues;
     }
 
@@ -97,8 +96,13 @@ public final class TomlDocumentImpl implements TomlDocument {
     }
 
     @Override
-    public @Unmodifiable Set<TomlKey> keys(boolean deep) {
+    public Set<TomlKey> keys(boolean deep) {
         return this.backing.keys(deep);
+    }
+
+    @Override
+    public Set<Entry<?>> entries(boolean deep) {
+        return this.backing.entries(deep);
     }
 
     @Override
