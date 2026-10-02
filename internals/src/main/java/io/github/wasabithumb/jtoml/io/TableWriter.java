@@ -431,8 +431,8 @@ public final class TableWriter implements Closeable {
         final PaddingPolicy padding = this.options.get(JTomlOption.PADDING);
         this.out.put('{');
 
-        Set<TomlKey> keys = table.keys(false);
-        if (keys.isEmpty()) {
+        Set<TomlTable.Entry<?>> entries = table.entries(false);
+        if (entries.isEmpty()) {
             this.out.put('}');
             return;
         }
@@ -440,18 +440,15 @@ public final class TableWriter implements Closeable {
         for (int i=0; i < padding.inlineTablePadding(); i++) this.out.put(' ');
 
         boolean first = true;
-        TomlValue next;
-        for (TomlKey key : keys) {
+        for (TomlTable.Entry<?> entry : entries) {
             if (!first) {
                 this.out.put(',');
                 for (int z=0; z < padding.elementPadding(); z++) this.out.put(' ');
             }
             first = false;
-            next = table.get(key);
-            assert next != null;
-            this.out.put(key.toString());
+            this.out.put(entry.key().toString());
             this.out.put(" = ");
-            this.writeAnyValue(next);
+            this.writeAnyValue(entry.value());
         }
 
         for (int i=0; i < padding.inlineTablePadding(); i++) this.out.put(' ');
@@ -483,18 +480,16 @@ public final class TableWriter implements Closeable {
     }
 
     private List<TypedKey> deconstructStratified(TomlTable table) {
-        final Set<TomlKey> all = table.keys(false);
+        final Set<TomlTable.Entry<?>> all = table.entries(false);
         final int count = all.size();
 
         Map<ValueType, List<TomlKey>> map = new EnumMap<>(ValueType.class);
-        for (TomlKey k : all) {
-            TomlValue tv = table.get(k);
-            assert tv != null;
+        for (TomlTable.Entry<?> entry : all) {
             List<TomlKey> list = map.computeIfAbsent(
-                    this.valueTypeOf(tv),
+                    this.valueTypeOf(entry.value()),
                     (ValueType ignored) -> new LinkedList<>()
             );
-            list.add(k);
+            list.add(entry.key());
         }
 
         List<TypedKey> ret = new ArrayList<>(count);
@@ -510,15 +505,13 @@ public final class TableWriter implements Closeable {
     }
 
     private List<TypedKey> deconstructLexOrTime(TomlTable table, boolean time) {
-        final Set<TomlKey> all = table.keys(false);
+        final Set<TomlTable.Entry<?>> all = table.entries(false);
         final int count = all.size();
 
         TypedKey[] buf = new TypedKey[count];
         int head = 0;
-        for (TomlKey k : all) {
-            TomlValue tv = table.get(k);
-            assert tv != null;
-            buf[head++] = new TypedKey(this.valueTypeOf(tv), k);
+        for (TomlTable.Entry<?> entry : all) {
+            buf[head++] = new TypedKey(this.valueTypeOf(entry.value()), entry.key());
         }
 
         if (time) {

@@ -21,7 +21,7 @@ import io.github.wasabithumb.jtoml.key.TomlKey;
 import io.github.wasabithumb.jtoml.value.TomlValue;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.Unmodifiable;
+import org.jetbrains.annotations.UnknownNullability;
 import org.jspecify.annotations.Nullable;
 
 import java.util.*;
@@ -29,11 +29,30 @@ import java.util.*;
 @ApiStatus.Internal
 final class TomlTableImpl implements TomlTable {
 
-    static TomlTableImpl copyOf(TomlTableImpl table) {
-        return new TomlTableImpl(
-                TomlTableBranch.copyOf(table.root),
-                Comments.copyOf(table.comments)
-        );
+    static TomlTableImpl copyOf(TomlTable table) {
+        if (table instanceof TomlTableImpl) {
+            TomlTableImpl qual = (TomlTableImpl) table;
+            return new TomlTableImpl(
+                    TomlTableBranch.copyOf(qual.root),
+                    Comments.copyOf(qual.comments)
+            );
+        } else {
+            TomlTableImpl ret = new TomlTableImpl(
+                    new TomlTableBranch(),
+                    Comments.copyOf(table.comments())
+            );
+            for (TomlTable.Entry<?> entry : table.entries()) {
+                ret.put(entry.key(), entry.value());
+            }
+            return ret;
+        }
+    }
+
+    private static <V extends TomlValue> TomlTable.Entry<V> entryOf(
+            TomlKey key,
+            V value
+    ) {
+        return new EntryImpl<>(key, value);
     }
 
     //
@@ -97,10 +116,17 @@ final class TomlTableImpl implements TomlTable {
     }
 
     @Override
-    public @Unmodifiable Set<TomlKey> keys(boolean deep) {
+    public Set<TomlKey> keys(boolean deep) {
         return deep ?
                 new DeepKeySet(this) :
                 new ShallowKeySet(this.root);
+    }
+
+    @Override
+    public Set<Entry<?>> entries(boolean deep) {
+        return deep ?
+                new DeepEntrySet(this) :
+                new ShallowEntrySet(this.root);
     }
 
     @Override
@@ -196,18 +222,16 @@ final class TomlTableImpl implements TomlTable {
 
     @Override
     public String toString() {
-        Iterator<TomlKey> iter = this.keys(true).iterator();
+        Iterator<TomlTable.Entry<?>> iter = this.entries(true).iterator();
         if (!iter.hasNext()) return "{}";
 
         StringBuilder sb = new StringBuilder();
         sb.append('{');
         while (true) {
-            TomlKey next = iter.next();
-            TomlValue value = this.get(next);
-            if (value == null) throw new ConcurrentModificationException();
-            sb.append(next);
+            TomlTable.Entry<?> next = iter.next();
+            sb.append(next.key());
             sb.append('=');
-            sb.append(value);
+            sb.append(next.value());
             if (!iter.hasNext()) break;
             sb.append(", ");
         }
@@ -233,6 +257,80 @@ final class TomlTableImpl implements TomlTable {
 
     }
 
+    private static abstract class ShallowIterator<T> implements Iterator<T> {
+
+        protected final TomlTableBranch parent;
+        private final Iterator<String> backing;
+
+        ShallowIterator(TomlTableBranch parent) {
+            this.parent = parent;
+            this.backing = parent.keys().iterator();
+        }
+
+        //
+
+        @Override
+        public boolean hasNext() {
+            return this.backing.hasNext();
+        }
+
+        @Override
+        public T next() {
+            return this.adapt(this.backing.next());
+        }
+
+        @Override
+        public void remove() {
+            this.backing.remove();
+        }
+
+        protected abstract T adapt(String key);
+
+        //
+
+        static final class OfKeys extends ShallowIterator<TomlKey> {
+
+            OfKeys(TomlTableBranch parent) {
+                super(parent);
+            }
+
+            @Override
+            protected TomlKey adapt(String key) {
+                return TomlKey.literal(key);
+            }
+
+        }
+
+        static final class OfEntries extends ShallowIterator<TomlTable.Entry<?>> {
+
+            OfEntries(TomlTableBranch parent) {
+                super(parent);
+            }
+
+            @Override
+            protected Entry<?> adapt(String key) {
+                TomlTableNode node = this.parent.get(key);
+                if (node == null) throw new ConcurrentModificationException();
+                TomlValue value;
+                if (node.isLeaf()) {
+                    value = node.asLeaf().value();
+                } else {
+                    TomlTableBranch branch = node.asBranch();
+                    TomlValue attached = branch.attachedValue;
+                    if (attached != null) {
+                        value = attached;
+                    } else {
+                        value = new TomlTableImpl(branch);
+                        branch.attachedValue = value;
+                    }
+                }
+                return entryOf(TomlKey.literal(key), value);
+            }
+
+        }
+
+    }
+
     private static final class ShallowKeySet extends AbstractSet<TomlKey> {
 
         private final TomlTableBranch parent;
@@ -249,8 +347,8 @@ final class TomlTableImpl implements TomlTable {
         }
 
         @Override
-        public Iter iterator() {
-            return new Iter(this.parent.keys().iterator());
+        public Iterator<TomlKey> iterator() {
+            return new ShallowIterator.OfKeys(this.parent);
         }
 
         @Override
@@ -261,26 +359,220 @@ final class TomlTableImpl implements TomlTable {
             return this.parent.get(key.get(0)) != null;
         }
 
+        @Override
+        public void clear() {
+            this.parent.clear();
+        }
+
+        @Override
+        public boolean remove(Object o) {
+            if (!(o instanceof TomlKey)) return false;
+            TomlKey key = (TomlKey) o;
+            if (key.size() != 1) return false;
+            return this.parent.remove(key.get(0)) != null;
+        }
+
+    }
+
+    private static final class ShallowEntrySet extends AbstractSet<TomlTable.Entry<?>> {
+
+        private final TomlTableBranch parent;
+
+        ShallowEntrySet(TomlTableBranch parent) {
+            this.parent = parent;
+        }
+
         //
 
-        private static final class Iter implements Iterator<TomlKey> {
+        @Override
+        public int size() {
+            return this.parent.keyCount();
+        }
 
+        @Override
+        public Iterator<Entry<?>> iterator() {
+            return new ShallowIterator.OfEntries(this.parent);
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            if (!(o instanceof TomlTable.Entry<?>)) return false;
+            TomlTable.Entry<?> entry = (TomlTable.Entry<?>) o;
+            TomlKey key = entry.key();
+            if (key.size() != 1) return false;
+            TomlTableNode node = this.parent.get(key.get(0));
+            if (node == null) return false;
+            if (node.isLeaf()) return Objects.equals(entry.value(), node.asLeaf().value());
+            return Objects.equals(entry.value(), node.asBranch().attachedValue);
+        }
+
+        @Override
+        public void clear() {
+            this.parent.clear();
+        }
+
+        @Override
+        public boolean remove(Object o) {
+            if (!(o instanceof TomlTable.Entry<?>)) return false;
+            TomlTable.Entry<?> entry = (TomlTable.Entry<?>) o;
+            TomlKey key = entry.key();
+            if (key.size() != 1) return false;
+            TomlTableNode node = this.parent.get(key.get(0));
+            if (node == null) return false;
+            if (!Objects.equals(
+                    entry.value(),
+                    node.isLeaf() ?
+                            node.asLeaf().value() :
+                            node.asBranch().attachedValue
+            )) return false;
+            this.parent.remove(key.get(0));
+            return true;
+        }
+
+    }
+
+    private static abstract class DeepIterator<T> implements Iterator<T> {
+
+        private final Queue<Sub<T>> queue;
+
+        DeepIterator(TomlTableImpl parent) {
+            this.queue = new ArrayDeque<>();
+            this.queue.add(new Sub<>(this, TomlKey.literal(), parent.root));
+        }
+
+        //
+
+        private @Nullable Sub<T> acquire() {
+            Sub<T> ret = this.queue.peek();
+            while (ret != null) {
+                if (ret.hasNext()) return ret;
+                this.queue.poll();
+                ret = this.queue.peek();
+            }
+            return null;
+        }
+
+        @Override
+        public boolean hasNext() {
+            for (Sub<T> sub : this.queue) {
+                if (sub.hasNext()) return true;
+            }
+            return false;
+        }
+
+        @Override
+        public T next() {
+            Sub<T> sub = this.acquire();
+            if (sub == null) throw new NoSuchElementException();
+            return sub.next();
+        }
+
+        @Override
+        public void remove() {
+            Sub<T> sub = this.queue.peek();
+            if (sub == null) throw new NoSuchElementException();
+            sub.remove();
+        }
+
+        protected abstract T adapt(TomlKey key, TomlValue value);
+
+        //
+
+        private static final class Sub<T> implements Iterator<T> {
+
+            private final DeepIterator<T> parent;
+            private final TomlKey prefix;
+            private final TomlTableBranch branch;
             private final Iterator<String> backing;
+            private volatile boolean churnOk;
+            private @UnknownNullability String churnLabel;
+            private @UnknownNullability TomlValue churnValue;
 
-            Iter(Iterator<String> backing) {
-                this.backing = backing;
+            Sub(
+                    DeepIterator<T> parent,
+                    TomlKey prefix,
+                    TomlTableBranch branch
+            ) {
+                this.parent = parent;
+                this.prefix = prefix;
+                this.branch = branch;
+                this.backing = branch.keys().iterator();
             }
 
             //
 
-            @Override
-            public boolean hasNext() {
-                return this.backing.hasNext();
+            @Contract(mutates = "this")
+            private void churn() {
+                if (this.churnOk) return;
+
+                String label;
+                TomlTableNode node;
+
+                while (this.backing.hasNext()) {
+                    label = this.backing.next();
+                    node = this.branch.get(label);
+                    if (node == null) continue;
+                    if (node.isBranch()) {
+                        this.parent.queue.add(new Sub<>(
+                                this.parent,
+                                TomlKey.join(this.prefix, TomlKey.literal(label)),
+                                node.asBranch()
+                        ));
+                        continue;
+                    }
+                    this.churnOk = true;
+                    this.churnLabel = label;
+                    this.churnValue = node.asLeaf().value();
+                    break;
+                }
             }
 
             @Override
-            public TomlKey next() {
-                return TomlKey.literal(this.backing.next());
+            public boolean hasNext() {
+                this.churn();
+                return this.churnOk;
+            }
+
+            @Override
+            public T next() {
+                this.churn();
+                if (!this.churnOk) throw new NoSuchElementException();
+                this.churnOk = false;
+                return this.parent.adapt(
+                        TomlKey.join(this.prefix, TomlKey.literal(this.churnLabel)),
+                        this.churnValue
+                );
+            }
+
+            @Override
+            public void remove() {
+                this.backing.remove();
+            }
+
+        }
+
+        static final class OfKeys extends DeepIterator<TomlKey> {
+
+            OfKeys(TomlTableImpl parent) {
+                super(parent);
+            }
+
+            @Override
+            protected TomlKey adapt(TomlKey key, TomlValue ignored) {
+                return key;
+            }
+
+        }
+
+        static final class OfEntries extends DeepIterator<TomlTable.Entry<?>> {
+
+            OfEntries(TomlTableImpl parent) {
+                super(parent);
+            }
+
+            @Override
+            protected Entry<?> adapt(TomlKey key, TomlValue value) {
+                return entryOf(key, value);
             }
 
         }
@@ -310,106 +602,83 @@ final class TomlTableImpl implements TomlTable {
 
         @Override
         public Iterator<TomlKey> iterator() {
-            return new Iter(this.parent.root);
+            return new DeepIterator.OfKeys(this.parent);
+        }
+
+    }
+
+    private static final class DeepEntrySet extends AbstractSet<TomlTable.Entry<?>> {
+
+        private final TomlTableImpl parent;
+
+        DeepEntrySet(TomlTableImpl parent) {
+            this.parent = parent;
         }
 
         //
 
-        private static final class Iter implements Iterator<TomlKey> {
+        @Override
+        public int size() {
+            return this.parent.size();
+        }
 
-            private final Queue<SubIter> queue;
+        @Override
+        public Iterator<Entry<?>> iterator() {
+            return new DeepIterator.OfEntries(this.parent);
+        }
 
-            Iter(TomlTableBranch branch) {
-                this.queue = new LinkedList<>();
-                this.queue.add(new SubIter(TomlKey.literal(), branch, this.queue));
-            }
+        @Override
+        public boolean contains(Object o) {
+            if (!(o instanceof TomlTable.Entry<?>)) return false;
+            TomlTable.Entry<?> entry = (TomlTable.Entry<?>) o;
+            return Objects.equals(entry.value(), this.parent.get(entry.key()));
+        }
 
-            //
+    }
 
-            private @Nullable SubIter acquire() {
-                SubIter ret = this.queue.peek();
-                while (ret != null) {
-                    if (ret.hasNext()) return ret;
-                    this.queue.poll();
-                    ret = this.queue.peek();
-                }
-                return null;
-            }
+    private static final class EntryImpl<V extends TomlValue> implements TomlTable.Entry<V> {
 
-            @Override
-            public boolean hasNext() {
-                return this.acquire() != null;
-            }
+        private final TomlKey key;
+        private final V value;
 
-            @Override
-            public TomlKey next() {
-                SubIter sub = this.acquire();
-                if (sub == null) throw new NoSuchElementException();
-                return sub.next();
-            }
+        EntryImpl(
+                TomlKey key,
+                V value
+        ) {
+            this.key = key;
+            this.value = value;
+        }
 
-            //
+        //
 
-            private static final class SubIter implements Iterator<TomlKey> {
+        @Override
+        public TomlKey key() {
+            return this.key;
+        }
 
-                private final TomlKey prefix;
-                private final TomlTableBranch branch;
-                private final Iterator<String> backing;
-                private final Queue<SubIter> queue;
-                private @Nullable TomlKey head;
+        @Override
+        public V value() {
+            return this.value;
+        }
 
-                SubIter(
-                        TomlKey prefix,
-                        TomlTableBranch branch,
-                        Queue<SubIter> queue
-                ) {
-                    this.prefix = prefix;
-                    this.branch = branch;
-                    this.backing = branch.keys().iterator();
-                    this.queue = queue;
-                }
+        @Override
+        public int hashCode() {
+            return Objects.hash(this.key, this.value);
+        }
 
-                //
+        @Override
+        public boolean equals(Object obj) {
+            if (!(obj instanceof TomlTable.Entry<?>)) return false;
+            TomlTable.Entry<?> other = (TomlTable.Entry<?>) obj;
+            return this.key.equals(other.key()) &&
+                    this.value.equals(other.value());
+        }
 
-                private void compute() {
-                    if (this.head != null) return;
-
-                    String label;
-                    TomlKey key;
-                    TomlTableNode node;
-
-                    while (this.backing.hasNext()) {
-                        label = this.backing.next();
-                        key = TomlKey.join(this.prefix, TomlKey.literal(label));
-                        node = this.branch.get(label);
-                        if (node == null) throw new ConcurrentModificationException();
-                        if (node.isBranch()) {
-                            this.queue.add(new SubIter(key, node.asBranch(), this.queue));
-                        } else if (node.isLeaf()) {
-                            this.head = key;
-                            break;
-                        }
-                    }
-                }
-
-                @Override
-                public boolean hasNext() {
-                    this.compute();
-                    return this.head != null;
-                }
-
-                @Override
-                public TomlKey next() {
-                    this.compute();
-                    TomlKey ret = this.head;
-                    this.head = null;
-                    if (ret == null)
-                        throw new NoSuchElementException();
-                    return ret;
-                }
-
-            }
-
+        @Override
+        public String toString() {
+            return "Entry{key=" + this.key +
+                    ", value=" + this.value +
+                    "}";
         }
 
     }
