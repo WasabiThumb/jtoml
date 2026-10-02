@@ -22,7 +22,7 @@ JToml is a modular [TOML](https://toml.io/en/v1.1.0) library for Java 8 and abov
 JToml toml = JToml.jToml(); // default instance
 TomlTable table = toml.read(Paths.get("src.toml"));
 table.put("w.'x.y'.z", 42);
-toml.write(Path.of("dest.toml"), table);
+toml.write(Paths.get("dest.toml"), table);
 ```
 
 </td>
