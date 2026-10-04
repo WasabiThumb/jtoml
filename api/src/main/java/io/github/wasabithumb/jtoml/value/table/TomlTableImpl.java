@@ -216,8 +216,19 @@ final class TomlTableImpl implements TomlTable {
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof TomlTableImpl &&
-                this.root.equals(((TomlTableImpl) obj).root);
+        if (!(obj instanceof TomlTable)) return false;
+        if (obj instanceof TomlTableImpl) return this.root.equals(((TomlTableImpl) obj).root);
+        TomlTable other = (TomlTable) obj;
+        int size = this.root.entryCount();
+        if (size != other.size()) return false;
+        Iterator<TomlTable.Entry<?>> a = this.entries(true).iterator();
+        Iterator<TomlTable.Entry<?>> b = this.entries(true).iterator();
+        for (int i = 0; i < size; i++) {
+            TomlTable.Entry<?> ae = a.next();
+            TomlTable.Entry<?> be = b.next();
+            if (!ae.equals(be)) return false;
+        }
+        return true;
     }
 
     @Override
