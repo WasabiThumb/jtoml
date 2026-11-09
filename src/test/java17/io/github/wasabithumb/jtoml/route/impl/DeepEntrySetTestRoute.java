@@ -22,6 +22,8 @@ import io.github.wasabithumb.jtoml.route.TestRoute;
 import io.github.wasabithumb.jtoml.value.TomlValue;
 import io.github.wasabithumb.jtoml.value.table.TomlTable;
 
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -42,6 +44,9 @@ public final class DeepEntrySetTestRoute implements TestRoute {
         // Copy the document before mutating, just in case test routes are ever ran multiple times
         TomlTable table = TomlTable.copyOf(this.document);
         assertEquals(10, table.size());
+
+        // Still make sure the new table has the same entry set as the original
+        match(this.document.entries(), table.entries());
 
         // Remove some entries
         Set<TomlTable.Entry<?>> entries = table.entries();
@@ -69,4 +74,19 @@ public final class DeepEntrySetTestRoute implements TestRoute {
         TomlTable holidays = v.asTable();
         assertEquals(4, holidays.size());
     }
+
+    private void match(Collection<TomlTable.Entry<?>> a, Collection<TomlTable.Entry<?>> b) {
+        int al = a.size();
+        int bl = b.size();
+        assertEquals(al, bl);
+
+        Iterator<TomlTable.Entry<?>> ai = a.iterator();
+        Iterator<TomlTable.Entry<?>> bi = b.iterator();
+        for (int i = 0; i < al; i++) {
+            assertTrue(ai.hasNext());
+            assertTrue(bi.hasNext());
+            assertEquals(ai.next(), bi.next());
+        }
+    }
+
 }

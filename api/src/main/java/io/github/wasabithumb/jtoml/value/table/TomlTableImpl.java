@@ -466,7 +466,7 @@ final class TomlTableImpl implements TomlTable {
         @Override
         public boolean hasNext() {
             for (Sub<T> sub : this.queue) {
-                if (sub.hasNext()) return true;
+                if (sub.churn()) return true;
             }
             return false;
         }
@@ -512,10 +512,17 @@ final class TomlTableImpl implements TomlTable {
 
             //
 
+            /**
+             * Returns true if ANY SUB-ITERATORS touched
+             * by this method has a value ready. To check
+             * if this iterator specifically has a value ready,
+             * use the churnOk field.
+             */
             @Contract(mutates = "this")
-            private void churn() {
-                if (this.churnOk) return;
+            private boolean churn() {
+                if (this.churnOk) return true;
 
+                boolean anyOk = false;
                 String label;
                 TomlTableNode node;
 
@@ -524,18 +531,23 @@ final class TomlTableImpl implements TomlTable {
                     node = this.branch.get(label);
                     if (node == null) continue;
                     if (node.isBranch()) {
-                        this.parent.queue.add(new Sub<>(
+                        Sub<T> sub = new Sub<>(
                                 this.parent,
                                 TomlKey.join(this.prefix, TomlKey.literal(label)),
                                 node.asBranch()
-                        ));
+                        );
+                        anyOk |= sub.churn();
+                        this.parent.queue.add(sub);
                         continue;
                     }
                     this.churnOk = true;
                     this.churnLabel = label;
                     this.churnValue = node.asLeaf().value();
+                    anyOk = true;
                     break;
                 }
+
+                return anyOk;
             }
 
             @Override
