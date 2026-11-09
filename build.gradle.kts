@@ -3,7 +3,7 @@ import tasks.FetchTestsTask
 allprojects {
     apply(plugin = "java-library")
     group = "io.github.wasabithumb"
-    version = "1.8.2"
+    version = "1.8.3"
 
     // Optimize compilation
     tasks.withType(JavaCompile::class).configureEach {

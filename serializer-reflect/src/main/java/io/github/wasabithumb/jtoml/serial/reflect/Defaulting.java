@@ -153,6 +153,7 @@ public @interface Defaulting {
         boolean value();
     }
 
+    @ApiStatus.AvailableSince("1.8.3")
     @Documented
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.FIELD, ElementType.METHOD})
