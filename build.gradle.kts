@@ -6,7 +6,7 @@ allprojects {
     version = "1.8.2"
 
     // Optimize compilation
-    tasks.withType(JavaCompile::class) {
+    tasks.withType(JavaCompile::class).configureEach {
         options.isFork = true
     }
 }
