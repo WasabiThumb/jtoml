@@ -32,6 +32,7 @@ import org.jetbrains.annotations.Unmodifiable;
 import org.jspecify.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Function;
 
 @ApiStatus.Internal
 public interface TableTypeModel<T> extends TypeModel<T> {
@@ -109,7 +110,10 @@ public interface TableTypeModel<T> extends TypeModel<T> {
             return false;
         }
 
-        default @Nullable Object defaultValue() throws UnsupportedOperationException {
+        default @Nullable Object defaultValue(
+                TypeModelOptions typeModelOptions,
+                Function<TableTypeModel<?>, Object> fromEmptyTable
+        ) throws UnsupportedOperationException {
             throw new UnsupportedOperationException();
         }
 

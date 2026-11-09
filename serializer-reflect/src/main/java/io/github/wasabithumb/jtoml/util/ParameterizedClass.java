@@ -22,6 +22,7 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
@@ -38,6 +39,10 @@ public final class ParameterizedClass<T> {
     @Contract("_ -> new")
     public static ParameterizedClass<?> of(Field f) {
         return new ParameterizedClass<>(f.getType(), f.getGenericType());
+    }
+
+    public static ParameterizedClass<?> ofReturn(Method m) {
+        return new ParameterizedClass<>(m.getReturnType(), m.getGenericReturnType());
     }
 
     @Contract("_ -> new")

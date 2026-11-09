@@ -258,8 +258,8 @@ final class PojoTableTypeModel<T> extends AbstractTableTypeModel<T> {
         //
 
         @Override
-        protected Class<?> typeClassOf(Field member) {
-            return member.getType();
+        protected ParameterizedClass<?> typeClassOf(Field member) {
+            return ParameterizedClass.of(member);
         }
 
         @Override

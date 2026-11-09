@@ -265,6 +265,7 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
             TableTypeModel<E> model,
             TomlTable table
     ) {
+        TypeModelOptions mo = modelOptions(this.features);
         TableTypeModel.Mapper mapper = model.mapper(this.defaultConvention);
         TableTypeModel.Builder<E> builder = model.create();
         Map<TomlKey, TableTypeModel.Key> universe = mapper.universe();
@@ -281,12 +282,12 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
                                         " does not contain key " + entry.getKey()
                         );
                     }
-                    Object defaultValue = modelKey.defaultValue();
+                    Object defaultValue = modelKey.defaultValue(mo, this::fromEmptyTable);
                     if (defaultValue != null) builder.set(modelKey, defaultValue);
                     continue;
                 }
 
-                TypeModel<?> valueModel = TypeModel.of(model.elementType(modelKey), modelOptions(this.features));
+                TypeModel<?> valueModel = TypeModel.of(model.elementType(modelKey), mo);
                 Object object = this.serializeValue(valueModel, value);
                 builder.set(modelKey, object);
             }
@@ -294,7 +295,7 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
             for (TomlTable.Entry<?> entry : table.entries(false)) {
                 TableTypeModel.Key key = mapper.fromTomlKey(entry.key());
                 if (key == null) continue;
-                TypeModel<?> valueModel = TypeModel.of(model.elementType(key), modelOptions(this.features));
+                TypeModel<?> valueModel = TypeModel.of(model.elementType(key), mo);
                 Object object = this.serializeValue(valueModel, entry.value());
                 builder.set(key, object);
             }
@@ -360,14 +361,15 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
             TableTypeModel<E> model,
             E value
     ) {
+        TypeModelOptions mo = modelOptions(this.features);
         TomlTable ret = TomlTable.create();
 
         Object next;
         TomlValue nextValue;
         for (TableTypeModel.Key key : model.keys(value, this.defaultConvention)) {
-            TypeModel<?> valueModel = TypeModel.of(model.elementType(key), modelOptions(this.features));
+            TypeModel<?> valueModel = TypeModel.of(model.elementType(key), mo);
             next = model.get(value, key);
-            if (key.isDefaulting() && Objects.equals(next, key.defaultValue())) continue;
+            if (this.keyValueIsDefault(key, next)) continue;
             if (next == null) {
                 throw new IllegalStateException(
                         "Value for key " + key + " in instance of serializable type " +
@@ -392,6 +394,18 @@ public final class ReflectTomlSerializer<T> implements TomlSerializer.Symmetric<
 
         model.applyTableComments(ret.comments());
         return ret;
+    }
+
+    private boolean keyValueIsDefault(TableTypeModel.Key key, @Nullable Object value) {
+        if (!key.isDefaulting()) return false;
+        final Object marker = this;
+        Object defaultValue = key.defaultValue(modelOptions(this.features), (ignored) -> marker);
+        if (marker == defaultValue) return true;
+        return Objects.equals(defaultValue, value);
+    }
+
+    private Object fromEmptyTable(TableTypeModel<?> model) {
+        return this.serializeTable(model, TomlTable.create());
     }
 
     //
