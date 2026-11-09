@@ -213,8 +213,8 @@ final class RecordTableTypeModel<T> extends AbstractTableTypeModel<T> {
         //
 
         @Override
-        protected Class<?> typeClassOf(Method member) {
-            return member.getReturnType();
+        protected ParameterizedClass<?> typeClassOf(Method member) {
+            return ParameterizedClass.ofReturn(member);
         }
 
         @Override

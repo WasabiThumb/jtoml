@@ -23,6 +23,9 @@ import io.github.wasabithumb.jtoml.key.TomlKey;
 import io.github.wasabithumb.jtoml.key.convention.KeyConvention;
 import io.github.wasabithumb.jtoml.serial.reflect.Convention;
 import io.github.wasabithumb.jtoml.serial.reflect.Defaulting;
+import io.github.wasabithumb.jtoml.serial.reflect.model.TypeModel;
+import io.github.wasabithumb.jtoml.serial.reflect.model.TypeModelOptions;
+import io.github.wasabithumb.jtoml.util.ParameterizedClass;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jspecify.annotations.Nullable;
@@ -32,6 +35,7 @@ import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -112,7 +116,7 @@ abstract class AbstractTableTypeModel<T> implements TableTypeModel<T> {
 
         //
 
-        protected abstract Class<?> typeClassOf(M member);
+        protected abstract ParameterizedClass<?> typeClassOf(M member);
 
         protected abstract @Nullable Object nonSpecificDefault(Class<?> type);
 
@@ -122,10 +126,14 @@ abstract class AbstractTableTypeModel<T> implements TableTypeModel<T> {
         }
 
         @Override
-        public @Nullable Object defaultValue() throws UnsupportedOperationException {
+        public @Nullable Object defaultValue(
+                TypeModelOptions typeModelOptions,
+                Function<TableTypeModel<?>, Object> fromEmptyTable
+        ) throws UnsupportedOperationException {
             Annotation annotation = this.defaultingAnnotation;
             if (annotation == null) throw new UnsupportedOperationException();
-            Class<?> typeClass = this.typeClassOf(this.member);
+            ParameterizedClass<?> pTypeClass = this.typeClassOf(this.member);
+            Class<?> typeClass = pTypeClass.raw();
 
             if (annotation instanceof Defaulting.ToInt) {
                 Defaulting.ToInt qual = (Defaulting.ToInt) annotation;
@@ -174,6 +182,18 @@ abstract class AbstractTableTypeModel<T> implements TableTypeModel<T> {
                 } else {
                     throw new IllegalStateException(
                             "@Defaulting.ToString cannot be applied to element of type " +
+                                    typeClass.getName() + " (" + this.member + ")"
+                    );
+                }
+            } else if (annotation instanceof Defaulting.ToEmpty) {
+                TypeModel<?> tm = TypeModel.of(pTypeClass, typeModelOptions);
+                if (tm.isTable()) {
+                    return fromEmptyTable.apply(tm.asTable());
+                } else if (tm.isArray()) {
+                    return tm.asArray().createNew(0);
+                } else {
+                    throw new IllegalStateException(
+                            "@Defaulting.ToEmpty cannot be applied to element of type " +
                                     typeClass.getName() + " (" + this.member + ")"
                     );
                 }

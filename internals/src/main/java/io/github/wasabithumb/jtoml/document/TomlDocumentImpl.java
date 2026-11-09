@@ -125,4 +125,20 @@ public final class TomlDocumentImpl implements TomlDocument {
         return this.backing.remove(key);
     }
 
+    @Override
+    public int hashCode() {
+        return this.backing.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof TomlTable &&
+                this.backing.equals(obj);
+    }
+
+    @Override
+    public String toString() {
+        return this.backing.toString();
+    }
+
 }

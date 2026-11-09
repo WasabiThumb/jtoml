@@ -28,7 +28,14 @@ import java.lang.annotation.*;
  *     none of its fields/components have to exist in the source document.
  * </p>
  * <p>
- *     When an optional specific subtype is used, a default value may be specified.
+ *     The subtype {@link ToEmpty @Defaulting.ToEmpty} is reserved for table and array types.
+ *     Unlike the base {@link Defaulting @Defaulting} annotation, this will replace missing keys
+ *     with an empty array or table rather than {@code null}. If other state demands that a table generated
+ *     this way has a certain key, that expectation will fail (its keys are not automatically marked
+ *     as defaulting).
+ * </p>
+ * <p>
+ *     When another optional specific subtype is used, a default value may be specified.
  *     This covers all types which may be used as an annotation parameter per
  *     JVM restrictions:
  * </p>
@@ -145,5 +152,11 @@ public @interface Defaulting {
     @interface ToBool {
         boolean value();
     }
+
+    @ApiStatus.AvailableSince("1.8.3")
+    @Documented
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target({ElementType.FIELD, ElementType.METHOD})
+    @interface ToEmpty { }
 
 }
